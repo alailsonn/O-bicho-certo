@@ -1,13 +1,13 @@
+
 name: Testar Coletor O Bicho Certo
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 */3 * * *'
+    - cron: "0 */3 * * *"
 
 permissions:
   contents: write
-
 
 jobs:
   testar-coletor:
@@ -20,7 +20,7 @@ jobs:
       - name: Preparar Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Instalar bibliotecas
         run: pip install -r requirements.txt
@@ -30,10 +30,7 @@ jobs:
 
       - name: Conferir resultados
         run: |
-          python -c "import json; dados=json.load(open('data/results.json')); print('Total de registros:', len(dados))"
-
-      - name: Mostrar resultados coletados
-        run: python -m json.tool data/results.json
+          python -m json.tool data/results.json
 
       - name: Salvar resultados no GitHub
         run: |

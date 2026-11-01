@@ -2,6 +2,8 @@ name: Testar Coletor O Bicho Certo
 
 on:
   workflow_dispatch:
+  schedule:
+     - cron: '0*/3***'
 
 permissions:
   contents: write

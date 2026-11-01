@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   testar-coletor:
@@ -32,3 +32,12 @@ jobs:
       - name: Mostrar resultados coletados
         run: |
           python -m json.tool data/results.json
+- name: Salvar resultados no GitHub
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/results.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Atualizar resultados coletados"
+            git push
+          fi

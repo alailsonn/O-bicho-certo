@@ -116,7 +116,7 @@ async function loadPublicHistory(){
   const response=await fetch('data/results.json?ts='+Date.now(),{cache:'no-store'});
   if(!response.ok)throw new Error('HTTP '+response.status);
   const rows=await response.json();if(!Array.isArray(rows))throw new Error('Formato inválido');
-  publicDb=rows.filter(r=>/^\d{4}-\d{2}-\d{2}$/.test(r.date)&&typeof r.time === ´string´ && Array.isArray(r.p) && r.p.length === 5 && r.pevery(n => /^\d
+  publicDb=rows.filter(r=>/^\d{4}-\d{2}-\d{2}$/.test(r.date)&&typeof r.time === ´string´ && Array.isArray(r.p) && r.p.length === 5 && r.pevery(n => /^\d{4}$/ .test(Spring(n))));
   $('syncStatus').textContent=publicDb.length?`${publicDb.length} extrações públicas carregadas. Histórico publicado conforme fontes verificadas.`:'Histórico público ainda sem registros verificados. É possível importar CSV ou cadastrar manualmente.';
  }catch(err){$('syncStatus').textContent='Não foi possível carregar o histórico público. Dados locais continuam disponíveis.';}
  render();

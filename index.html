@@ -1,4 +1,3 @@
-```
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -17,7 +16,7 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 <header><div class="brand"><div class="logo">🐾</div><div><h1>O BICHO CERTO</h1><p>Análise estatística • Loteria dos Sonhos / LOTECE</p></div></div></header>
 <main>
 <div class="notice"><b>Estatística, não previsão:</b> frequências e atrasos descrevem resultados passados. Cada extração é independente; um grupo repetido ou atrasado não ganha maior probabilidade no próximo sorteio. Este painel é independente e não recebe apostas.</div>
-<nav><button class="tab active" data-tab="dashboard">Painel</button><button class="tab" data-tab="base">Cadastrar / importar</button><button class="tab" data-tab="ajuda">Como usar</button></nav>
+<nav><button class="tab active" data-tab="dashboard">Painel</button><button class="tab" data-tab="primeiro">🎯 1º Prêmio</button><button class="tab" data-tab="base">Cadastrar / importar</button><button class="tab" data-tab="ajuda">Como usar</button></nav>
 
 <section id="dashboard">
 <div class="panel" style="border-color:#39785d">
@@ -52,6 +51,17 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 </div>
 <div class="panel"><h2>Comparativo entre horários</h2><div id="compare"></div></div>
 <div class="panel"><h2>Resultados da seleção</h2><div id="resultTable" class="scroll"></div></div>
+</section>
+
+<section id="primeiro" class="hidden">
+<div class="panel"><h2>🎯 Análise dos grupos no 1º prêmio</h2><p class="muted">Ranking histórico, frequência e tempo sem aparecer. Não é previsão nem garantia de resultado: cada sorteio é independente.</p>
+<div class="row"><div><label class="small" for="firstPeriod">Período</label><select id="firstPeriod"><option value="all">Todo o histórico</option><option value="30">Últimos 30 dias</option><option value="15">Últimos 15 dias</option><option value="7">Últimos 7 dias</option></select></div><div><label class="small" for="firstTime">Extração</label><select id="firstTime"><option value="all">Todas as extrações</option><option value="11:00">Manhã</option><option value="14:00">Tarde</option><option value="15:45">Tarde II</option><option value="19:00">Noite</option></select></div></div>
+<p class="hint" id="firstSummary"></p></div>
+<div class="grid"><div class="card metric"><small>1º prêmios analisados</small><strong id="firstTotal">0</strong></div><div class="card metric"><small>Grupo mais frequente</small><strong id="firstLeader">—</strong><span class="small" id="firstLeaderInfo">Sem dados</span></div><div class="card metric"><small>Grupos ainda ausentes</small><strong id="firstAbsent">25</strong></div><div class="card metric"><small>Grupos observados</small><strong id="firstSeen">0</strong></div></div>
+<div class="two"><div class="panel"><h2>Top 5 por frequência no 1º prêmio</h2><div id="firstTop"></div></div><div class="panel"><h2>Grupos há mais extrações sem aparecer</h2><div id="firstLate"></div></div></div>
+<div class="panel"><h2>Ranking dos 25 grupos — apenas 1º prêmio</h2><div id="firstRanking" class="scroll"></div></div>
+<div class="panel"><h2>Últimos primeiros prêmios da seleção</h2><div id="firstRecent" class="scroll"></div></div>
+<p class="hint">Atraso significa quantidade de extrações analisadas desde a última ocorrência. Não aumenta a chance do grupo no próximo sorteio. Com poucos registros, os indicadores são especialmente instáveis.</p>
 </section>
 
 <section id="base" class="hidden">
@@ -97,7 +107,31 @@ function horarioCompativel(valor, horario) {
   };
   return valor === horario || valor === nomes[horario];
 }
-function render(){let rows=chosen(),pr=selectedPrizes(rows),gm=freq(pr,x=>group(x.n)),dm=freq(pr,x=>String(x.n).slice(-2)),top=Object.entries(gm).sort((a,b)=>b[1]-a[1])[0],seen=new Set(Object.keys(gm).map(Number));
+function firstRows(){
+ let rows=[...new Map([...publicDb,...db].map(x=>[x.date+'|'+normalizeTime(x.time),x])).values()];
+ const period=$('firstPeriod').value, time=$('firstTime').value;
+ if(period!=='all'&&rows.length){const latest=rows.reduce((a,x)=>x.date>a?x.date:a,rows[0].date);const end=new Date(latest+'T12:00:00');end.setDate(end.getDate()-Number(period)+1);const min=end.toISOString().slice(0,10);rows=rows.filter(x=>x.date>=min&&x.date<=latest)}
+ if(time!=='all')rows=rows.filter(x=>horarioCompativel(x.time,time));
+ const order={'11:00':0,'14:00':1,'15:45':2,'19:00':3};
+ return rows.filter(r=>Array.isArray(r.p)&&r.p.length===5).sort((a,b)=>a.date.localeCompare(b.date)||(order[normalizeTime(a.time)]??9)-(order[normalizeTime(b.time)]??9));
+}
+function normalizeTime(t){return ({'Manhã':'11:00','Tarde':'14:00','Tarde II':'15:45','Noite':'19:00'})[t]||t}
+function renderFirst(){
+ const rows=firstRows(),counts=Array(26).fill(0),last=Array(26).fill(-1);
+ rows.forEach((r,i)=>{const g=group(r.p[0]);counts[g]++;last[g]=i});
+ const stats=Array.from({length:25},(_,i)=>{const g=i+1;return {g,count:counts[g],delay:last[g]===-1?null:rows.length-1-last[g],last:last[g]===-1?null:rows[last[g]]}});
+ const ranked=[...stats].sort((a,b)=>b.count-a.count||a.g-b.g),late=[...stats].sort((a,b)=>(b.delay??rows.length)-(a.delay??rows.length)||a.g-b.g),top=ranked[0];
+ $('firstTotal').textContent=rows.length;$('firstLeader').textContent=rows.length?'G'+pad(top.g):'—';$('firstLeaderInfo').textContent=rows.length?animal(top.g)+' • '+top.count+' vez(es)':'Sem dados';$('firstAbsent').textContent=stats.filter(x=>!x.count).length;$('firstSeen').textContent=stats.filter(x=>x.count).length;
+ $('firstSummary').textContent=rows.length+' extração(ões) analisadas. Frequências calculadas exclusivamente com a milhar do 1º prêmio.';
+ if(!rows.length){['firstTop','firstLate','firstRanking','firstRecent'].forEach(id=>$(id).innerHTML='<div class="mutedbox">Ainda não há resultados para este filtro.</div>');return}
+ const desc=x=>'G'+pad(x.g)+' — '+animal(x.g);
+ $('firstTop').innerHTML=ranked.slice(0,5).map((x,i)=>`<div style="padding:9px 0;border-bottom:1px solid var(--line)"><b>${i+1}º · ${desc(x)}</b> <span class="small">${x.count} vez(es) · ${(x.count/rows.length*100).toFixed(1)}%</span><div class="bar"><i style="width:${x.count/rows.length*100}%"></i></div></div>`).join('');
+ $('firstLate').innerHTML=late.slice(0,8).map(x=>`<div style="padding:7px 0;border-bottom:1px solid var(--line)"><b>${desc(x)}</b><div class="small">${x.delay===null?'Não apareceu na seleção':x.delay+' extração(ões) desde a última aparição'}${x.last?' · última: '+safe(x.last.date)+' ('+safe(x.last.time)+')':''}</div></div>`).join('');
+ $('firstRanking').innerHTML=`<table><thead><tr><th>Grupo</th><th>Vezes</th><th>%</th><th>Atraso</th><th>Última aparição</th></tr></thead><tbody>${ranked.map(x=>`<tr><td>${desc(x)}</td><td>${x.count}</td><td>${(x.count/rows.length*100).toFixed(1)}%</td><td>${x.delay===null?'Nunca':x.delay}</td><td>${x.last?safe(x.last.date)+' · '+safe(x.last.time):'—'}</td></tr>`).join('')}</tbody></table>`;
+ $('firstRecent').innerHTML=`<table><thead><tr><th>Data</th><th>Extração</th><th>Milhar</th><th>Grupo</th></tr></thead><tbody>${[...rows].reverse().slice(0,30).map(r=>`<tr><td>${safe(r.date)}</td><td>${safe(r.time)}</td><td>${safe(String(r.p[0]).padStart(4,'0'))}</td><td>G${pad(group(r.p[0]))} — ${animal(group(r.p[0]))}</td></tr>`).join('')}</tbody></table>`;
+}
+$('firstPeriod').onchange=renderFirst;$('firstTime').onchange=renderFirst;
+function render(){renderFirst();let rows=chosen(),pr=selectedPrizes(rows),gm=freq(pr,x=>group(x.n)),dm=freq(pr,x=>String(x.n).slice(-2)),top=Object.entries(gm).sort((a,b)=>b[1]-a[1])[0],seen=new Set(Object.keys(gm).map(Number));
 $('nDraws').textContent=rows.length;$('nPrizes').textContent=pr.length;$('leader').textContent=top?'Grupo '+pad(top[0]):'—';$('leaderSub').textContent=top?animal(Number(top[0]))+' • '+top[1]+' ocorrência(s)':'Sem dados';$('missing').textContent=25-seen.size;
 $('periodLabel').textContent=`${rows.length} extração(ões) no filtro selecionado. ${$('period').value==='all'?'Histórico completo': 'Janela de '+$('period').value+' dias a partir da data mais recente cadastrada'}.`;
 let allgroups=Array.from({length:25},(_,i)=>i+1).reduce((o,g)=>(o[g]=gm[g]||0,o),{});$('rank').innerHTML=rankHtml(allgroups,Math.max(1,pr.length),k=>`Grupo ${pad(k)} — ${animal(Number(k))}`);
@@ -120,7 +154,7 @@ setInterval(updateClock,1000);
 setInterval(()=>{if(Date.now()>=nextCheck){nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Nova janela de verificação iniciada. Para conferir os resultados publicados, use “Verificar fonte”.';}},1000);
 $('checkNow').onclick=()=>{nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Fonte oficial aberta para conferência. Após validar os resultados, cadastre-os ou importe o CSV.';window.open('https://lotece.com.br/','_blank','noopener');updateClock()};
 $('refreshPanel').onclick=()=>{render();nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Painel recalculado com os dados já cadastrados. Nenhum resultado externo foi baixado.';updateClock()};
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['dashboard','base','ajuda'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab))});
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['dashboard','primeiro','base','ajuda'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab))});
 try{db=JSON.parse(localStorage.getItem('obicho-certo-lotece')||'[]')}catch(e){db=[]}
 async function loadPublicHistory(){
  try{

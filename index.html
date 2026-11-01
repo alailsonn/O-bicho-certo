@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>O Bicho Certo | Loteria dos Sonhos</title>
+<style>
+:root{--bg:#08111e;--panel:#111e30;--panel2:#17283d;--line:#263b55;--txt:#edf5ff;--muted:#9aabc2;--green:#39d98a;--gold:#f3c76b;--red:#ff8989}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#142b3d 0,#08111e 55%);color:var(--txt);font:15px/1.5 system-ui,-apple-system,Segoe UI,Arial}
+header{padding:24px max(18px,calc((100% - 1200px)/2));border-bottom:1px solid var(--line);background:#08111eee}.brand{display:flex;align-items:center;gap:13px}.logo{width:48px;height:48px;border-radius:15px;background:linear-gradient(135deg,#4be39b,#116b4c);display:grid;place-items:center;font-size:26px}h1{font-size:26px;line-height:1.1;margin:0}header p{margin:5px 0 0;color:var(--muted)}
+main{max-width:1200px;margin:24px auto;padding:0 17px}.notice{background:#2c2619;border:1px solid #66532b;color:#ffe7ac;padding:12px 15px;border-radius:12px;margin-bottom:17px}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px solid var(--line);background:var(--panel2);color:var(--txt);padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:650}.tab.active,button.primary{background:var(--green);color:#062719;border-color:var(--green)}button.danger{border-color:#784444;color:#ffb0b0}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}.card,.panel{background:linear-gradient(145deg,#14243a,#101b2b);border:1px solid var(--line);border-radius:15px;padding:16px}.metric small,.muted,.hint{color:var(--muted)}.metric strong{display:block;font-size:28px;margin:6px 0 1px}.panel{margin-top:14px}.panel h2{font-size:18px;margin:0 0 13px}.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}.row>*{flex:1;min-width:120px}input,select{width:100%;background:#091525;color:var(--txt);border:1px solid var(--line);padding:11px;border-radius:9px;font:inherit}input[type=file]{padding:8px}.hint{font-size:12px;margin-top:6px}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:9px 7px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:600}.bar{height:7px;background:#263b55;border-radius:9px;overflow:hidden;min-width:55px}.bar i{display:block;height:100%;background:var(--green);border-radius:9px}.tag{display:inline-block;background:#1c3c33;color:#9af0c2;padding:3px 8px;border-radius:30px;font-size:12px;margin:2px}.mutedbox{padding:13px;border:1px dashed var(--line);border-radius:10px;color:var(--muted)}.hidden{display:none}.links a{color:#8ee8bb;margin-right:14px}.scroll{overflow:auto}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{flex:0 0 auto}.small{font-size:12px;color:var(--muted)}footer{text-align:center;padding:25px 0;color:var(--muted);font-size:12px}
+@media(max-width:760px){.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}h1{font-size:22px}.metric strong{font-size:23px}table{font-size:12px}th,td{padding:7px 5px}}
+</style></head>
+<body>
+<header><div class="brand"><div class="logo">🐾</div><div><h1>O BICHO CERTO</h1><p>Análise estatística • Loteria dos Sonhos / LOTECE</p></div></div></header>
+<main>
+<div class="notice"><b>Estatística, não previsão:</b> frequências e atrasos descrevem resultados passados. Cada extração é independente; um grupo repetido ou atrasado não ganha maior probabilidade no próximo sorteio. Este painel é independente e não recebe apostas.</div>
+<nav><button class="tab active" data-tab="dashboard">Painel</button><button class="tab" data-tab="base">Cadastrar / importar</button><button class="tab" data-tab="ajuda">Como usar</button></nav>
+
+<section id="dashboard">
+<div class="panel" style="border-color:#39785d">
+ <div class="row" style="align-items:center">
+  <div style="flex:2"><b>⏱ Verificação programada</b><div class="small" id="syncStatus">Intervalo configurado: 15 minutos. A coleta automática depende da conexão com um serviço online.</div></div>
+  <div style="flex:1;text-align:center"><strong id="countdown" style="font-size:24px;color:var(--green)">15:00</strong><div class="small">próxima verificação</div></div>
+  <div class="actions"><button class="primary" id="checkNow">Verificar fonte</button><button id="refreshPanel">Atualizar painel</button></div>
+ </div>
+ <p class="hint">Enquanto o site estiver aberto, este contador avisa a cada 15 minutos. Ele ainda não baixa resultados sozinho; para isso é necessário instalar a integração de servidor.</p>
+</div>
+<div class="panel">
+ <div class="row">
+  <div><label class="small">Período</label><select id="period"><option value="30">Últimos 30 dias</option><option value="7">Últimos 7 dias</option><option value="15">Últimos 15 dias</option><option value="all">Todo o histórico</option></select></div>
+  <div><label class="small">Extração</label><select id="drawFilter"><option value="all">Todas as extrações</option><option value="11:00">Manhã — 11h (sábado: 12h)</option><option value="14:00">Tarde — 14h</option><option value="15:45">Tarde II — 15h45</option><option value="19:00">Noite — 19h</option></select></div>
+  <div><label class="small">Posição</label><select id="placeFilter"><option value="all">1º ao 5º prêmio</option><option value="0">Somente 1º prêmio</option><option value="1">Somente 2º prêmio</option><option value="2">Somente 3º prêmio</option><option value="3">Somente 4º prêmio</option><option value="4">Somente 5º prêmio</option></select></div>
+ </div>
+ <p class="hint" id="periodLabel">A análise usa os resultados cadastrados no período selecionado.</p>
+</div>
+<div class="grid">
+ <div class="card metric"><small>Extrações analisadas</small><strong id="nDraws">0</strong><span class="small">na seleção</span></div>
+ <div class="card metric"><small>Prêmios contabilizados</small><strong id="nPrizes">0</strong><span class="small">1º ao 5º</span></div>
+ <div class="card metric"><small>Grupo líder</small><strong id="leader">—</strong><span class="small" id="leaderSub">Sem dados</span></div>
+ <div class="card metric"><small>Grupos ausentes</small><strong id="missing">25</strong><span class="small">na seleção</span></div>
+</div>
+<div class="two">
+ <div class="panel"><h2>Ranking dos 25 grupos</h2><div id="rank"></div></div>
+ <div class="panel"><h2>Grupos que não apareceram</h2><div id="absent"></div></div>
+</div>
+<div class="two">
+ <div class="panel"><h2>Frequência por posição</h2><div id="byPlace"></div></div>
+ <div class="panel"><h2>Dezenas finais mais frequentes</h2><div id="tens"></div></div>
+</div>
+<div class="panel"><h2>Comparativo entre horários</h2><div id="compare"></div></div>
+<div class="panel"><h2>Resultados da seleção</h2><div id="resultTable" class="scroll"></div></div>
+</section>
+
+<section id="base" class="hidden">
+<div class="panel"><h2>Adicionar uma extração</h2>
+<div class="row"><div><label class="small">Data do resultado</label><input id="date" type="date"></div><div><label class="small">Horário da extração</label><select id="time"><option value="11:00">Manhã — 11h</option><option value="14:00">Tarde — 14h</option><option value="15:45">Tarde II — 15h45</option><option value="19:00">Noite — 19h</option></select></div><div><label class="small">Identificação (opcional)</label><input id="contest" placeholder="Ex.: concurso / observação"></div></div>
+<div class="row" style="margin-top:10px"><input class="prize" placeholder="1º prêmio (milhar)" maxlength="4" inputmode="numeric"><input class="prize" placeholder="2º prêmio (milhar)" maxlength="4" inputmode="numeric"><input class="prize" placeholder="3º prêmio (milhar)" maxlength="4" inputmode="numeric"><input class="prize" placeholder="4º prêmio (milhar)" maxlength="4" inputmode="numeric"><input class="prize" placeholder="5º prêmio (milhar)" maxlength="4" inputmode="numeric"></div>
+<div class="actions" style="margin-top:12px"><button class="primary" id="add">Salvar extração</button><button id="clear" class="danger">Apagar toda a base</button><button id="export">Exportar CSV</button></div>
+<p class="hint">Digite cada milhar com até 4 algarismos. O sistema completa zeros à esquerda (ex.: 0072).</p>
+</div>
+<div class="panel"><h2>Importar histórico de 30 dias (CSV)</h2><p class="muted">O arquivo deve ter as colunas: <b>data,horario,concurso,p1,p2,p3,p4,p5</b>. Use data AAAA-MM-DD e horário 11:00, 14:00, 15:45 ou 19:00. Uma linha por extração.</p><input id="csv" type="file" accept=".csv,text/csv"><p class="hint">A importação é feita no navegador. Confira os dados antes de analisar.</p></div>
+<div class="panel"><div class="row"><h2 style="margin:0">Base cadastrada</h2><span class="small" id="baseCount">0 registros</span></div><div id="allRows" class="scroll"></div></div>
+</section>
+
+<section id="ajuda" class="hidden">
+<div class="panel"><h2>Como o Bicho Certo calcula</h2>
+<ol><li><b>Grupo:</b> usa os dois últimos dígitos da milhar. 01–04 = grupo 1; 05–08 = grupo 2; ...; 97–00 = grupo 25.</li><li><b>Ranking:</b> conta quantas vezes cada grupo aparece nos prêmios selecionados.</li><li><b>Primeiro lugar:</b> o filtro de posição permite isolar o 1º prêmio.</li><li><b>Ausentes:</b> grupos sem ocorrência no período e horário escolhidos.</li><li><b>Dezena final:</b> frequência dos dois últimos dígitos de cada milhar.</li><li><b>Comparativo:</b> conta grupos em cada horário, usando os mesmos filtros de período e posição.</li></ol>
+<p>Horários configurados: 11h (com possibilidade de ajuste para 12h aos sábados, conforme a grade publicada), 14h, 15h45 e 19h. Confirme sempre o horário/data na fonte consultada.</p>
+<div class="links"><b>Consultar resultados externos:</b><br><a href="https://loteceloteriadossonhos.com/lotece-hoje" target="_blank" rel="noopener">LOTECE hoje</a><a href="https://lotece.in/results/" target="_blank" rel="noopener">Lotece.in — resultados</a></div>
+<p class="small">O painel não está conectado a uma API oficial nem faz coleta automática. Para manter os dados corretos, cadastre os resultados ou importe um CSV verificado. A fonte externa pode ter horários ou atualizações diferentes.</p>
+</div>
+</section>
+<footer>O Bicho Certo • Projeto independente de estatística • Dados armazenados neste navegador</footer>
+</main>
+<script>
+const animals=['Avestruz','Águia','Burro','Borboleta','Cachorro','Cabra','Carneiro','Camelo','Cobra','Coelho','Cavalo','Elefante','Galo','Gato','Jacaré','Leão','Macaco','Porco','Pavão','Peru','Touro','Tigre','Urso','Veado','Vaca'];
+const times=['11:00','14:00','15:45','19:00'];let db=[];
+const $=id=>document.getElementById(id);
+function group(n){let d=Number(String(n).padStart(4,'0').slice(-2));return d===0?25:Math.ceil(d/4)}
+function animal(g){return animals[g-1]}
+function pad(n){return String(n).padStart(2,'0')}
+function safe(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function chosen(){let p=$('period').value,tf=$('drawFilter').value,rows=[...db];if(p!=='all'&&rows.length){let latest=rows.reduce((a,x)=>x.date>a?x.date:a,rows[0].date),end=new Date(latest+'T12:00:00'),start=new Date(end);start.setDate(start.getDate()-Number(p)+1);let min=start.toISOString().slice(0,10);rows=rows.filter(x=>x.date>=min&&x.date<=latest)}if(tf!=='all')rows=rows.filter(x=>x.time===tf);return rows.sort((a,b)=>b.date.localeCompare(a.date)||a.time.localeCompare(b.time))}
+function selectedPrizes(rows){let f=$('placeFilter').value;return rows.flatMap(r=>(f==='all'?[0,1,2,3,4]:[Number(f)]).map(i=>({n:r.p[i],pos:i+1,row:r})))}
+function freq(items,fn){let m={};items.forEach(x=>{let k=fn(x);m[k]=(m[k]||0)+1});return m}
+function rankHtml(m,total,labelFn){let arr=Object.entries(m).sort((a,b)=>b[1]-a[1]||Number(a[0])-Number(b[0]));if(!arr.length)return '<div class="mutedbox">Cadastre ou importe resultados para visualizar a análise.</div>';return `<div class="scroll"><table><thead><tr><th>Grupo / item</th><th>Qtde.</th><th>Frequência</th></tr></thead><tbody>${arr.map(([k,v])=>`<tr><td>${safe(labelFn(k))}</td><td>${v}</td><td><div class="bar"><i style="width:${Math.max(2,v/total*100)}%"></i></div></td></tr>`).join('')}</tbody></table></div>`}
+function render(){let rows=chosen(),pr=selectedPrizes(rows),gm=freq(pr,x=>group(x.n)),dm=freq(pr,x=>String(x.n).slice(-2)),top=Object.entries(gm).sort((a,b)=>b[1]-a[1])[0],seen=new Set(Object.keys(gm).map(Number));
+$('nDraws').textContent=rows.length;$('nPrizes').textContent=pr.length;$('leader').textContent=top?'Grupo '+pad(top[0]):'—';$('leaderSub').textContent=top?animal(Number(top[0]))+' • '+top[1]+' ocorrência(s)':'Sem dados';$('missing').textContent=25-seen.size;
+$('periodLabel').textContent=`${rows.length} extração(ões) no filtro selecionado. ${$('period').value==='all'?'Histórico completo': 'Janela de '+$('period').value+' dias a partir da data mais recente cadastrada'}.`;
+let allgroups=Array.from({length:25},(_,i)=>i+1).reduce((o,g)=>(o[g]=gm[g]||0,o),{});$('rank').innerHTML=rankHtml(allgroups,Math.max(1,pr.length),k=>`Grupo ${pad(k)} — ${animal(Number(k))}`);
+let absent=Array.from({length:25},(_,i)=>i+1).filter(g=>!seen.has(g));$('absent').innerHTML=absent.length?`<p>${absent.map(g=>`<span class="tag">${pad(g)} · ${animal(g)}</span>`).join('')}</p><p class="small">${absent.length} grupo(s) sem ocorrência nos filtros atuais.</p>`:'<div class="mutedbox">Todos os 25 grupos apareceram na seleção.</div>';
+let byp=[0,1,2,3,4].map(i=>{let list=rows.map(r=>r.p[i]),m=freq(list,n=>group(n)),t=Object.entries(m).sort((a,b)=>b[1]-a[1])[0];return {i,t}});$('byPlace').innerHTML=rows.length?`<table><thead><tr><th>Posição</th><th>Grupo líder</th><th>Ocorrências</th></tr></thead><tbody>${byp.map(x=>`<tr><td>${x.i+1}º prêmio</td><td>${x.t?`Grupo ${pad(x.t[0])} — ${animal(Number(x.t[0]))}`:'—'}</td><td>${x.t?x.t[1]:0}</td></tr>`).join('')}</tbody></table>`:'<div class="mutedbox">Sem dados.</div>';
+$('tens').innerHTML=rankHtml(dm,Math.max(1,pr.length),k=>'Dezena '+pad(k));
+$('compare').innerHTML=times.map(t=>{let sub=rows.filter(r=>r.time===t),items=selectedPrizes(sub),m=freq(items,x=>group(x.n)),topg=Object.entries(m).sort((a,b)=>b[1]-a[1])[0];return `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><b>${t}</b> <span class="small">• ${sub.length} extração(ões)</span><br>${topg?`Grupo mais frequente: <b>G${pad(topg[0])} ${animal(Number(topg[0]))}</b> (${topg[1]} vezes)`:'<span class="small">Sem dados neste horário</span>'}</div>`}).join('');
+$('resultTable').innerHTML=rows.length?`<table><thead><tr><th>Data</th><th>Horário</th><th>Concurso</th><th>1º</th><th>2º</th><th>3º</th><th>4º</th><th>5º</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${safe(r.date)}</td><td>${safe(r.time)}</td><td>${safe(r.contest||'—')}</td>${r.p.map(n=>`<td>${String(n).padStart(4,'0')}</td>`).join('')}</tr>`).join('')}</tbody></table>`:'<div class="mutedbox">Nenhum resultado no período. Cadastre ou importe uma base de resultados.</div>';
+$('baseCount').textContent=db.length+' registro(s)';$('allRows').innerHTML=db.length?`<table><thead><tr><th>Data</th><th>Horário</th><th>Concurso</th><th>1º</th><th>2º</th><th>3º</th><th>4º</th><th>5º</th><th></th></tr></thead><tbody>${[...db].sort((a,b)=>b.date.localeCompare(a.date)||a.time.localeCompare(b.time)).map((r,i)=>`<tr><td>${safe(r.date)}</td><td>${safe(r.time)}</td><td>${safe(r.contest||'—')}</td>${r.p.map(n=>`<td>${String(n).padStart(4,'0')}</td>`).join('')}<td><button onclick="removeRow('${r.id}')">Excluir</button></td></tr>`).join('')}</tbody></table>`:'<div class="mutedbox">Base vazia.</div>'}
+function persist(){localStorage.setItem('obicho-certo-lotece',JSON.stringify(db));render()}
+window.removeRow=id=>{if(confirm('Excluir este resultado?')){db=db.filter(x=>x.id!==id);persist()}};
+$('add').onclick=()=>{let date=$('date').value,time=$('time').value,p=[...document.querySelectorAll('.prize')].map(x=>x.value.trim());if(!date||p.some(x=>!/^\d{1,4}$/.test(x)||Number(x)>9999)){alert('Informe a data e os cinco prêmios com números de até quatro dígitos.');return}let norm=p.map(x=>Number(x));if(db.some(x=>x.date===date&&x.time===time)){if(!confirm('Já existe um resultado nessa data e horário. Deseja adicionar outro mesmo assim?'))return}db.push({id:Date.now()+'-'+Math.random().toString(16).slice(2),date,time,contest:$('contest').value.trim(),p:norm});document.querySelectorAll('.prize').forEach(x=>x.value='');$('contest').value='';persist();alert('Extração cadastrada.')};
+$('clear').onclick=()=>{if(confirm('Apagar toda a base salva neste navegador?')){db=[];persist()}};
+$('export').onclick=()=>{let csv='data,horario,concurso,p1,p2,p3,p4,p5\n'+db.map(r=>[r.date,r.time,'"'+String(r.contest||'').replaceAll('"','""')+'"',...r.p.map(n=>String(n).padStart(4,'0'))].join(',')).join('\n');let a=document.createElement('a'),u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.href=u;a.download='base-o-bicho-certo.csv';a.click();URL.revokeObjectURL(u)};
+$('csv').onchange=async e=>{let file=e.target.files[0];if(!file)return;let lines=(await file.text()).trim().split(/\r?\n/),added=0,errors=0;for(let line of lines.slice(1)){let c=line.split(',').map(x=>x.trim().replace(/^"|"$/g,''));if(c.length<8){errors++;continue}let [date,time,contest,...p]=c;p=p.slice(0,5);if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!times.includes(time)||p.length!==5||p.some(n=>!/^\d{1,4}$/.test(n)||Number(n)>9999)){errors++;continue}db.push({id:Date.now()+'-'+added+'-'+Math.random().toString(16).slice(2),date,time,contest,p:p.map(Number)});added++}persist();alert(`${added} registro(s) importado(s). ${errors} linha(s) ignorada(s).`);e.target.value=''};
+['period','drawFilter','placeFilter'].forEach(id=>$(id).onchange=render);
+const CHECK_EVERY=15*60*1000;let nextCheck=Date.now()+CHECK_EVERY;
+function updateClock(){let left=Math.max(0,nextCheck-Date.now()),mins=Math.floor(left/60000),secs=Math.floor((left%60000)/1000);$('countdown').textContent=String(mins).padStart(2,'0')+':'+String(secs).padStart(2,'0');if(left===0){$('syncStatus').textContent='Horário de verificação alcançado. A fonte oficial precisa ser consultada; a coleta automática ainda não está conectada.';$('countdown').textContent='00:00';}}
+setInterval(updateClock,1000);
+setInterval(()=>{if(Date.now()>=nextCheck){nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Nova janela de verificação iniciada. Para conferir os resultados publicados, use “Verificar fonte”.';}},1000);
+$('checkNow').onclick=()=>{nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Fonte oficial aberta para conferência. Após validar os resultados, cadastre-os ou importe o CSV.';window.open('https://lotece.com.br/','_blank','noopener');updateClock()};
+$('refreshPanel').onclick=()=>{render();nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Painel recalculado com os dados já cadastrados. Nenhum resultado externo foi baixado.';updateClock()};
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['dashboard','base','ajuda'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab))});
+try{db=JSON.parse(localStorage.getItem('obicho-certo-lotece')||'[]')}catch(e){db=[]}render();
+</script></body></html>

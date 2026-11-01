@@ -86,6 +86,16 @@ function chosen(){let p=$('period').value,tf=$('drawFilter').value,rows=[...new 
 function selectedPrizes(rows){let f=$('placeFilter').value;return rows.flatMap(r=>(f==='all'?[0,1,2,3,4]:[Number(f)]).map(i=>({n:r.p[i],pos:i+1,row:r})))}
 function freq(items,fn){let m={};items.forEach(x=>{let k=fn(x);m[k]=(m[k]||0)+1});return m}
 function rankHtml(m,total,labelFn){let arr=Object.entries(m).sort((a,b)=>b[1]-a[1]||Number(a[0])-Number(b[0]));if(!arr.length)return '<div class="mutedbox">Cadastre ou importe resultados para visualizar a análise.</div>';return `<div class="scroll"><table><thead><tr><th>Grupo / item</th><th>Qtde.</th><th>Frequência</th></tr></thead><tbody>${arr.map(([k,v])=>`<tr><td>${safe(labelFn(k))}</td><td>${v}</td><td><div class="bar"><i style="width:${Math.max(2,v/total*100)}%"></i></div></td></tr>`).join('')}</tbody></table></div>`}
+
+function horarioCompativel(valor, horario) {
+  const nomes = {
+    '11:00': 'Manhã',
+    '14:00': 'Tarde',
+    '15:45': 'Tarde II',
+    '19:00': 'Noite'
+  };
+  return valor === horario || valor === nomes[horario];
+}
 function render(){let rows=chosen(),pr=selectedPrizes(rows),gm=freq(pr,x=>group(x.n)),dm=freq(pr,x=>String(x.n).slice(-2)),top=Object.entries(gm).sort((a,b)=>b[1]-a[1])[0],seen=new Set(Object.keys(gm).map(Number));
 $('nDraws').textContent=rows.length;$('nPrizes').textContent=pr.length;$('leader').textContent=top?'Grupo '+pad(top[0]):'—';$('leaderSub').textContent=top?animal(Number(top[0]))+' • '+top[1]+' ocorrência(s)':'Sem dados';$('missing').textContent=25-seen.size;
 $('periodLabel').textContent=`${rows.length} extração(ões) no filtro selecionado. ${$('period').value==='all'?'Histórico completo': 'Janela de '+$('period').value+' dias a partir da data mais recente cadastrada'}.`;
@@ -93,7 +103,7 @@ let allgroups=Array.from({length:25},(_,i)=>i+1).reduce((o,g)=>(o[g]=gm[g]||0,o)
 let absent=Array.from({length:25},(_,i)=>i+1).filter(g=>!seen.has(g));$('absent').innerHTML=absent.length?`<p>${absent.map(g=>`<span class="tag">${pad(g)} · ${animal(g)}</span>`).join('')}</p><p class="small">${absent.length} grupo(s) sem ocorrência nos filtros atuais.</p>`:'<div class="mutedbox">Todos os 25 grupos apareceram na seleção.</div>';
 let byp=[0,1,2,3,4].map(i=>{let list=rows.map(r=>r.p[i]),m=freq(list,n=>group(n)),t=Object.entries(m).sort((a,b)=>b[1]-a[1])[0];return {i,t}});$('byPlace').innerHTML=rows.length?`<table><thead><tr><th>Posição</th><th>Grupo líder</th><th>Ocorrências</th></tr></thead><tbody>${byp.map(x=>`<tr><td>${x.i+1}º prêmio</td><td>${x.t?`Grupo ${pad(x.t[0])} — ${animal(Number(x.t[0]))}`:'—'}</td><td>${x.t?x.t[1]:0}</td></tr>`).join('')}</tbody></table>`:'<div class="mutedbox">Sem dados.</div>';
 $('tens').innerHTML=rankHtml(dm,Math.max(1,pr.length),k=>'Dezena '+pad(k));
-$('compare').innerHTML=times.map(t=>{let sub=rows.filter(r=>r.time===t),items=selectedPrizes(sub),m=freq(items,x=>group(x.n)),topg=Object.entries(m).sort((a,b)=>b[1]-a[1])[0];return `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><b>${t}</b> <span class="small">• ${sub.length} extração(ões)</span><br>${topg?`Grupo mais frequente: <b>G${pad(topg[0])} ${animal(Number(topg[0]))}</b> (${topg[1]} vezes)`:'<span class="small">Sem dados neste horário</span>'}</div>`}).join('');
+$('compare').innerHTML=times.map(t=>{let sub=rows.filter((r=>horarioCompativel(r.time,t)),items=selectedPrizes(sub),m=freq(items,x=>group(x.n)),topg=Object.entries(m).sort((a,b)=>b[1]-a[1])[0];return `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><b>${t}</b> <span class="small">• ${sub.length} extração(ões)</span><br>${topg?`Grupo mais frequente: <b>G${pad(topg[0])} ${animal(Number(topg[0]))}</b> (${topg[1]} vezes)`:'<span class="small">Sem dados neste horário</span>'}</div>`}).join('');
 $('resultTable').innerHTML=rows.length?`<table><thead><tr><th>Data</th><th>Horário</th><th>Concurso</th><th>1º</th><th>2º</th><th>3º</th><th>4º</th><th>5º</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${safe(r.date)}</td><td>${safe(r.time)}</td><td>${safe(r.contest||'—')}</td>${r.p.map(n=>`<td>${String(n).padStart(4,'0')}</td>`).join('')}</tr>`).join('')}</tbody></table>`:'<div class="mutedbox">Nenhum resultado no período. Cadastre ou importe uma base de resultados.</div>';
 $('baseCount').textContent=db.length+' registro(s)';$('allRows').innerHTML=db.length?`<table><thead><tr><th>Data</th><th>Horário</th><th>Concurso</th><th>1º</th><th>2º</th><th>3º</th><th>4º</th><th>5º</th><th></th></tr></thead><tbody>${[...db].sort((a,b)=>b.date.localeCompare(a.date)||a.time.localeCompare(b.time)).map((r,i)=>`<tr><td>${safe(r.date)}</td><td>${safe(r.time)}</td><td>${safe(r.contest||'—')}</td>${r.p.map(n=>`<td>${String(n).padStart(4,'0')}</td>`).join('')}<td><button onclick="removeRow('${r.id}')">Excluir</button></td></tr>`).join('')}</tbody></table>`:'<div class="mutedbox">Base vazia.</div>'}
 function persist(){localStorage.setItem('obicho-certo-lotece',JSON.stringify(db));render()}

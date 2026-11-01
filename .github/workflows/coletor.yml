@@ -3,10 +3,8 @@ name: Testar Coletor O Bicho Certo
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 */3 * * *'
-
-permissions:
-  contents: write
+        - cron: '0 */3 * * *'
+        contents: write
 
 jobs:
   testar-coletor:

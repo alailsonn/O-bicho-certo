@@ -16,7 +16,7 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 <header><div class="brand"><div class="logo">🐾</div><div><h1>O BICHO CERTO</h1><p>Análise estatística • Loteria dos Sonhos / LOTECE</p></div></div></header>
 <main>
 <div class="notice"><b>Estatística, não previsão:</b> frequências e atrasos descrevem resultados passados. Cada extração é independente; um grupo repetido ou atrasado não ganha maior probabilidade no próximo sorteio. Este painel é independente e não recebe apostas.</div>
-<nav><button class="tab active" data-tab="dashboard">Painel</button><button class="tab" data-tab="primeiro">🎯 1º Prêmio</button><button class="tab" data-tab="transicoes">🔁 Cabeça entre horários</button><button class="tab" data-tab="federal">🇧🇷 Federal × Sonhos</button><button class="tab" data-tab="chama7">🔥 Chama dos 7</button><button class="tab" data-tab="look">🔎 LOOK Goiás</button><button class="tab" data-tab="fedlook">🔍 Federal × LOOK</button><button class="tab" data-tab="pedras">🔬 Ausentes e dobrados</button><button class="tab" data-tab="base">Cadastrar / importar</button><button class="tab" data-tab="ajuda">Como usar</button></nav>
+<nav><button class="tab active" data-tab="dashboard">Painel</button><button class="tab" data-tab="primeiro">🎯 1º Prêmio</button><button class="tab" data-tab="transicoes">🔁 Cabeça entre horários</button><button class="tab" data-tab="federal">🇧🇷 Federal × Sonhos</button><button class="tab" data-tab="chama7">🔥 Chama dos 7</button><button class="tab" data-tab="look">🔎 LOOK Goiás</button><button class="tab" data-tab="looktrail">🧭 Rastro dos ausentes</button><button class="tab" data-tab="fedlook">🔍 Federal × LOOK</button><button class="tab" data-tab="pedras">🔬 Ausentes e dobrados</button><button class="tab" data-tab="base">Cadastrar / importar</button><button class="tab" data-tab="ajuda">Como usar</button></nav>
 
 <section id="dashboard">
 <div class="panel" style="border-color:#39785d">
@@ -231,19 +231,61 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 <section id="look" class="hidden">
 <div class="panel" style="border-color:#39785d"><h2>🔎 LOOK Goiás — pesquisa e histórico independente</h2>
 <p class="muted">Base separada da LOTECE. Período: <b>01/10/2026 a 02/11/2026</b>. O histórico público da LOOK é carregado de <code>data/look/results.json</code> (quando publicado). A base inicial contém 01/10; as imagens enviadas cobrem 23/10 a 01/11. Dias ausentes continuam sem registros; a coleta pública da LOOK é feita pelo GitHub Actions e a página verifica o JSON a cada 15 minutos.</p>
-<div class="row"><div><label class="small">Data inicial</label><input id="lookStart" type="date" value="2026-10-01"></div><div><label class="small">Data final</label><input id="lookEnd" type="date" value="2026-11-02"></div><div><label class="small">Horário</label><select id="lookFilter"><option value="all">Todos os horários</option><option value="07:00">07h20</option><option value="09:00">09h20</option><option value="11:00">11h20</option><option value="14:00">14h20</option><option value="16:00">16h20</option><option value="18:00">18h20 / 19h20</option><option value="21:00">21h20</option><option value="23:00">23h20</option></select></div></div>
+<div class="row"><div><label class="small">Data inicial</label><input id="lookStart" type="date" value="2026-10-01"></div><div><label class="small">Data final</label><input id="lookEnd" type="date" value="2026-11-02"></div><div><label class="small">Horário</label><select id="lookFilter"><option value="all">Todos os horários</option><option value="07:00">07h20</option><option value="09:00">09h20</option><option value="11:00">11h20</option><option value="14:00">14h20</option><option value="16:00">16h20</option><option value="18:00">18h20</option><option value="19:20">19h20</option><option value="21:00">21h20</option><option value="23:00">23h20</option></select></div></div>
 <p class="hint">Fonte dos resultados iniciais: <a href="https://www.resultadofacil.com.br/resultados-look-loterias-do-dia-2026-10-01" target="_blank" rel="noopener" style="color:#8ee8bb">LOOK — 01/10/2026</a>. O 1º ao 5º prêmio são milhares; não misturar soma/multiplicação do 6º e 7º com prêmios de milhar.</p></div>
 <div class="grid"><div class="card metric"><small>Extrações na seleção</small><strong id="lookN">—</strong></div><div class="card metric"><small>Dias com resultados</small><strong id="lookDays">—</strong></div><div class="card metric"><small>1º prêmios</small><strong id="lookHeads">—</strong></div><div class="card metric"><small>Grupo líder no 1º</small><strong id="lookLeader">—</strong></div></div>
 <div class="panel"><h2>📊 Pesquisa LOOK — grupos na cabeça e Chama dos 7</h2><div id="lookStats"></div><h3>Histórico das extrações</h3><div class="scroll" id="lookTable"></div></div>
 <div class="panel"><h2>➕ Alimentar a base LOOK</h2><p class="muted">Cadastre manualmente o 1º ao 5º prêmio de cada horário. O resultado fica salvo neste navegador, separado da base LOTECE.</p>
-<div class="row"><div><label class="small">Data</label><input id="lookDate" type="date" min="2026-10-01"></div><div><label class="small">Horário LOOK</label><select id="lookTime"><option value="07:00">07h20</option><option value="09:00">09h20</option><option value="11:00">11h20</option><option value="14:00">14h20</option><option value="16:00">16h20</option><option value="18:00">18h20 / 19h20</option><option value="21:00">21h20</option><option value="23:00">23h20</option></select></div></div>
+<div class="row"><div><label class="small">Data</label><input id="lookDate" type="date" min="2026-10-01"></div><div><label class="small">Horário LOOK</label><select id="lookTime"><option value="07:00">07h20</option><option value="09:00">09h20</option><option value="11:00">11h20</option><option value="14:00">14h20</option><option value="16:00">16h20</option><option value="18:00">18h20</option><option value="19:20">19h20</option><option value="21:00">21h20</option><option value="23:00">23h20</option></select></div></div>
 <div class="row" style="margin-top:10px"><div><label class="small">1º prêmio</label><input class="lookPrize" inputmode="numeric" maxlength="4" placeholder="0000"></div><div><label class="small">2º</label><input class="lookPrize" inputmode="numeric" maxlength="4" placeholder="0000"></div><div><label class="small">3º</label><input class="lookPrize" inputmode="numeric" maxlength="4" placeholder="0000"></div><div><label class="small">4º</label><input class="lookPrize" inputmode="numeric" maxlength="4" placeholder="0000"></div><div><label class="small">5º</label><input class="lookPrize" inputmode="numeric" maxlength="4" placeholder="0000"></div></div>
 <div class="actions" style="margin-top:12px"><button class="primary" id="lookAdd">Salvar resultado LOOK</button><button id="lookExport">Exportar LOOK CSV</button><button id="lookReset">Limpar resultados adicionados</button></div><p class="hint" id="lookMessage"></p>
-<h3>Importar vários dias por CSV</h3><p class="hint">Formato: <b>data,horario,p1,p2,p3,p4,p5</b>, uma linha por horário. Exemplo: 2026-10-02,07:00,1234,2345,3456,4567,5678. Aceita também p6 a p10, mas a análise usa apenas os cinco primeiros. Importação substitui a mesma data e horário, sem duplicar.</p><input type="file" id="lookCsv" accept=".csv,text/csv"><p class="hint">A importação é local. Consulte a fonte e confira as milhares antes de usar os dados.</p>
+<h3>Importar vários dias por CSV</h3><p class="hint">Formato: <b>data,horario,p1,p2,p3,p4,p5</b>, uma linha por horário. Exemplo: 2026-10-02,07:00,1234,2345,3456,4567,5678. Aceita também p6 a p10, mas a análise usa apenas os cinco primeiros. Importação substitui a mesma data e horário, sem duplicar.</p><input type="file" id="lookCsv" accept=".csv,text/csv"><p class="hint">A importação é local. Aceita horários reais como 07:20 e 19:20. Confira as milhares antes de usar os dados.</p>
 </div></section>
 
 
 <!-- TESTE 17: Algarismos ausentes na Federal x primeiro prêmio LOOK Goiás. -->
+
+<!-- TESTE 19: a cada extração LOOK, acompanhe dígitos ausentes (1º–5º) até aparecerem no 1º prêmio. -->
+<section id="looktrail" class="hidden">
+ <div class="panel" style="border-color:#39785d">
+  <h2>🧭 Teste 19 — Rastro dos algarismos ausentes da LOOK Goiás</h2>
+  <p class="muted">Em cada extração de origem, identifica os <b>algarismos 0 a 9 ausentes nos 20 dígitos do 1º ao 5º prêmio</b>. Depois acompanha cada algarismo, na ordem real das extrações <b>cadastradas</b>, mostrando quando aparece nos prêmios intermediários e <b>quando chega ao 1º prêmio</b>. Não utiliza a Federal nem o 6º ou 7º prêmio.</p>
+  <div class="row">
+   <div><label for="ltStart" class="small">Data inicial da origem</label><input id="ltStart" type="date" value="2026-11-02"></div>
+   <div><label for="ltEnd" class="small">Data final da origem</label><input id="ltEnd" type="date" value="2026-11-02"></div>
+   <div><label for="ltTime" class="small">Horário de origem</label><select id="ltTime"><option value="all">Todos os horários</option><option value="07:20">07h20</option><option value="09:20">09h20</option><option value="11:20">11h20</option><option value="14:20">14h20</option><option value="16:20">16h20</option><option value="18:20">18h20</option><option value="19:20">19h20</option><option value="21:20">21h20</option><option value="23:20">23h20</option></select></div>
+  </div>
+  <div class="row" style="margin-top:10px">
+   <div><label for="ltDigit" class="small">Algarismo ausente</label><select id="ltDigit"><option value="all">Todos (0–9)</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option></select></div>
+   <div><label for="ltMax" class="small">Até quantas extrações seguintes?</label><select id="ltMax"><option value="all">Todas as cadastradas</option><option value="1">1 extração</option><option value="2">2 extrações</option><option value="4">4 extrações</option><option value="8">8 extrações</option><option value="16">16 extrações</option><option value="32">32 extrações</option></select></div>
+  </div>
+  <div class="actions" style="margin-top:12px"><button id="ltExample" class="primary">Ver exemplo: 02/11 às 07h20 (3 e 7)</button><button id="ltFull">Ver todo o histórico</button><button id="ltExport">Exportar Teste 19 CSV</button></div>
+  <p class="hint">O filtro de datas seleciona as <b>extrações de origem</b>; para buscar a chegada ao 1º prêmio, as extrações posteriores podem ser de outros dias. Uma lacuna no histórico significa apenas ausência de dados. O resultado é descritivo, não uma previsão.</p>
+ </div>
+ <div class="grid">
+  <div class="card metric"><small>Extrações de origem</small><strong id="ltOrigins">—</strong><span class="small">no período e horário</span></div>
+  <div class="card metric"><small>Algarismos acompanhados</small><strong id="ltTracked">—</strong><span class="small">ausentes no 1º–5º</span></div>
+  <div class="card metric"><small>Chegaram ao 1º</small><strong id="ltHits">—</strong><span class="small">nos dados posteriores</span></div>
+  <div class="card metric"><small>Já na próxima extração</small><strong id="ltImmediate">—</strong><span class="small">primeira LOOK cadastrada depois</span></div>
+ </div>
+ <div class="panel">
+  <h2>🔢 Rastro de cada algarismo ausente</h2>
+  <p class="hint" id="ltSummary">Aguardando histórico LOOK.</p>
+  <div class="scroll" id="ltTable"></div>
+ </div>
+ <div class="panel">
+  <h2>🗺️ Movimento nas próximas extrações</h2>
+  <p class="hint">Acompanhe a passagem pelos prêmios 2º–5º até o primeiro aparecimento no 1º. Quando o dígito já chega ao 1º prêmio na primeira extração seguinte, o rastro é curto.</p>
+  <div class="row"><div><label class="small" for="ltCase">Extração de origem para detalhar</label><select id="ltCase"></select></div></div>
+  <div class="scroll" id="ltJourney"></div>
+ </div>
+ <div class="panel">
+  <h2>📊 Ranking histórico por algarismo</h2>
+  <div class="scroll" id="ltRanking"></div>
+  <p class="hint">Referência teórica sob dígitos independentes e uniformes: um dígito específico tem chance de <b>34,39%</b> de aparecer em uma milhar. A chance de surgir ao menos uma vez cresce com a quantidade de extrações. Amostras com origens sobrepostas não são testes independentes. "Pendente" significa não encontrado <b>nos dados conferidos</b>.</p>
+ </div>
+</section>
+
 <section id="fedlook" class="hidden">
  <div class="panel" style="border-color:#39785d">
  <h2>🔍 Teste 17 — Federal × LOOK Goiás | Algarismos ausentes</h2>
@@ -863,22 +905,24 @@ const lookSeed=[
 const lookKey='obicho-certo-look-v1';
 let lookPublic=[];
 function lookSaved(){try{let a=JSON.parse(localStorage.getItem(lookKey)||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
-function lookAll(){let m=new Map(lookSeed.map(r=>[r.date+'|'+r.time,r]));lookPublic.forEach(r=>m.set(r.date+'|'+r.time,r));lookSaved().forEach(r=>m.set(r.date+'|'+r.time,r));return [...m.values()].sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time))}
-function lookValid(r){return /^\d{4}-\d{2}-\d{2}$/.test(r.date)&&['07:00','09:00','11:00','14:00','16:00','18:00','21:00','23:00'].includes(r.time)&&Array.isArray(r.p)&&r.p.length>=5&&r.p.slice(0,5).every(n=>/^\d{1,4}$/.test(String(n)))}
-function lookSaveBatch(a){let m=new Map(lookSaved().map(r=>[r.date+'|'+r.time,r]));a.forEach(r=>m.set(r.date+'|'+r.time,r));try{localStorage.setItem(lookKey,JSON.stringify([...m.values()]));renderLook();renderFederalLook();return true}catch(e){$('lookMessage').textContent='Erro ao salvar no navegador.';return false}}
-function renderLook(){let all=lookAll(),a=all.filter(r=>r.date>=$('lookStart').value&&r.date<=$('lookEnd').value&&($('lookFilter').value==='all'||r.time===$('lookFilter').value));
+function lookActualTime(r){const raw=String((r&&r.horario_real)||((r&&r.time)||'')).trim();return /^\d{2}:00$/.test(raw)?raw.slice(0,2)+':20':raw}
+function lookSlot(r){let t=lookActualTime(r);return t==='19:20'?'18:00':(/^\d{2}:20$/.test(t)?t.slice(0,2)+':00':t)}
+function lookAll(){let m=new Map();[lookSeed,lookPublic,lookSaved()].forEach(src=>src.forEach(r=>m.set(r.date+'|'+lookActualTime(r),r)));return [...m.values()].sort((a,b)=>a.date.localeCompare(b.date)||lookActualTime(a).localeCompare(lookActualTime(b)))}
+function lookValid(r){return r&&/^\d{4}-\d{2}-\d{2}$/.test(r.date)&&/^(07|09|11|14|16|18|19|21|23):(00|20)$/.test(String(r.time))&&Array.isArray(r.p)&&r.p.length>=5&&r.p.slice(0,5).every(n=>/^\d{1,4}$/.test(String(n)))}
+function lookSaveBatch(a){let m=new Map(lookSaved().map(r=>[r.date+'|'+lookActualTime(r),r]));a.forEach(r=>m.set(r.date+'|'+lookActualTime(r),r));try{localStorage.setItem(lookKey,JSON.stringify([...m.values()]));renderLook();renderFederalLook();renderLookTrail();return true}catch(e){$('lookMessage').textContent='Erro ao salvar no navegador.';return false}}
+function renderLook(){let all=lookAll(),a=all.filter(r=>r.date>=$('lookStart').value&&r.date<=$('lookEnd').value&&($('lookFilter').value==='all'||lookSlot(r)===$('lookFilter').value||lookActualTime(r)===$('lookFilter').value));
  let counts={};a.forEach(r=>{let g=group(r.p[0]);counts[g]=(counts[g]||0)+1});let rank=Object.entries(counts).sort((x,y)=>y[1]-x[1]||Number(x[0])-Number(y[0]));
  $('lookN').textContent=a.length;$('lookDays').textContent=new Set(a.map(r=>r.date)).size;$('lookHeads').textContent=a.length;$('lookLeader').textContent=rank.length?'G'+pad(rank[0][0]):'—';
- let pairs=0,hits=0,detail=[];let byday={};all.forEach(r=>(byday[r.date]??=[]).push(r));Object.values(byday).forEach(rows=>{rows.sort((x,y)=>x.time.localeCompare(y.time));for(let i=0;i<rows.length-1;i++){let x=rows[i],y=rows[i+1];if(!a.includes(x)||!a.includes(y))continue;let ix=['07:00','09:00','11:00','14:00','16:00','18:00','21:00','23:00'];if(ix.indexOf(y.time)!==ix.indexOf(x.time)+1)continue;let g=group(x.p[0]),t=[(g+6)%25+1,(g+17)%25+1],h=t.includes(group(y.p[0]));pairs++;if(h)hits++;detail.push({g,t,h})}});
+ let pairs=0,hits=0,detail=[];let byday={};all.forEach(r=>(byday[r.date]??=[]).push(r));Object.values(byday).forEach(rows=>{rows.sort((x,y)=>x.time.localeCompare(y.time));for(let i=0;i<rows.length-1;i++){let x=rows[i],y=rows[i+1];if(!a.includes(x)||!a.includes(y))continue;let ix=['07:00','09:00','11:00','14:00','16:00','18:00','21:00','23:00'];if(ix.indexOf(lookSlot(y))!==ix.indexOf(lookSlot(x))+1)continue;let g=group(x.p[0]),t=[(g+6)%25+1,(g+17)%25+1],h=t.includes(group(y.p[0]));pairs++;if(h)hits++;detail.push({g,t,h})}});
  $('lookStats').innerHTML='<p><b>Chama dos 7 na LOOK:</b> '+hits+' coincidência(s) em '+pairs+' pares completos ('+(pairs?(hits/pairs*100).toFixed(1).replace('.',',')+'%':'sem amostra')+'). Referência teórica: 8%.</p><p class="small">Somente horários adjacentes completos do mesmo dia; nenhuma ligação entre dias. Não é previsão.</p><h3>Grupos mais frequentes no 1º prêmio</h3>'+(rank.length?'<table><tr><th>Grupo</th><th>Ocorrências</th></tr>'+rank.slice(0,25).map(([g,n])=>'<tr><td>G'+pad(g)+' — '+animal(Number(g))+'</td><td>'+n+'</td></tr>').join('')+'</table>':'<div class="mutedbox">Nenhum resultado no período.</div>');
- $('lookTable').innerHTML=a.length?'<table><thead><tr><th>Data</th><th>Hora</th><th>1º</th><th>2º</th><th>3º</th><th>4º</th><th>5º</th><th>Fonte</th></tr></thead><tbody>'+a.slice().reverse().map(r=>'<tr><td>'+safe(r.date)+'</td><td>'+safe(r.horario_real || (r.time.slice(0,2)+':20'))+'</td>'+r.p.slice(0,5).map(n=>'<td>'+safe(String(n).padStart(4,'0'))+'</td>').join('')+'<td>'+safe(r.source||'Cadastro local')+'</td></tr>').join('')+'</tbody></table>':'<div class="mutedbox">Ainda não há resultados nessa seleção.</div>';
+ $('lookTable').innerHTML=a.length?'<table><thead><tr><th>Data</th><th>Hora</th><th>1º</th><th>2º</th><th>3º</th><th>4º</th><th>5º</th><th>Fonte</th></tr></thead><tbody>'+a.slice().reverse().map(r=>'<tr><td>'+safe(r.date)+'</td><td>'+safe(lookActualTime(r))+'</td>'+r.p.slice(0,5).map(n=>'<td>'+safe(String(n).padStart(4,'0'))+'</td>').join('')+'<td>'+safe(r.source||'Cadastro local')+'</td></tr>').join('')+'</tbody></table>':'<div class="mutedbox">Ainda não há resultados nessa seleção.</div>';
 }
 ['lookStart','lookEnd','lookFilter'].forEach(id=>$(id).onchange=renderLook);
 $('lookDate').value='2026-11-02';
 $('lookAdd').onclick=()=>{let r={date:$('lookDate').value,time:$('lookTime').value,p:[...document.querySelectorAll('.lookPrize')].map(x=>x.value.trim()),source:'Cadastro local'};if(!lookValid(r)){ $('lookMessage').textContent='Informe data, horário e cinco milhares válidas (0000 a 9999).';return}if(lookSaveBatch([r])){$('lookMessage').textContent='Resultado salvo na base LOOK.';document.querySelectorAll('.lookPrize').forEach(x=>x.value='')}};
 $('lookCsv').onchange=async e=>{let f=e.target.files[0];if(!f)return;let lines=(await f.text()).replace(/^\uFEFF/,'').trim().split(/\r?\n/),batch=[],bad=0;for(let line of lines){if(!line.trim()||/^data[,;]/i.test(line))continue;let v=line.split(/[;,]/).map(x=>x.trim().replace(/^"|"$/g,''));let r={date:v[0],time:v[1],p:v.slice(2,7),source:'CSV importado'};if(lookValid(r))batch.push(r);else bad++}if(batch.length&&lookSaveBatch(batch))$('lookMessage').textContent=batch.length+' linhas válidas importadas; '+bad+' ignoradas.';else $('lookMessage').textContent='Nenhuma linha válida. '+bad+' linha(s) ignorada(s).';e.target.value=''};
-$('lookExport').onclick=()=>{let csv='data,horario,p1,p2,p3,p4,p5\n'+lookAll().map(r=>[r.date,r.time,...r.p.slice(0,5).map(n=>String(n).padStart(4,'0'))].join(',')).join('\n');let u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=u;a.download='look-goias-historico.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)};
-$('lookReset').onclick=()=>{if(confirm('Apagar somente os resultados LOOK adicionados neste navegador? Os resultados publicados em JSON e os resultados iniciais de 01/10 permanecem.')){localStorage.removeItem(lookKey);renderLook();renderFederalLook();$('lookMessage').textContent='Dados adicionados apagados.'}};
+$('lookExport').onclick=()=>{let csv='data,horario,p1,p2,p3,p4,p5\n'+lookAll().map(r=>[r.date,lookActualTime(r),...r.p.slice(0,5).map(n=>String(n).padStart(4,'0'))].join(',')).join('\n');let u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=u;a.download='look-goias-historico.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)};
+$('lookReset').onclick=()=>{if(confirm('Apagar somente os resultados LOOK adicionados neste navegador? Os resultados publicados em JSON e os resultados iniciais de 01/10 permanecem.')){localStorage.removeItem(lookKey);renderLook();renderFederalLook();renderLookTrail();$('lookMessage').textContent='Dados adicionados apagados.'}};
 renderLook();
 async function loadPublicLookHistory(){
  try{
@@ -886,29 +930,114 @@ async function loadPublicLookHistory(){
   if(!response.ok)throw new Error('HTTP '+response.status);
   const data=await response.json();
   if(!Array.isArray(data))throw new Error('O JSON precisa conter uma lista de extrações');
-  // Normaliza horarios reais da fonte (07:20, 19:20 etc.) para os
-  // intervalos historicos usados pela interface, preservando a hora real.
+  // Preserva a hora real da fonte (07:20, 19:20 etc.) para evitar
+  // misturar 18:20 e 19:20, inclusive quando ocorrem no mesmo dia.
   const normalizeLookRow=r=>{
    if(!r || typeof r!=='object')return r;
    const raw=String(r.time||'').trim();
    const match=/^(07|09|11|14|16|18|19|21|23):(00|20)$/.exec(raw);
    if(!match)return r;
-   const hour=match[1]==='19'?'18':match[1];
-   return {...r,time:hour+':00',horario_real:r.horario_real||raw};
+   return {...r,time:raw,horario_real:r.horario_real||raw};
   };
   let valid=data.map(normalizeLookRow).filter(lookValid);
-  // O campo time é o código de intervalo compatível com a aba LOOK;
-  // horario_real (p. ex. 19:20) preserva o horário da publicação original.
+  // Cada horário real possui sua própria chave; não descartar 19:20.
   const keys=new Set();
-  lookPublic=valid.filter(r=>{const key=r.date+'|'+r.time;if(keys.has(key))return false;keys.add(key);return true});
-  renderLook();renderFederalLook();
+  lookPublic=valid.filter(r=>{const key=r.date+'|'+lookActualTime(r);if(keys.has(key))return false;keys.add(key);return true});
+  renderLook();renderFederalLook();renderLookTrail();
   $('lookMessage').textContent=lookPublic.length+' extrações LOOK carregadas do JSON publicado ('+(data.length-lookPublic.length)+' inválidas ou duplicadas).';
  }catch(err){
   $('lookMessage').textContent='Histórico JSON da LOOK indisponível. A base inicial e os registros locais continuam acessíveis. Para importar os dados agora, use o CSV abaixo.';
  }
 }
 loadPublicLookHistory();
+setInterval(loadPublicLookHistory,15*60*1000);
 
+
+
+// TESTE 19 — Rastro dos ausentes em cada LOOK. Base independente da Federal e da LOTECE.
+let ltCsvRows=[];
+let ltRenderedCases=[];
+const ltPad=n=>String(n).padStart(4,'0');
+function ltMissing(r){const seen=new Set(r.p.slice(0,5).map(ltPad).join(''));return [...'0123456789'].filter(d=>!seen.has(d))}
+function ltDateTime(r){return r.date+' '+lookActualTime(r)}
+function ltOriginKey(r){return r.date+'|'+lookActualTime(r)}
+function ltGetData(){
+ const all=lookAll().filter(lookValid).sort((a,b)=>a.date.localeCompare(b.date)||lookActualTime(a).localeCompare(lookActualTime(b)));
+ const selected=all.map((r,i)=>({r,i})).filter(({r})=>r.date>=$('ltStart').value&&r.date<=$('ltEnd').value&&($('ltTime').value==='all'||lookActualTime(r)===$('ltTime').value));
+ const digit=$('ltDigit').value;const max=$('ltMax').value==='all'?Infinity:Number($('ltMax').value);
+ const cases=selected.map(({r,i})=>{
+  const missing=ltMissing(r).filter(d=>digit==='all'||digit===d);
+  const subsequent=all.slice(i+1,Number.isFinite(max)?i+1+max:undefined);
+  const digits=missing.map(d=>{
+   const steps=[];let first=null;
+   for(let j=0;j<subsequent.length;j++){
+    const next=subsequent[j],positions=[];
+    next.p.slice(0,5).forEach((p,k)=>{if(ltPad(p).includes(d))positions.push(k+1)});
+    steps.push({r:next,order:j+1,positions});
+    if(positions.includes(1)){first=steps[steps.length-1];break}
+   }
+   return {d,first,steps,examined:steps.length,available:subsequent.length};
+  });
+  return {r,key:ltOriginKey(r),missing,digits};
+ }).filter(x=>x.missing.length);
+ return {cases,all};
+}
+function ltJourneyHtml(c){
+ if(!c)return '<div class="mutedbox">Selecione uma extração de origem.</div>';
+ const num=c.missing.length;
+ if(!num)return '<div class="mutedbox">Esta extração não possui algarismos ausentes no filtro selecionado.</div>';
+ const list=c.digits.map(x=>{
+  const series=x.steps.map(s=>{
+   const found=s.positions.filter(p=>p!==1);
+   const via=found.length?' · também no '+found.map(p=>p+'º').join(', '):'';
+   const detail=s.positions.includes(1)?'<span class="tag">1º prêmio '+safe(ltPad(s.r.p[0]))+' — chegou!</span>':found.length?'<span class="tag">passou no '+found.map(p=>p+'º').join(', ')+' prêmio</span>':'não apareceu do 1º ao 5º';
+   return '<tr><td>'+s.order+'ª</td><td>'+safe(ltDateTime(s.r))+'</td><td><b>'+safe(ltPad(s.r.p[0]))+'</b></td><td>'+detail+(s.positions.includes(1)?'<span class="small">'+via+'</span>':'')+'</td></tr>';
+  }).join('');
+  return '<h3>Algarismo <span style="color:var(--green)">'+x.d+'</span> — '+(x.first?'chegou ao 1º na '+x.first.order+'ª extração cadastrada seguinte':'ainda não observado no 1º')+'</h3>'+
+   (series?'<div class="scroll"><table><thead><tr><th>Passo</th><th>LOOK seguinte</th><th>1º prêmio</th><th>Movimentação do algarismo</th></tr></thead><tbody>'+series+'</tbody></table></div>':'<div class="mutedbox">Não existem extrações posteriores cadastradas para acompanhar.</div>');
+ }).join('');
+ return '<p class="muted"><b>Origem:</b> '+safe(ltDateTime(c.r))+' · <b>1º ao 5º:</b> '+c.r.p.slice(0,5).map(ltPad).map(safe).join(' · ')+' · <b>ausentes:</b> '+c.missing.join(', ')+'</p>'+list;
+}
+function renderLookTrail(){
+ const {cases,all}=ltGetData();ltRenderedCases=cases;
+ const digits=cases.flatMap(c=>c.digits.map(x=>({...x,origin:c.r,originKey:c.key})));
+ const hits=digits.filter(x=>x.first),immediate=hits.filter(x=>x.first.order===1);
+ $('ltOrigins').textContent=cases.length;
+ $('ltTracked').textContent=digits.length;
+ $('ltHits').textContent=hits.length+' / '+digits.length;
+ $('ltImmediate').textContent=immediate.length+' / '+digits.length;
+ const completed=digits.length?((hits.length/digits.length)*100).toFixed(1).replace('.',',')+'%':'—';
+ const firstCount=digits.filter(x=>x.available>0).length;
+ $('ltSummary').textContent='Chegada observada ao 1º prêmio: '+completed+' ('+hits.length+' de '+digits.length+' casos). '+firstCount+' casos possuem pelo menos uma extração posterior cadastrada. A contagem de espera é de extrações CADASTRADAS; resultados ausentes podem alterar a ordem real.';
+ const ordered=digits.slice().sort((a,b)=>b.origin.date.localeCompare(a.origin.date)||lookActualTime(b.origin).localeCompare(lookActualTime(a.origin))||a.d.localeCompare(b.d));
+ const row=x=>{
+  const visited=x.steps.filter(st=>st.positions.some(p=>p>1));
+  const trace=visited.length?visited.slice(0,3).map(st=>safe(ltDateTime(st.r))+' ('+st.positions.filter(p=>p>1).map(p=>p+'º').join('/')+')').join(' → ')+(visited.length>3?' … +'+(visited.length-3):''):'Nenhuma passagem até a chegada ao 1º';
+  return '<tr><td>'+safe(ltDateTime(x.origin))+'</td><td><b>'+x.d+'</b></td><td>'+trace+'</td><td>'+(x.first?'<b>'+safe(ltDateTime(x.first.r))+'</b> · '+safe(ltPad(x.first.r.p[0])):'—')+'</td><td>'+(x.first?x.first.order+'ª':x.examined?'Não observado em '+x.examined:'Sem LOOK posterior')+'</td><td>'+(x.first?'<span class="tag">Observado</span>':'Pendente*')+'</td></tr>';
+ };
+ $('ltTable').innerHTML=ordered.length?'<p class="small">Exibindo '+Math.min(150,ordered.length)+' de '+ordered.length+' rastros; exporte o CSV para obter todos.</p><table><thead><tr><th>LOOK de origem</th><th>Ausente</th><th>Passagens em 2º–5º</th><th>Chegada ao 1º</th><th>Espera</th><th>Estado</th></tr></thead><tbody>'+ordered.slice(0,150).map(row).join('')+'</tbody></table>':'<div class="mutedbox">Não há extrações de origem com algarismos ausentes nesse filtro. Amplie a data ou selecione todos os horários.</div>';
+ const select=$('ltCase'),before=select.value;
+ select.innerHTML=cases.slice().reverse().map(c=>'<option value="'+safe(c.key)+'">'+safe(ltDateTime(c.r))+' · ausentes '+c.missing.join(', ')+'</option>').join('');
+ if(cases.some(c=>c.key===before))select.value=before;
+ else if(cases.length)select.value=cases[cases.length-1].key;
+ $('ltJourney').innerHTML=ltJourneyHtml(cases.find(c=>c.key===select.value));
+ const ranking=[...'0123456789'].map(d=>{
+  const rows=digits.filter(x=>x.d===d);return {d,n:rows.length,hits:rows.filter(x=>x.first).length,first:rows.filter(x=>x.first?.order===1).length};
+ });
+ $('ltRanking').innerHTML='<table><thead><tr><th>Algarismo</th><th>Origens em que estava ausente</th><th>Chegou ao 1º</th><th>Já na 1ª seguinte</th><th>Proporção no histórico</th></tr></thead><tbody>'+ranking.map(x=>'<tr><td><b>'+x.d+'</b></td><td>'+x.n+'</td><td>'+x.hits+'</td><td>'+x.first+'</td><td>'+(x.n?((100*x.hits/x.n).toFixed(1).replace('.',',')+'%'):'—')+'</td></tr>').join('')+'</tbody></table>';
+ ltCsvRows=ordered.map(x=>({origem_data:x.origin.date,origem_hora:lookActualTime(x.origin),premios_origem:x.origin.p.slice(0,5).map(ltPad).join(' '),ausente:x.d,primeiro_look_data:x.first?.r.date||'',primeiro_look_hora:x.first?lookActualTime(x.first.r):'',primeiro_premio:x.first?ltPad(x.first.r.p[0]):'',extracoes_ate_primeiro:x.first?.order||'',extracoes_conferidas:x.examined,passagens_2_a_5:x.steps.filter(s=>s.positions.some(p=>p>1)).map(s=>ltDateTime(s.r)+'['+s.positions.filter(p=>p>1).join('/')+']').join(' | '),estado:x.first?'OBSERVADO':'PENDENTE'}));
+}
+$('ltCase').onchange=()=>{$('ltJourney').innerHTML=ltJourneyHtml(ltRenderedCases.find(c=>c.key===$('ltCase').value))};
+['ltStart','ltEnd','ltTime','ltDigit','ltMax'].forEach(id=>$(id).onchange=renderLookTrail);
+$('ltExample').onclick=()=>{$('ltStart').value='2026-11-02';$('ltEnd').value='2026-11-02';$('ltTime').value='07:20';$('ltDigit').value='all';$('ltMax').value='all';renderLookTrail()};
+$('ltFull').onclick=()=>{$('ltStart').value='2026-10-01';$('ltEnd').value=lookAll().slice(-1)[0]?.date||new Date().toISOString().slice(0,10);$('ltTime').value='all';$('ltDigit').value='all';$('ltMax').value='all';renderLookTrail()};
+$('ltExport').onclick=()=>{
+ const fields=['origem_data','origem_hora','premios_origem','ausente','primeiro_look_data','primeiro_look_hora','primeiro_premio','extracoes_ate_primeiro','extracoes_conferidas','passagens_2_a_5','estado'];
+ const quote=x=>'"'+String(x??'').replace(/"/g,'""')+'"';
+ const csv='\uFEFF'+fields.join(';')+'\r\n'+ltCsvRows.map(r=>fields.map(f=>quote(r[f])).join(';')).join('\r\n');
+ const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='teste19-rastro-look-goias.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+renderLookTrail();
 
 // TESTE 17 — Federal x LOOK: sem previsão, sem cruzar loterias na mesma base.
 // A falta do horário da Federal exclui a data inteira para garantir sequência temporal.
@@ -1062,7 +1191,7 @@ setInterval(updateClock,1000);
 setInterval(()=>{if(Date.now()>=nextCheck){nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Nova janela de verificação iniciada. Para conferir os resultados publicados, use “Verificar fonte”.';}},1000);
 $('checkNow').onclick=()=>{nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Fonte oficial aberta para conferência. Após validar os resultados, cadastre-os ou importe o CSV.';window.open('https://lotece.com.br/','_blank','noopener');updateClock()};
 $('refreshPanel').onclick=()=>{render();nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Painel recalculado com os dados já cadastrados. Nenhum resultado externo foi baixado.';updateClock()};
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['dashboard','primeiro','transicoes','federal','chama7','look','fedlook','pedras','base','ajuda'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab))});
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['dashboard','primeiro','transicoes','federal','chama7','look','looktrail','fedlook','pedras','base','ajuda'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab))});
 try{db=JSON.parse(localStorage.getItem('obicho-certo-lotece')||'[]')}catch(e){db=[]}
 async function loadPublicHistory(){
  try{

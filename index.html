@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -64,6 +65,16 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 <div class="grid"><div class="card metric"><small>Testes realizados</small><strong id="btTests">0</strong></div><div class="card metric"><small>Coincidências</small><strong id="btHits">0</strong></div><div class="card metric"><small>Taxa observada</small><strong id="btRate">—</strong></div><div class="card metric"><small>Referência teórica</small><strong>20%</strong><span class="small">5 de 25 grupos, sob chances iguais</span></div></div>
 <p class="hint" id="btInfo">São necessárias pelo menos 9 extrações para iniciar a avaliação.</p>
 <div id="btTable" class="scroll"></div>
+</div>
+<div class="panel" id="advancedAnalysis"><h2>🔬 Análise avançada — 1º prêmio</h2>
+<p class="muted">Compare janelas anteriores, horários e o desempenho retrospectivo. Os resultados descrevem o passado e não garantem acertos futuros.</p>
+<label for="advancedWindow">Janela de histórico para o teste</label>
+<select id="advancedWindow" style="margin:8px 0 16px;max-width:320px"><option value="8">8 extrações</option><option value="20">20 extrações</option><option value="40">40 extrações</option></select>
+<div class="grid"><div class="card metric"><small>Avaliações</small><strong id="advTests">—</strong></div><div class="card metric"><small>Coincidências no Top 5</small><strong id="advHits">—</strong></div><div class="card metric"><small>Taxa retrospectiva</small><strong id="advRate">—</strong></div><div class="card metric"><small>Referência aleatória</small><strong>20%</strong></div></div>
+<p class="hint" id="advNote"></p>
+<h3>Comparação entre janelas</h3><div class="scroll" id="advWindows"></div>
+<h3>Frequência por extração (1º prêmio)</h3><div class="scroll" id="advTimes"></div>
+<h3>Repetições consecutivas</h3><p class="hint" id="advRepeats"></p>
 </div>
 <div class="panel"><h2>Ranking dos 25 grupos — apenas 1º prêmio</h2><div id="firstRanking" class="scroll"></div></div>
 <div class="panel"><h2>Últimos primeiros prêmios da seleção</h2><div id="firstRecent" class="scroll"></div></div>
@@ -138,9 +149,35 @@ function renderBacktest(rows){
  $('btInfo').textContent=tests.length?`Janela de ${windowSize} extrações anteriores • ${tests.length} avaliação(ões). A referência de 20% pressupõe grupos equiprováveis; amostras pequenas oscilam muito.`:`Ainda não há dados suficientes: são necessárias ao menos ${windowSize+1} extrações no período e horário selecionados.`;
  $('btTable').innerHTML=tests.length?`<table><thead><tr><th>Data</th><th>Extração</th><th>Top 5 anterior</th><th>Grupo realizado</th><th>Coincidiu?</th></tr></thead><tbody>${[...tests].reverse().map(t=>`<tr><td>${safe(t.row.date)}</td><td>${safe(t.row.time)}</td><td>${t.top.map(g=>'G'+pad(g)).join(', ')}</td><td>G${pad(t.actual)} — ${animal(t.actual)}</td><td>${t.hit?'Sim':'Não'}</td></tr>`).join('')}</tbody></table>`:'<div class="mutedbox">Sem testes suficientes para este filtro. Amplie o período ou acrescente resultados históricos verificados.</div>';
 }
+function advBacktest(rows,windowSize){
+ let hits=0,tests=0;
+ for(let i=windowSize;i<rows.length;i++){
+  let counts=Array(26).fill(0);
+  for(let j=i-windowSize;j<i;j++)counts[group(rows[j].p[0])]++;
+  let top=Array.from({length:25},(_,k)=>k+1).sort((a,b)=>counts[b]-counts[a]||a-b).slice(0,5);
+  if(top.includes(group(rows[i].p[0])))hits++;
+  tests++;
+ }
+ return {tests,hits,rate:tests?100*hits/tests:null};
+}
+function renderAdvanced(rows){
+ const size=Number($('advancedWindow').value),result=advBacktest(rows,size);
+ $('advTests').textContent=result.tests;
+ $('advHits').textContent=result.hits;
+ $('advRate').textContent=result.rate===null?'—':result.rate.toFixed(1)+'%';
+ $('advNote').textContent=result.tests?'Cada avaliação utiliza apenas resultados anteriores. A referência de 20% pressupõe 25 grupos equiprováveis; diferenças em amostras pequenas podem ocorrer por acaso.':'São necessárias ao menos '+(size+1)+' extrações no filtro para realizar esse teste.';
+ $('advWindows').innerHTML='<table><thead><tr><th>Janela</th><th>Avaliações</th><th>Coincidências</th><th>Taxa</th></tr></thead><tbody>'+[8,20,40].map(w=>{let x=advBacktest(rows,w);return '<tr><td>'+w+'</td><td>'+x.tests+'</td><td>'+x.hits+'</td><td>'+(x.rate===null?'—':x.rate.toFixed(1)+'%')+'</td></tr>'}).join('')+'</tbody></table>';
+ const all=[...new Map([...publicDb,...db].map(x=>[x.date+'|'+normalizeTime(x.time),x])).values()].filter(r=>Array.isArray(r.p)&&r.p.length===5);
+ const names={'11:00':'Manhã','14:00':'Tarde','15:45':'Tarde II','19:00':'Noite'};
+ $('advTimes').innerHTML='<table><thead><tr><th>Extração</th><th>Resultados</th><th>Grupo(s) mais frequente(s)</th></tr></thead><tbody>'+Object.keys(names).map(t=>{let subset=all.filter(r=>normalizeTime(r.time)===t),counts=Array(26).fill(0);subset.forEach(r=>counts[group(r.p[0])]++);let max=Math.max(...counts.slice(1));let leaders=max?Array.from({length:25},(_,i)=>i+1).filter(g=>counts[g]===max).map(g=>'G'+pad(g)).join(', '):'—';return '<tr><td>'+names[t]+'</td><td>'+subset.length+'</td><td>'+leaders+(max?' ('+max+' vez(es))':'')+'</td></tr>'}).join('')+'</tbody></table>';
+ let repeats=0;for(let i=1;i<rows.length;i++)if(group(rows[i].p[0])===group(rows[i-1].p[0]))repeats++;
+ $('advRepeats').textContent=rows.length>1?repeats+' repetição(ões) em '+(rows.length-1)+' pares consecutivos no filtro ('+(100*repeats/(rows.length-1)).toFixed(1)+'%). Referência sob grupos equiprováveis: 4%.':'Dados insuficientes para avaliar repetições.';
+}
+$('advancedWindow').onchange=renderFirst;
 function renderFirst(){
  const rows=firstRows(),counts=Array(26).fill(0),last=Array(26).fill(-1);
  renderBacktest(rows);
+ renderAdvanced(rows);
  rows.forEach((r,i)=>{const g=group(r.p[0]);counts[g]++;last[g]=i});
  const stats=Array.from({length:25},(_,i)=>{const g=i+1;return {g,count:counts[g],delay:last[g]===-1?null:rows.length-1-last[g],last:last[g]===-1?null:rows[last[g]]}});
  const ranked=[...stats].sort((a,b)=>b.count-a.count||a.g-b.g),late=[...stats].sort((a,b)=>(b.delay??rows.length)-(a.delay??rows.length)||a.g-b.g),top=ranked[0];

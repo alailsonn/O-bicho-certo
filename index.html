@@ -16,7 +16,7 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 <header><div class="brand"><div class="logo">🐾</div><div><h1>O BICHO CERTO</h1><p>Análise estatística • Loteria dos Sonhos / LOTECE</p></div></div></header>
 <main>
 <div class="notice"><b>Estatística, não previsão:</b> frequências e atrasos descrevem resultados passados. Cada extração é independente; um grupo repetido ou atrasado não ganha maior probabilidade no próximo sorteio. Este painel é independente e não recebe apostas.</div>
-<nav><button class="tab active" data-tab="dashboard">Painel</button><button class="tab" data-tab="primeiro">🎯 1º Prêmio</button><button class="tab" data-tab="transicoes">🔁 Cabeça entre horários</button><button class="tab" data-tab="federal">🇧🇷 Federal × Sonhos</button><button class="tab" data-tab="chama7">🔥 Chama dos 7</button><button class="tab" data-tab="look">🔎 LOOK Goiás</button><button class="tab" data-tab="looktrail">🧭 Rastro dos ausentes</button><button class="tab" data-tab="lookgroups">🐾 Teste 20 — Grupos</button><button class="tab" data-tab="lookhours">🕒 Teste 21 — Horários</button><button class="tab" data-tab="fedlook">🔍 Federal × LOOK</button><button class="tab" data-tab="pedras">🔬 Ausentes e dobrados</button><button class="tab" data-tab="base">Cadastrar / importar</button><button class="tab" data-tab="ajuda">Como usar</button></nav>
+<nav><button class="tab active" data-tab="dashboard">Painel</button><button class="tab" data-tab="primeiro">🎯 1º Prêmio</button><button class="tab" data-tab="transicoes">🔁 Cabeça entre horários</button><button class="tab" data-tab="federal">🇧🇷 Federal × Sonhos</button><button class="tab" data-tab="chama7">🔥 Chama dos 7</button><button class="tab" data-tab="look">🔎 LOOK Goiás</button><button class="tab" data-tab="looktrail">🧭 Rastro dos ausentes</button><button class="tab" data-tab="lookgroups">🐾 Teste 20 — Grupos</button><button class="tab" data-tab="lookhours">🕒 Teste 21 — Horários</button><button class="tab" data-tab="lookradar">🎯 Teste 22 — Radar</button><button class="tab" data-tab="fedlook">🔍 Federal × LOOK</button><button class="tab" data-tab="pedras">🔬 Ausentes e dobrados</button><button class="tab" data-tab="base">Cadastrar / importar</button><button class="tab" data-tab="ajuda">Como usar</button></nav>
 
 <section id="dashboard">
 <div class="panel" style="border-color:#39785d">
@@ -337,6 +337,46 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
  <div class="panel"><h2>🔢 Mapa: algarismo ausente × horário de origem</h2><p class="hint">Cada célula mostra <b>acertos / casos (taxa)</b> para a categoria escolhida. “—” significa que não houve casos avaliados. Pequenas amostras são instáveis.</p><div class="scroll" id="lhMatrix"></div></div>
  <div class="panel"><h2>🏅 Combinações com maior taxa histórica</h2><p class="hint">Ranking por taxa observada, exigindo o mínimo de casos selecionado. Empates são ordenados pelo número de coincidências. Examine sempre o total de casos, não só a porcentagem.</p><div class="scroll" id="lhTop"></div></div>
  <div class="panel"><h2>🧾 Conferência das correspondências</h2><p class="hint" id="lhDetailInfo"></p><div class="scroll" id="lhDetails"></div></div>
+</section>
+
+
+<!-- TESTE 22 — RADAR DE CINCO GRUPOS E VALIDAÇÃO CRONOLÓGICA -->
+<section id="lookradar" class="hidden">
+ <div class="panel" style="border-color:#398b6e">
+  <h2>🎯 Teste 22 — Radar Inteligente de Grupos | LOOK Goiás</h2>
+  <p class="muted">O radar seleciona <b>exatamente cinco grupos</b> para o <b>1º prêmio da próxima extração LOOK Goiás</b> usando apenas resultados conhecidos até a extração de origem. Combina ausentes (Testes 19–21), grupos principais e auxiliares, pares diretos/invertidos nos três recortes da milhar e histórico por horário. <b>É uma classificação experimental, não uma probabilidade prevista ou promessa de acerto.</b></p>
+  <div class="row">
+   <div><label class="small" for="r22Period">Janela da validação</label><select id="r22Period"><option value="30">Últimos 30 dias cadastrados</option><option value="7">Últimos 7 dias cadastrados</option><option value="all">Todo o histórico</option></select></div>
+   <div><label class="small" for="r22Warm">Aquecimento mínimo anterior</label><select id="r22Warm"><option value="15">15 transições</option><option value="25" selected>25 transições</option><option value="50">50 transições</option></select></div>
+  </div>
+  <div class="actions" style="margin-top:12px"><button id="r22Refresh" class="primary">Recalcular radar</button><button id="r22Export">Exportar validação CSV</button></div>
+  <p class="hint"><b>Sem olhar o futuro:</b> a seleção de cada linha é calculada antes do resultado seguinte. A validação aceita somente horários consecutivos previstos do <b>mesmo dia</b>; transições com lacunas ou entre dias não contam como acerto ou erro. Pesos fixos e exploratórios, sem ajuste para maximizar os acertos passados.</p>
+ </div>
+ <div class="panel" style="border-color:#326b55">
+  <h2>🐾 Radar para a próxima LOOK ainda não cadastrada</h2>
+  <p id="r22Latest" class="muted">Carregando o histórico da LOOK...</p>
+  <div id="r22Cards" class="grid"></div>
+  <p id="r22Alert" class="hint"></p>
+  <div class="scroll" id="r22Why"></div>
+ </div>
+ <div class="grid">
+  <div class="card metric"><small>Transições avaliadas</small><strong id="r22N">—</strong><span class="small">com sequência validada</span></div>
+  <div class="card metric"><small>Acertos com 5 grupos</small><strong id="r22Hits">—</strong><span class="small">no 1º prêmio seguinte</span></div>
+  <div class="card metric"><small>Taxa observada</small><strong id="r22Rate">—</strong><span class="small" id="r22Confidence">intervalo de 95%: —</span></div>
+  <div class="card metric"><small>Referência por acaso</small><strong>20,0%</strong><span class="small">5 de 25 grupos, sob uniformidade</span></div>
+ </div>
+ <div class="panel">
+  <h2>📊 Validação cronológica sem vazamento de resultado</h2>
+  <p id="r22Summary" class="muted">Aguarde o carregamento do histórico.</p>
+  <div id="r22Compare"></div>
+  <div class="scroll" id="r22ByHour"></div>
+  <p class="hint">Uma taxa superior a 20% nesta amostra não prova vantagem. O intervalo de Wilson é apenas descritivo; há múltiplos padrões e horários examinados e os resultados reais podem diferir do modelo uniforme.</p>
+ </div>
+ <div class="panel"><h2>🧾 Conferência de cada seleção anterior</h2><p class="hint">Confira os cinco grupos selecionados <b>antes</b> de cada 1º prêmio realizado. Exibindo até 150 registros; o CSV contém todos.</p><div class="scroll" id="r22Checks"></div></div>
+ <div class="panel"><h2>⚙️ Como o radar pontua os 25 grupos</h2>
+  <p class="muted">A pontuação considera presença do grupo nas listas de <b>principais</b> e <b>auxiliares</b> dos ausentes; pares <b>iguais</b> e <b>invertidos</b> das posições 1–2, 2–3 e 3–4 de cada milhar do 1º ao 5º prêmio; regra <b>+7/−7</b> do grupo da cabeça; e frequência anterior de grupos em transições do mesmo horário e em 1ºs prêmios recentes. Os pesos são fixos: principais +1,35; auxiliares +1,25; par direto +0,80; par invertido +0,95; ±7 +0,40; frequência do horário e frequência recente, ambas com suavização e contribuição limitada. Um grupo em duas categorias soma contribuições.</p>
+  <p class="hint">Grupos em empate são desempatos pela menor numeração, sem usar resultado futuro. O radar funciona mesmo quando nenhum algarismo está ausente. Não altera o coletor, o JSON público nem os Testes 19–21.</p>
+ </div>
 </section>
 
 <section id="fedlook" class="hidden">
@@ -962,7 +1002,7 @@ function lookActualTime(r){const raw=String((r&&r.horario_real)||((r&&r.time)||'
 function lookSlot(r){let t=lookActualTime(r);return t==='19:20'?'18:00':(/^\d{2}:20$/.test(t)?t.slice(0,2)+':00':t)}
 function lookAll(){let m=new Map();[lookSeed,lookPublic,lookSaved()].forEach(src=>src.forEach(r=>m.set(r.date+'|'+lookActualTime(r),r)));return [...m.values()].sort((a,b)=>a.date.localeCompare(b.date)||lookActualTime(a).localeCompare(lookActualTime(b)))}
 function lookValid(r){return r&&/^\d{4}-\d{2}-\d{2}$/.test(r.date)&&/^(07|09|11|14|16|18|19|21|23):(00|20)$/.test(String(r.time))&&Array.isArray(r.p)&&r.p.length>=5&&r.p.slice(0,5).every(n=>/^\d{1,4}$/.test(String(n)))}
-function lookSaveBatch(a){let m=new Map(lookSaved().map(r=>[r.date+'|'+lookActualTime(r),r]));a.forEach(r=>m.set(r.date+'|'+lookActualTime(r),r));try{localStorage.setItem(lookKey,JSON.stringify([...m.values()]));renderLook();renderFederalLook();renderLookTrail();renderLookGroups();renderLookHours();return true}catch(e){$('lookMessage').textContent='Erro ao salvar no navegador.';return false}}
+function lookSaveBatch(a){let m=new Map(lookSaved().map(r=>[r.date+'|'+lookActualTime(r),r]));a.forEach(r=>m.set(r.date+'|'+lookActualTime(r),r));try{localStorage.setItem(lookKey,JSON.stringify([...m.values()]));renderLook();renderFederalLook();renderLookTrail();renderLookGroups();renderLookHours();renderLookRadar();return true}catch(e){$('lookMessage').textContent='Erro ao salvar no navegador.';return false}}
 function renderLook(){let all=lookAll(),a=all.filter(r=>r.date>=$('lookStart').value&&r.date<=$('lookEnd').value&&($('lookFilter').value==='all'||lookSlot(r)===$('lookFilter').value||lookActualTime(r)===$('lookFilter').value));
  let counts={};a.forEach(r=>{let g=group(r.p[0]);counts[g]=(counts[g]||0)+1});let rank=Object.entries(counts).sort((x,y)=>y[1]-x[1]||Number(x[0])-Number(y[0]));
  $('lookN').textContent=a.length;$('lookDays').textContent=new Set(a.map(r=>r.date)).size;$('lookHeads').textContent=a.length;$('lookLeader').textContent=rank.length?'G'+pad(rank[0][0]):'—';
@@ -975,7 +1015,7 @@ $('lookDate').value='2026-11-02';
 $('lookAdd').onclick=()=>{let r={date:$('lookDate').value,time:$('lookTime').value,p:[...document.querySelectorAll('.lookPrize')].map(x=>x.value.trim()),source:'Cadastro local'};if(!lookValid(r)){ $('lookMessage').textContent='Informe data, horário e cinco milhares válidas (0000 a 9999).';return}if(lookSaveBatch([r])){$('lookMessage').textContent='Resultado salvo na base LOOK.';document.querySelectorAll('.lookPrize').forEach(x=>x.value='')}};
 $('lookCsv').onchange=async e=>{let f=e.target.files[0];if(!f)return;let lines=(await f.text()).replace(/^\uFEFF/,'').trim().split(/\r?\n/),batch=[],bad=0;for(let line of lines){if(!line.trim()||/^data[,;]/i.test(line))continue;let v=line.split(/[;,]/).map(x=>x.trim().replace(/^"|"$/g,''));let r={date:v[0],time:v[1],p:v.slice(2,7),source:'CSV importado'};if(lookValid(r))batch.push(r);else bad++}if(batch.length&&lookSaveBatch(batch))$('lookMessage').textContent=batch.length+' linhas válidas importadas; '+bad+' ignoradas.';else $('lookMessage').textContent='Nenhuma linha válida. '+bad+' linha(s) ignorada(s).';e.target.value=''};
 $('lookExport').onclick=()=>{let csv='data,horario,p1,p2,p3,p4,p5\n'+lookAll().map(r=>[r.date,lookActualTime(r),...r.p.slice(0,5).map(n=>String(n).padStart(4,'0'))].join(',')).join('\n');let u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=u;a.download='look-goias-historico.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)};
-$('lookReset').onclick=()=>{if(confirm('Apagar somente os resultados LOOK adicionados neste navegador? Os resultados publicados em JSON e os resultados iniciais de 01/10 permanecem.')){localStorage.removeItem(lookKey);renderLook();renderFederalLook();renderLookTrail();renderLookGroups();renderLookHours();$('lookMessage').textContent='Dados adicionados apagados.'}};
+$('lookReset').onclick=()=>{if(confirm('Apagar somente os resultados LOOK adicionados neste navegador? Os resultados publicados em JSON e os resultados iniciais de 01/10 permanecem.')){localStorage.removeItem(lookKey);renderLook();renderFederalLook();renderLookTrail();renderLookGroups();renderLookHours();renderLookRadar();$('lookMessage').textContent='Dados adicionados apagados.'}};
 renderLook();
 async function loadPublicLookHistory(){
  try{
@@ -996,7 +1036,7 @@ async function loadPublicLookHistory(){
   // Cada horário real possui sua própria chave; não descartar 19:20.
   const keys=new Set();
   lookPublic=valid.filter(r=>{const key=r.date+'|'+lookActualTime(r);if(keys.has(key))return false;keys.add(key);return true});
-  renderLook();renderFederalLook();renderLookTrail();renderLookGroups();renderLookHours();
+  renderLook();renderFederalLook();renderLookTrail();renderLookGroups();renderLookHours();renderLookRadar();
   $('lookMessage').textContent=lookPublic.length+' extrações LOOK carregadas do JSON publicado ('+(data.length-lookPublic.length)+' inválidas ou duplicadas).';
  }catch(err){
   $('lookMessage').textContent='Histórico JSON da LOOK indisponível. A base inicial e os registros locais continuam acessíveis. Para importar os dados agora, use o CSV abaixo.';
@@ -1195,6 +1235,109 @@ $('lhExport').onclick=()=>{
 };
 renderLookHours();
 
+
+// TESTE 22 — Modelo heurístico fixo, seleção de 5 grupos, teste sequencial sem olhar o futuro.
+// Os pares são recortes 0:2, 1:3 e 2:4 dos 5 prêmios, com dezena invertida.
+let r22Csv=[];
+const r22GroupLabel = g => 'G'+pad(g)+' — '+safe(animal(g));
+const r22PlannedNext={
+ '07:20':['09:20'],'09:20':['11:20'],'11:20':['14:20'],
+ '14:20':['16:20'],'16:20':['18:20','19:20'],
+ '18:20':['19:20','21:20'],'19:20':['21:20'],'21:20':['23:20']
+};
+function r22Adjacent(a,b){return !!(a&&b&&a.date===b.date&&(r22PlannedNext[lookActualTime(a)]||[]).includes(lookActualTime(b)))}
+function r22Wilson(h,n){
+ if(!n)return null;
+ const z=1.96,p=h/n,z2=z*z,den=1+z2/n,mean=(p+z2/(2*n))/den,span=z*Math.sqrt((p*(1-p)+z2/(4*n))/n)/den;
+ return [Math.max(0,mean-span),Math.min(1,mean+span)];
+}
+function r22Percent(p){return (100*p).toFixed(1).replace('.',',')+'%'}
+function r22Score(origin,seen,transitions){
+ const missing=ltMissing(origin),pastHeads=seen.slice(-40),hour=lookActualTime(origin);
+ const matching=transitions.filter(t=>lookActualTime(t.origin)===hour);
+ const freqHour=Array(26).fill(0),freqRecent=Array(26).fill(0);
+ matching.forEach(t=>freqHour[t.g]++);pastHeads.forEach(r=>freqRecent[group(r.p[0])]++);
+ const exact=new Set(),inverse=new Set();
+ origin.p.slice(0,5).forEach(p=>{
+  const num=ltPad(p);
+  for(let i=0;i<=2;i++){
+   const pair=num.slice(i,i+2);
+   exact.add(group(pair));inverse.add(group(pair.split('').reverse().join('')));
+  }
+ });
+ const currentGroup=group(origin.p[0]);
+ const plus7=(currentGroup+6)%25+1,minus7=(currentGroup+17)%25+1;
+ const scores=[];
+ for(let g=1;g<=25;g++){
+  const main=missing.filter(d=>lgMainGroups[Number(d)].includes(g));
+  const aux=missing.filter(d=>lgAuxGroups[Number(d)].includes(g));
+  const pairExact=exact.has(g),pairInverse=inverse.has(g),seven=g===plus7||g===minus7;
+  const sameHourWeight=0.45*Math.min(2,((freqHour[g]+1)/(matching.length+25))*25);
+  const recentWeight=0.30*Math.min(2,((freqRecent[g]+1)/(pastHeads.length+25))*25);
+  const score=1.35*Math.min(2,main.length)+1.25*Math.min(2,aux.length)+(pairExact?0.80:0)+(pairInverse?0.95:0)+(seven?0.40:0)+sameHourWeight+recentWeight;
+  const reasons=[];
+  if(main.length)reasons.push('principal dos ausentes '+main.join(', '));
+  if(aux.length)reasons.push('auxiliar dos ausentes '+aux.join(', '));
+  if(pairExact)reasons.push('par direto em milhar atual');
+  if(pairInverse)reasons.push('par invertido em milhar atual');
+  if(seven)reasons.push('chama ±7');
+  reasons.push('histórico anterior: '+freqHour[g]+'/'+matching.length+' no mesmo horário de origem');
+  scores.push({g,score,reasons});
+ }
+ return scores.sort((a,b)=>b.score-a.score||a.g-b.g);
+}
+function r22Model(){
+ const all=lookAll().filter(lookValid).sort((a,b)=>a.date.localeCompare(b.date)||lookActualTime(a).localeCompare(lookActualTime(b)));
+ const period=$('r22Period').value,warm=Number($('r22Warm').value);
+ const latest=all.length?all[all.length-1].date:'';
+ const cutoff=period==='all'?'0000-00-00':(()=>{const d=new Date(latest+'T12:00:00Z');d.setUTCDate(d.getUTCDate()-(Number(period)-1));return d.toISOString().slice(0,10)})();
+ const transitions=[];let skipped=0,seenWarm=0;const tests=[];
+ for(let i=0;i<all.length-1;i++){
+  const origin=all[i],next=all[i+1];
+  if(!r22Adjacent(origin,next)){skipped++;continue}
+  // Tudo usado aqui já era conhecido ANTES da publicação do próximo resultado.
+  const picks=r22Score(origin,all.slice(0,i+1),transitions).slice(0,5);
+  const actual=group(next.p[0]),hit=picks.some(x=>x.g===actual);
+  if(transitions.length>=warm&&origin.date>=cutoff){
+   tests.push({origin,next,picks,actual,hit});
+  }else if(origin.date>=cutoff)seenWarm++;
+  transitions.push({origin,next,g:actual});
+ }
+ const current=all.length?r22Score(all.at(-1),all,transitions).slice(0,5):[];
+ return {all,tests,current,skipped,seenWarm,validPairs:transitions.length,latest,cutoff,warm};
+}
+function renderLookRadar(){
+ const {all,tests,current,skipped,seenWarm,validPairs,cutoff,latest,warm}=r22Model();
+ const recent=all.at(-1);const n=tests.length,h=tests.filter(x=>x.hit).length;
+ if(recent){
+  const latestHour=lookActualTime(recent);
+  const nextDesc=latestHour==='23:20'?'próxima data de extração':(r22PlannedNext[latestHour]||[]).map(x=>x.slice(0,2)+'h'+x.slice(3)).join(' ou ')||'próxima LOOK';
+  $('r22Latest').innerHTML='Última LOOK cadastrada: <b>'+safe(ltDateTime(recent))+'</b> · 1º prêmio <b>'+safe(ltPad(recent.p[0]))+'</b> (G'+pad(group(recent.p[0]))+'). Seleção para a <b>'+safe(nextDesc)+'</b>, apenas enquanto o resultado seguinte ainda não estiver cadastrado.';
+ }else $('r22Latest').textContent='Nenhum resultado LOOK cadastrado. Importe o histórico antes de usar o radar.';
+ $('r22Cards').innerHTML=current.length?current.map((x,i)=>'<div class="card metric"><small>'+(i+1)+'º grupo classificado</small><strong style="color:var(--green)">G'+pad(x.g)+'</strong><span class="small">'+safe(animal(x.g))+' · pontuação '+x.score.toFixed(2).replace('.',',')+'</span></div>').join(''):'<div class="mutedbox">Aguardando resultados LOOK.</div>';
+ $('r22Alert').textContent=recent?'Este é um ranking exploratório calculado apenas até '+ltDateTime(recent)+'. Grupos selecionados: '+current.map(x=>'G'+pad(x.g)).join(' · ')+'. A chance teórica de incluir um 1º prêmio uniforme em cinco grupos é 20%; o ranking não é garantia nem possui margem de acerto comprovada.':'O radar precisa de dados LOOK válidos.';
+ $('r22Why').innerHTML=current.length?'<table><thead><tr><th>Grupo</th><th>Pontuação</th><th>Motivos de seleção</th></tr></thead><tbody>'+current.map(x=>'<tr><td><b>'+r22GroupLabel(x.g)+'</b></td><td>'+x.score.toFixed(2).replace('.',',')+'</td><td>'+safe(x.reasons.join(' · '))+'</td></tr>').join('')+'</tbody></table>':'';
+ $('r22N').textContent=n;$('r22Hits').textContent=h+' / '+n;$('r22Rate').textContent=n?r22Percent(h/n):'—';
+ const ci=r22Wilson(h,n);
+ $('r22Confidence').textContent=ci?'95% descritivo: '+r22Percent(ci[0])+' a '+r22Percent(ci[1]):'intervalo de 95%: —';
+ $('r22Summary').textContent='Validação de '+(cutoff==='0000-00-00'?'todo o histórico':cutoff+' a '+latest)+': '+n+' transições avaliadas após aquecimento de '+warm+' transições anteriores; '+seenWarm+' no aquecimento e '+skipped+' ligações entre dias ou com horários não consecutivos excluídas. '+(n?'Taxa observada '+r22Percent(h/n)+' versus referência uniforme de 20,0%.':'Amplie o histórico ou reduza o aquecimento para obter testes suficientes.')+' Não há treinamento com resultados futuros.';
+ $('r22Compare').innerHTML=n?'<p><b>Observado:</b> '+h+' de '+n+' ('+r22Percent(h/n)+') · <b>Acaso uniforme:</b> média de '+(n*0.2).toFixed(1).replace('.',',')+' acertos em '+n+' testes (20%).</p><div class="bar" style="height:14px"><i style="width:'+Math.max(0,Math.min(100,h/n*100))+'%"></i></div><p class="hint">A barra mostra a taxa observada (não a probabilidade futura).</p>':'';
+ const hours=[...new Set(tests.map(t=>lookActualTime(t.origin)))].sort();
+ $('r22ByHour').innerHTML=hours.length?'<h3>Validação por horário de origem</h3><table><thead><tr><th>Horário</th><th>Testes</th><th>Acertos</th><th>Taxa</th><th>Referência</th></tr></thead><tbody>'+hours.map(hour=>{const rows=tests.filter(x=>lookActualTime(x.origin)===hour),hh=rows.filter(x=>x.hit).length;return '<tr><td><b>'+safe(hour)+'</b></td><td>'+rows.length+'</td><td>'+hh+'</td><td>'+r22Percent(hh/rows.length)+'</td><td>20,0%</td></tr>'}).join('')+'</tbody></table>':'<div class="mutedbox">Sem transições suficientes para validar por horário.</div>';
+ const reverse=tests.slice().reverse();
+ $('r22Checks').innerHTML=n?'<table><thead><tr><th>Origem</th><th>5 grupos selecionados antes</th><th>Extração seguinte</th><th>1º prêmio</th><th>Grupo</th><th>Acertou?</th></tr></thead><tbody>'+reverse.slice(0,150).map(x=>'<tr><td>'+safe(ltDateTime(x.origin))+'</td><td>'+x.picks.map(y=>'G'+pad(y.g)).join(' · ')+'</td><td>'+safe(ltDateTime(x.next))+'</td><td>'+safe(ltPad(x.next.p[0]))+'</td><td>G'+pad(x.actual)+'</td><td>'+(x.hit?'<span class="tag">Sim</span>':'Não')+'</td></tr>').join('')+'</tbody></table>':'<div class="mutedbox">Ainda não há testes após o aquecimento. Aguarde mais resultados ou use 15 transições no filtro.</div>';
+ r22Csv=tests.map(x=>[x.origin.date,lookActualTime(x.origin),x.origin.p.map(ltPad).join(' '),x.picks.map(y=>'G'+pad(y.g)).join(' '),x.next.date,lookActualTime(x.next),ltPad(x.next.p[0]),'G'+pad(x.actual),x.hit?'SIM':'NAO']);
+}
+['r22Period','r22Warm'].forEach(id=>$(id).onchange=renderLookRadar);
+$('r22Refresh').onclick=()=>{renderLookRadar()};
+$('r22Export').onclick=()=>{
+ const headers=['origem_data','origem_hora','origem_premios_1_a_5','cinco_grupos_escolhidos_antes','resultado_data','resultado_hora','milhar_primeiro','grupo_primeiro','acertou'];
+ const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+ const csv='\uFEFF'+headers.join(';')+'\r\n'+r22Csv.map(r=>r.map(q).join(';')).join('\r\n');
+ const u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=u;a.download='teste22-radar-validacao-look.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);
+};
+renderLookRadar();
+
 // TESTE 17 — Federal x LOOK: sem previsão, sem cruzar loterias na mesma base.
 // A falta do horário da Federal exclui a data inteira para garantir sequência temporal.
 let flExportRows=[];
@@ -1347,7 +1490,7 @@ setInterval(updateClock,1000);
 setInterval(()=>{if(Date.now()>=nextCheck){nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Nova janela de verificação iniciada. Para conferir os resultados publicados, use “Verificar fonte”.';}},1000);
 $('checkNow').onclick=()=>{nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Fonte oficial aberta para conferência. Após validar os resultados, cadastre-os ou importe o CSV.';window.open('https://lotece.com.br/','_blank','noopener');updateClock()};
 $('refreshPanel').onclick=()=>{render();nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Painel recalculado com os dados já cadastrados. Nenhum resultado externo foi baixado.';updateClock()};
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['dashboard','primeiro','transicoes','federal','chama7','look','looktrail','lookgroups','lookhours','fedlook','pedras','base','ajuda'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab))});
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['dashboard','primeiro','transicoes','federal','chama7','look','looktrail','lookgroups','lookhours','lookradar','fedlook','pedras','base','ajuda'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab))});
 try{db=JSON.parse(localStorage.getItem('obicho-certo-lotece')||'[]')}catch(e){db=[]}
 async function loadPublicHistory(){
  try{

@@ -125,6 +125,10 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 <h3>Teste 10 — Coincidências por horário</h3><div id="fedByHour" class="scroll"></div>
 <h3>Teste 11 — Grupos correspondentes que apareceram</h3><div id="fedByGroup" class="scroll"></div>
 <p class="hint">Referência dos Testes 9 e 10: média ponderada dos grupos selecionados (quantidade/25). No Teste 11, a referência por grupo é 4% por cabeça sob equiprobabilidade. Resultados históricos não são previsão; dias e horários sem registro não são tratados como falhas.</p></div>
+<div class="panel" style="border-color:#4b79a6"><h2>📊 Teste 12 — Ranking estatístico das pedras ausentes</h2>
+<p class="muted">Compara <b>todas as pedras</b>, independentemente do filtro individual do Teste 8. A janela de dias selecionada é respeitada. A ordenação é pela diferença entre taxa observada e referência teórica; não representa uma previsão.</p>
+<div id="fedRanking" class="scroll"></div>
+<p class="hint">IC 95% de Wilson: intervalo descritivo aproximado que pressupõe verificações independentes; aqui há sobreposição de extrações, portanto o intervalo pode subestimar a incerteza. Pedras com poucas Federais ou verificações recebem alerta. Comparar dez pedras aumenta a chance de destaques por acaso. Resultados ainda não cadastrados não são contados como falhas.</p></div>
 <p class="hint">A referência por prêmio é a proporção de grupos selecionados entre 25, assumindo grupos equiprováveis. As verificações por pedra podem compartilhar a mesma extração, por isso não são independentes. Dias sem resultados na base não são tratados como falhas. Um percentual histórico alto não demonstra previsão.</p>
 </div>
 <div class="panel"><h2>Adicionar uma Federal ao Teste 8</h2><p class="muted">As nove Federais enviadas nas imagens já estão incluídas. Para novas datas, informe somente os quatro últimos algarismos de cada um dos cinco primeiros prêmios.</p>
@@ -473,6 +477,22 @@ function renderFederalDeep(cases,days){
  const groups=digits.flatMap(d=>{const sub=entries.filter(e=>e.c.d===d);return federalGroups(d).map(g=>({d,g,n:sub.length,h:sub.filter(e=>e.g===g).length}))});
  $('fedByGroup').innerHTML=groups.length?table(['Pedra','Grupo','Ocorrências / cabeças','Taxa','Referência por grupo'],groups.map(x=>'<tr><td>'+x.d+'</td><td>G'+pad(x.g)+' — '+safe(animal(x.g))+'</td><td>'+x.h+' / '+x.n+'</td><td>'+pct(x.h,x.n)+'</td><td>4,0%</td></tr>')):'<div class="mutedbox">Sem pedras ausentes no filtro.</div>';
 }
+function renderFederalRanking(days,rows,feds){
+ const pct=(a,b)=>b?(100*a/b).toFixed(1)+'%':'—';
+ function wilson(h,n){if(!n)return '—';const z=1.96,p=h/n,z2=z*z,den=1+z2/n,center=(p+z2/(2*n))/den,margin=z*Math.sqrt((p*(1-p)+z2/(4*n))/n)/den;return (100*Math.max(0,center-margin)).toFixed(1)+'–'+(100*Math.min(1,center+margin)).toFixed(1)+'%'}
+ const ranked=Array.from({length:10},(_,d)=>{
+  const events=feds.filter(f=>federalMissing(f).includes(d));const gs=federalGroups(d),ref=gs.length/25;
+  const eligible=events.flatMap(f=>{const end=federalDayAdd(f.date,days);return rows.filter(r=>r.date>f.date&&r.date<=end)});
+  const n=eligible.length,h=eligible.filter(r=>gs.includes(group(r.p[0]))).length;
+  return {d,events:events.length,observedEvents:events.filter(f=>rows.some(r=>r.date>f.date&&r.date<=federalDayAdd(f.date,days))).length,n,h,ref,delta:n?100*(h/n-ref):null};
+ }).sort((a,b)=>(b.delta??-Infinity)-(a.delta??-Infinity)||b.n-a.n||a.d-b.d);
+ const tr=ranked.map((x,i)=>{
+  const diff=x.delta===null?'—':(x.delta>=0?'+':'')+x.delta.toFixed(1)+' p.p.';
+  const status=!x.n?'Sem dados':x.observedEvents<3||x.n<30?'Amostra pequena':'Exploratório';
+  return '<tr><td>'+(i+1)+'º</td><td><b>'+x.d+'</b></td><td>'+x.observedEvents+' / '+x.events+'</td><td>'+x.h+' / '+x.n+'</td><td>'+pct(x.h,x.n)+'</td><td>'+(100*x.ref).toFixed(1)+'%</td><td><b>'+diff+'</b></td><td>'+wilson(x.h,x.n)+'</td><td>'+status+'</td></tr>';
+ }).join('');
+ $('fedRanking').innerHTML='<table><thead><tr><th>Posição</th><th>Pedra</th><th>Federais com dados / ausências</th><th>Coincidências / verificações</th><th>Taxa</th><th>Referência</th><th>Diferença</th><th>IC 95%*</th><th>Aviso</th></tr></thead><tbody>'+tr+'</tbody></table>';
+}
 function renderFederal(){
  const selected=$('fedDigit').value,days=Number($('fedDays').value),rows=allChronological(),feds=federalRows(),latest=rows.length?rows[rows.length-1].date:null;
  const cases=feds.flatMap(f=>federalMissing(f).filter(d=>selected==='all'||String(d)===selected).map(d=>{
@@ -487,6 +507,7 @@ function renderFederal(){
  const checks=cases.flatMap(c=>c.eligible.map(r=>({c,r,g:group(r.p[0]),hit:c.groups.includes(group(r.p[0]))}))).sort((a,b)=>b.r.date.localeCompare(a.r.date)||b.r.time.localeCompare(a.r.time));
  $('fedChecks').innerHTML=checks.length?'<table><thead><tr><th>Federal</th><th>Pedra</th><th>Data Sonhos</th><th>Horário</th><th>1º prêmio</th><th>Grupo</th><th>Coincidiu?</th></tr></thead><tbody>'+checks.map(x=>'<tr><td>'+x.c.f.date+'</td><td>'+x.c.d+'</td><td>'+x.r.date+'</td><td>'+safe(normalizeTime(x.r.time))+'</td><td>'+safe(String(x.r.p[0]).padStart(4,'0'))+'</td><td>G'+pad(x.g)+' — '+safe(animal(x.g))+'</td><td>'+(x.hit?'<b style="color:var(--green)">Sim</b>':'Não')+'</td></tr>').join('')+'</tbody></table>':'<div class="mutedbox">Sem resultados posteriores na base para os filtros atuais.</div>';
  renderFederalDeep(cases,days);
+ renderFederalRanking(days,rows,feds);
  const custom=federalCustom();$('fedRegistry').innerHTML='<h3>Federais cadastradas</h3><table><thead><tr><th>Data</th><th>Milhares (1º–5º)</th><th>Pedras ausentes</th><th>Origem</th></tr></thead><tbody>'+feds.map(f=>'<tr><td>'+f.date+'</td><td>'+f.p.join(' · ')+'</td><td>'+(federalMissing(f).join(', ')||'Nenhuma')+'</td><td>'+(custom.some(x=>x.date===f.date)?'Registro local':'Imagem fornecida')+'</td></tr>').join('')+'</tbody></table>';
 }
 $('fedDigit').innerHTML+=[...Array(10)].map((_,i)=>'<option value="'+i+'">Pedra '+i+'</option>').join('');

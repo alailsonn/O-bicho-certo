@@ -134,6 +134,13 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 <h3>Resultado de cada Federal</h3><div id="fedEventValidation" class="scroll"></div>
 <h3>Consistência entre Federais</h3><div id="fedConsistency" class="scroll"></div>
 <p class="hint">A média por Federal dá peso igual a cada concurso com dados, mesmo quando as quantidades de cabeças diferem. Acima da referência é apenas uma comparação descritiva; não é evidência de previsão. Uma Federal sem cabeças registradas aparece como pendente, não como zero acertos. Concursos podem ter janelas incompletas.</p></div>
+<div class="panel" style="border-color:#bb874a"><h2>🧮 Teste 14 — Comparador de precisão (treino × validação)</h2>
+<p class="muted">Separa as Federais por data: as ocorrências até a data de corte são usadas para <b>explorar</b> pedras; as Federais posteriores são reservadas para <b>validação histórica</b>. Na fase de treino, só entram cabeças registradas até a data de corte, evitando usar resultados futuros na escolha. Este teste compara as estratégias da família Federal × Sonhos (Testes 8 a 13), que compartilham o mesmo resultado-alvo; não compara ainda os Testes 1 a 7, cujos critérios são diferentes.</p>
+<div class="row"><div><label class="small" for="fed14Cutoff">Data de corte (inclusive no treino)</label><input type="date" id="fed14Cutoff" value="2026-10-20"></div><div><label class="small" for="fed14Min">Mínimo de verificações no treino</label><select id="fed14Min"><option value="1">1 ou mais</option><option value="8" selected>8 ou mais</option><option value="12">12 ou mais</option><option value="24">24 ou mais</option></select></div></div>
+<h3>Resumo do treino e da validação</h3><div id="fed14Summary"></div>
+<h3>Pedras classificadas somente pelo treino</h3><div id="fed14Table" class="scroll"></div>
+<h3>Conferência da melhor pedra do treino</h3><div id="fed14Winner" class="scroll"></div>
+<p class="hint">Comparações históricas exploratórias, não previsões. A seleção da pedra é feita exclusivamente com o treino. Verificações podem compartilhar extrações e as amostras podem ser muito pequenas. A validação histórica só é realmente prospectiva se a regra e a data de corte forem fixadas antes de observar os resultados; mudar o corte após olhar os dados gera viés. Uma ausência de registros não conta como falha.</p></div>
 <p class="hint">A referência por prêmio é a proporção de grupos selecionados entre 25, assumindo grupos equiprováveis. As verificações por pedra podem compartilhar a mesma extração, por isso não são independentes. Dias sem resultados na base não são tratados como falhas. Um percentual histórico alto não demonstra previsão.</p>
 </div>
 <div class="panel"><h2>Adicionar uma Federal ao Teste 8</h2><p class="muted">As nove Federais enviadas nas imagens já estão incluídas. Para novas datas, informe somente os quatro últimos algarismos de cada um dos cinco primeiros prêmios.</p>
@@ -544,6 +551,48 @@ function renderFederalValidation(cases,rows,latest,days){
  }).join('');
  $('fedConsistency').innerHTML=digits.length?table(['Pedra','Federais com dados / ausências','Acima / igual / abaixo da referência','Média das taxas por Federal','Taxa conjunta por cabeça','Referência','Aviso'],summary):'<div class="mutedbox">Sem pedras para comparar.</div>';
 }
+// TESTE 14 — Separação temporal com treino sem vazamento de resultados futuros.
+function renderFederal14(rows,feds,days){
+ const cutoff=$('fed14Cutoff').value,minimum=Number($('fed14Min').value);
+ const fmt=(h,n)=>n?(100*h/n).toFixed(1)+'%':'—';
+ const signed=v=>(v>=0?'+':'')+v.toFixed(1)+' p.p.';
+ const table=(heads,body)=>'<table><thead><tr>'+heads.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+body+'</tbody></table>';
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(cutoff)){
+  $('fed14Summary').innerHTML='<div class="mutedbox">Escolha uma data de corte válida.</div>';
+  $('fed14Table').innerHTML='';$('fed14Winner').innerHTML='';return;
+ }
+ const ftrain=feds.filter(f=>f.date<=cutoff),ftest=feds.filter(f=>f.date>cutoff);
+ function stats(federal,d,training){
+  const groups=federalGroups(d),end=federalDayAdd(federal.date,days);
+  const subset=rows.filter(r=>r.date>federal.date&&r.date<=end&&(!training||r.date<=cutoff));
+  return {n:subset.length,h:subset.filter(r=>groups.includes(group(r.p[0]))).length};
+ }
+ const records=Array.from({length:10},(_,d)=>{
+  const train=ftrain.filter(f=>federalMissing(f).includes(d));
+  const test=ftest.filter(f=>federalMissing(f).includes(d));
+  const a=train.map(f=>stats(f,d,true)),b=test.map(f=>stats(f,d,false));
+  const sum=x=>({n:x.reduce((v,z)=>v+z.n,0),h:x.reduce((v,z)=>v+z.h,0)});
+  const tr=sum(a),va=sum(b),ref=federalGroups(d).length/25;
+  return {d,tr,va,ref,trainCount:train.length,testCount:test.length,delta:tr.n?100*(tr.h/tr.n-ref):null};
+ }).filter(x=>x.trainCount||x.testCount);
+ const ranked=records.filter(x=>x.tr.n>=minimum).sort((a,b)=>b.delta-a.delta||b.tr.n-a.tr.n||a.d-b.d);
+ const winner=ranked[0];
+ const total=(kind)=>records.reduce((a,x)=>({h:a.h+x[kind].h,n:a.n+x[kind].n}),{h:0,n:0});
+ const tr=total('tr'),va=total('va');
+ $('fed14Summary').innerHTML='<div class="grid">'+[
+ ['Federais no treino',ftrain.length],['Federais na validação',ftest.length],['Treino: coincidências',tr.h+' / '+tr.n],['Validação: coincidências',va.h+' / '+va.n]
+ ].map(x=>'<div class="card metric"><small>'+x[0]+'</small><strong>'+x[1]+'</strong></div>').join('')+'</div><p class="hint">Treino: Federais até '+cutoff+' e apenas cabeças registradas até essa data. Validação: Federais posteriores. A mesma cabeça pode contar para mais de uma pedra, portanto os totais não representam sorteios independentes.</p>';
+ const body=ranked.map((x,i)=>{
+  const validDelta=x.va.n?100*(x.va.h/x.va.n-x.ref):null;
+  return '<tr><td>'+(i+1)+'º</td><td><b>'+x.d+'</b></td><td>'+x.trainCount+'</td><td>'+x.tr.h+'/'+x.tr.n+' ('+fmt(x.tr.h,x.tr.n)+')</td><td>'+(100*x.ref).toFixed(1)+'%</td><td>'+signed(x.delta)+'</td><td>'+x.testCount+'</td><td>'+x.va.h+'/'+x.va.n+' ('+fmt(x.va.h,x.va.n)+')</td><td>'+(validDelta===null?'—':signed(validDelta))+'</td></tr>';
+ }).join('');
+ $('fed14Table').innerHTML=ranked.length?table(['Posição treino','Pedra','Federais treino','Treino: acertos','Referência','Diferença treino','Federais validação','Validação: acertos','Diferença validação'],body):'<div class="mutedbox">Nenhuma pedra alcançou o mínimo de verificações no treino. Reduza o mínimo ou escolha outro corte.</div>';
+ if(!winner){$('fed14Winner').innerHTML='<div class="mutedbox">Sem pedra elegível.</div>';return;}
+ const note=winner.va.n===0?'Não há verificações posteriores cadastradas para esta pedra: ainda não é possível avaliar sua precisão fora do treino.':winner.testCount<3?'Amostra de validação muito pequena: o resultado é apenas descritivo.':'Validação histórica exploratória: verifique estabilidade em novas Federais.';
+ $('fed14Winner').innerHTML='<div class="mutedbox"><b>Pedra '+winner.d+'</b> foi a primeira colocada usando somente os dados do treino.<br>Treino: '+winner.tr.h+'/'+winner.tr.n+' ('+fmt(winner.tr.h,winner.tr.n)+') · Referência: '+(100*winner.ref).toFixed(1)+'%.<br>Validação posterior: '+winner.va.h+'/'+winner.va.n+' ('+fmt(winner.va.h,winner.va.n)+').<br><b>'+note+'</b></div>';
+}
+$('fed14Cutoff').onchange=renderFederal;
+$('fed14Min').onchange=renderFederal;
 function renderFederal(){
  const selected=$('fedDigit').value,days=Number($('fedDays').value),rows=allChronological(),feds=federalRows(),latest=rows.length?rows[rows.length-1].date:null;
  const cases=feds.flatMap(f=>federalMissing(f).filter(d=>selected==='all'||String(d)===selected).map(d=>{
@@ -560,6 +609,7 @@ function renderFederal(){
  renderFederalDeep(cases,days);
  renderFederalRanking(days,rows,feds);
  renderFederalValidation(cases,rows,latest,days);
+ renderFederal14(rows,feds,days);
  const custom=federalCustom();$('fedRegistry').innerHTML='<h3>Federais cadastradas</h3><table><thead><tr><th>Data</th><th>Milhares (1º–5º)</th><th>Pedras ausentes</th><th>Origem</th></tr></thead><tbody>'+feds.map(f=>'<tr><td>'+f.date+'</td><td>'+f.p.join(' · ')+'</td><td>'+(federalMissing(f).join(', ')||'Nenhuma')+'</td><td>'+(custom.some(x=>x.date===f.date)?'Registro local':'Imagem fornecida')+'</td></tr>').join('')+'</tbody></table>';
 }
 $('fedDigit').innerHTML+=[...Array(10)].map((_,i)=>'<option value="'+i+'">Pedra '+i+'</option>').join('');

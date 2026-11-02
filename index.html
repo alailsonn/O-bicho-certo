@@ -16,7 +16,7 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 <header><div class="brand"><div class="logo">🐾</div><div><h1>O BICHO CERTO</h1><p>Análise estatística • Loteria dos Sonhos / LOTECE</p></div></div></header>
 <main>
 <div class="notice"><b>Estatística, não previsão:</b> frequências e atrasos descrevem resultados passados. Cada extração é independente; um grupo repetido ou atrasado não ganha maior probabilidade no próximo sorteio. Este painel é independente e não recebe apostas.</div>
-<nav><button class="tab active" data-tab="dashboard">Painel</button><button class="tab" data-tab="primeiro">🎯 1º Prêmio</button><button class="tab" data-tab="pedras">🔬 Ausentes e dobrados</button><button class="tab" data-tab="base">Cadastrar / importar</button><button class="tab" data-tab="ajuda">Como usar</button></nav>
+<nav><button class="tab active" data-tab="dashboard">Painel</button><button class="tab" data-tab="primeiro">🎯 1º Prêmio</button><button class="tab" data-tab="transicoes">🔁 Cabeça entre horários</button><button class="tab" data-tab="pedras">🔬 Ausentes e dobrados</button><button class="tab" data-tab="base">Cadastrar / importar</button><button class="tab" data-tab="ajuda">Como usar</button></nav>
 
 <section id="dashboard">
 <div class="panel" style="border-color:#39785d">
@@ -94,6 +94,17 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 <p class="hint">Atraso significa quantidade de extrações analisadas desde a última ocorrência. Não aumenta a chance do grupo no próximo sorteio. Com poucos registros, os indicadores são especialmente instáveis.</p>
 </section>
 
+
+<section id="transicoes" class="hidden">
+<div class="panel"><h2>🧪 Teste 6 — grupo na cabeça entre horários</h2>
+<p class="muted">Compara o grupo do 1º prêmio de um horário com os cinco grupos da extração anterior no <b>mesmo dia</b>. A análise só usa pares com ambos os resultados cadastrados; não liga dias diferentes nem confunde horários faltantes com sorteios consecutivos.</p>
+<div class="row"><div><label class="small" for="transitionPeriod">Período</label><select id="transitionPeriod"><option value="all">Todo o histórico</option><option value="30">Últimos 30 dias da base</option><option value="15">Últimos 15 dias da base</option><option value="7">Últimos 7 dias da base</option></select></div><div><label class="small" for="transitionPair">Transição</label><select id="transitionPair"><option value="all">Todas as três transições</option><option value="11:00|14:00">11h → 14h</option><option value="14:00|15:45">14h → 15h45</option><option value="15:45|19:00">15h45 → 19h</option></select></div></div>
+<div id="transitionSummary" style="margin-top:15px"></div>
+<h3>Comparação por transição</h3><div id="transitionStats" class="scroll"></div>
+<h3>De qual prêmio veio o grupo da cabeça?</h3><div id="transitionPositions" class="scroll"></div>
+<h3>Histórico de cada transição</h3><div id="transitionDetails" class="scroll"></div>
+<p class="hint">Referência teórica: grupo idêntico ao 1º anterior = 4%; aparecer em qualquer um dos cinco prêmios anteriores = 1 − (24/25)⁵ ≈ 18,46%, se os grupos forem independentes e equiprováveis. Um mesmo grupo pode aparecer em mais de uma posição. Taxas históricas não garantem resultados futuros; várias comparações aumentam a chance de encontrar diferenças por acaso.</p>
+</div></section>
 
 <section id="pedras" class="hidden">
 <div class="panel"><h2>🔬 Algarismos ausentes e dobrados — 1º ao 5º prêmio</h2>
@@ -374,7 +385,31 @@ function renderStones(){
 $('stoneTime').onchange=renderStones;
 $('stoneWindow').onchange=renderStones;
 
-function render(){renderFirst();trackRender();renderStones();let rows=chosen(),pr=selectedPrizes(rows),gm=freq(pr,x=>group(x.n)),dm=freq(pr,x=>String(x.n).slice(-2)),top=Object.entries(gm).sort((a,b)=>b[1]-a[1])[0],seen=new Set(Object.keys(gm).map(Number));
+function renderTransitions(){
+ const all=allChronological(), period=$('transitionPeriod').value, chosenPair=$('transitionPair').value;
+ let rows=all;
+ if(period!=='all'&&rows.length){const end=new Date(rows[rows.length-1].date+'T12:00:00');end.setDate(end.getDate()-Number(period)+1);const min=end.toISOString().slice(0,10);rows=rows.filter(r=>r.date>=min);}
+ const byKey=new Map(rows.map(r=>[r.date+'|'+normalizeTime(r.time),r]));
+ const transitions=[['11:00','14:00'],['14:00','15:45'],['15:45','19:00']];
+ const samples=transitions.flatMap(([a,b])=>rows.filter(r=>normalizeTime(r.time)===b).flatMap(curr=>{
+   const prev=byKey.get(curr.date+'|'+a);if(!prev)return [];
+   const priorGroups=prev.p.map(group),actual=group(curr.p[0]);
+   return [{date:curr.date,a,b,prev,curr,actual,priorGroups,same:priorGroups[0]===actual,any:priorGroups.includes(actual),positions:priorGroups.flatMap((g,i)=>g===actual?[i+1]:[])}];
+ }));
+ const filtered=chosenPair==='all'?samples:samples.filter(x=>x.a+'|'+x.b===chosenPair);
+ const total=filtered.length,same=filtered.filter(x=>x.same).length,any=filtered.filter(x=>x.any).length;
+ const pct=(n,d)=>d?(100*n/d).toFixed(1)+'%':'—';
+ const baseline=100*(1-Math.pow(24/25,5));
+ $('transitionSummary').innerHTML='<div class="grid"><div class="card metric"><small>Pares de horários</small><strong>'+total+'</strong></div><div class="card metric"><small>Repetiu o 1º grupo</small><strong>'+same+'</strong><span class="small">'+pct(same,total)+' • referência 4%</span></div><div class="card metric"><small>Cabeça estava nos 5 prêmios anteriores</small><strong>'+any+'</strong><span class="small">'+pct(any,total)+'</span></div><div class="card metric"><small>Referência aleatória — 5 prêmios</small><strong>'+baseline.toFixed(1)+'%</strong></div></div>';
+ const label=x=>x.a+' → '+x.b;
+ $('transitionStats').innerHTML='<table><thead><tr><th>Transição</th><th>Pares</th><th>Mesmo grupo na cabeça</th><th>Grupo entre os 5 anteriores</th><th>Referência 5 prêmios</th></tr></thead><tbody>'+transitions.filter(([a,b])=>chosenPair==='all'||a+'|'+b===chosenPair).map(([a,b])=>{const subset=samples.filter(x=>x.a===a&&x.b===b),n=subset.length,s=subset.filter(x=>x.same).length,h=subset.filter(x=>x.any).length;return '<tr><td>'+a+' → '+b+'</td><td>'+n+'</td><td>'+s+' ('+pct(s,n)+')</td><td>'+h+' ('+pct(h,n)+')</td><td>'+baseline.toFixed(1)+'%</td></tr>'}).join('')+'</tbody></table>';
+ $('transitionPositions').innerHTML='<table><thead><tr><th>Posição anterior</th><th>Vezes que virou cabeça</th><th>Taxa por par</th></tr></thead><tbody>'+[1,2,3,4,5].map(i=>{const hits=filtered.filter(x=>x.positions.includes(i)).length;return '<tr><td>'+i+'º prêmio</td><td>'+hits+'</td><td>'+pct(hits,total)+'</td></tr>'}).join('')+'</tbody></table>';
+ $('transitionDetails').innerHTML=filtered.length?'<table><thead><tr><th>Data</th><th>Horários</th><th>Grupos anteriores (1º–5º)</th><th>Grupo da cabeça seguinte</th><th>Já estava entre os 5?</th></tr></thead><tbody>'+filtered.slice().reverse().map(x=>'<tr><td>'+safe(x.date)+'</td><td>'+x.a+' → '+x.b+'</td><td>'+x.priorGroups.map(g=>'G'+pad(g)).join(' · ')+'</td><td><b>G'+pad(x.actual)+' — '+safe(animal(x.actual))+'</b></td><td>'+(x.positions.length?'Sim, '+x.positions.join('º, ')+'º prêmio(s)':'Não')+'</td></tr>').join('')+'</tbody></table>':'<div class="mutedbox">Não há pares completos de horários nesse filtro. Amplie o período ou atualize o histórico.</div>';
+}
+$('transitionPeriod').onchange=renderTransitions;
+$('transitionPair').onchange=renderTransitions;
+
+function render(){renderTransitions();renderFirst();trackRender();renderStones();let rows=chosen(),pr=selectedPrizes(rows),gm=freq(pr,x=>group(x.n)),dm=freq(pr,x=>String(x.n).slice(-2)),top=Object.entries(gm).sort((a,b)=>b[1]-a[1])[0],seen=new Set(Object.keys(gm).map(Number));
 $('nDraws').textContent=rows.length;$('nPrizes').textContent=pr.length;$('leader').textContent=top?'Grupo '+pad(top[0]):'—';$('leaderSub').textContent=top?animal(Number(top[0]))+' • '+top[1]+' ocorrência(s)':'Sem dados';$('missing').textContent=25-seen.size;
 $('periodLabel').textContent=`${rows.length} extração(ões) no filtro selecionado. ${$('period').value==='all'?'Histórico completo': 'Janela de '+$('period').value+' dias a partir da data mais recente cadastrada'}.`;
 let allgroups=Array.from({length:25},(_,i)=>i+1).reduce((o,g)=>(o[g]=gm[g]||0,o),{});$('rank').innerHTML=rankHtml(allgroups,Math.max(1,pr.length),k=>`Grupo ${pad(k)} — ${animal(Number(k))}`);
@@ -397,7 +432,7 @@ setInterval(updateClock,1000);
 setInterval(()=>{if(Date.now()>=nextCheck){nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Nova janela de verificação iniciada. Para conferir os resultados publicados, use “Verificar fonte”.';}},1000);
 $('checkNow').onclick=()=>{nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Fonte oficial aberta para conferência. Após validar os resultados, cadastre-os ou importe o CSV.';window.open('https://lotece.com.br/','_blank','noopener');updateClock()};
 $('refreshPanel').onclick=()=>{render();nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Painel recalculado com os dados já cadastrados. Nenhum resultado externo foi baixado.';updateClock()};
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['dashboard','primeiro','pedras','base','ajuda'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab))});
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['dashboard','primeiro','transicoes','pedras','base','ajuda'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab))});
 try{db=JSON.parse(localStorage.getItem('obicho-certo-lotece')||'[]')}catch(e){db=[]}
 async function loadPublicHistory(){
  try{

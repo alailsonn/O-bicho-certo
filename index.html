@@ -498,15 +498,37 @@ function renderFederalRanking(days,rows,feds){
  }).join('');
  $('fedRanking').innerHTML='<table><thead><tr><th>Posição</th><th>Pedra</th><th>Federais com dados / ausências</th><th>Coincidências / verificações</th><th>Taxa</th><th>Referência</th><th>Diferença</th><th>IC 95%*</th><th>Aviso</th></tr></thead><tbody>'+tr+'</tbody></table>';
 }
-function renderFederalValidation(cases){
+// Cobertura do Teste 13: quatro horarios previstos por dia, exceto domingos.
+// Usa a ultima data da base como limite de cadastro, sem supor que datas posteriores sejam falhas.
+function federalCoverage(c,rows,latest){
+ const hours=['11:00','14:00','15:45','19:00'];
+ const present=new Set(c.eligible.map(r=>r.date+'|'+normalizeTime(r.time)));
+ let expected=0,missing=0,pending=0,skipped=0;
+ for(let i=1;i<=c.days;i++){
+  const date=federalDayAdd(c.f.date,i);
+  if(new Date(date+'T12:00:00Z').getUTCDay()===0){skipped++;continue}
+  for(const hour of hours){
+   expected++;
+   if(present.has(date+'|'+hour))continue;
+   if(!latest||date>latest)pending++;
+   else missing++;
+  }
+ }
+ let status;
+ if(missing)status='Base incompleta ('+missing+' horario(s) faltando)';
+ else if(pending)status=(c.eligible.length?'Parcial':'Sem dados posteriores')+' — '+pending+' pendente(s)';
+ else status='Base completa'+(skipped?' (domingo sem sorteio)':'');
+ return {status,expected,missing,pending,skipped};
+}
+function renderFederalValidation(cases,rows,latest,days){
  const fmt=(h,n)=>n?(100*h/n).toFixed(1)+'%':'—';
  const sign=v=>(v>=0?'+':'')+v.toFixed(1)+' p.p.';
  const table=(headers,body)=>'<table><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+body+'</tbody></table>';
  const sorted=[...cases].sort((a,b)=>a.d-b.d||a.f.date.localeCompare(b.f.date));
  const eventRows=sorted.map(c=>{
   const n=c.eligible.length,h=c.hits.length,delta=n?100*(h/n-c.expected):null;
-  const coverage=!n?'Sem dados posteriores':c.future?'Janela ainda não encerrada na base':'Conferir horários faltantes';
-  return '<tr><td>'+c.f.date+'</td><td><b>'+c.d+'</b></td><td>'+h+' / '+n+'</td><td>'+fmt(h,n)+'</td><td>'+(100*c.expected).toFixed(1)+'%</td><td>'+(delta===null?'—':sign(delta))+'</td><td>'+coverage+'</td></tr>';
+  const coverage=federalCoverage({...c,days},rows,latest);
+  return '<tr><td>'+c.f.date+'</td><td><b>'+c.d+'</b></td><td>'+h+' / '+n+'</td><td>'+fmt(h,n)+'</td><td>'+(100*c.expected).toFixed(1)+'%</td><td>'+(delta===null?'—':sign(delta))+'</td><td>'+coverage.status+' — '+n+'/'+coverage.expected+' cadastrados</td></tr>';
  }).join('');
  $('fedEventValidation').innerHTML=sorted.length?table(['Federal','Pedra','Coincidências / verificações','Taxa','Referência','Diferença','Situação da base'],eventRows):'<div class="mutedbox">Nenhuma Federal corresponde aos filtros.</div>';
  const digits=[...new Set(cases.map(c=>c.d))].sort((a,b)=>a-b);
@@ -537,7 +559,7 @@ function renderFederal(){
  $('fedChecks').innerHTML=checks.length?'<table><thead><tr><th>Federal</th><th>Pedra</th><th>Data Sonhos</th><th>Horário</th><th>1º prêmio</th><th>Grupo</th><th>Coincidiu?</th></tr></thead><tbody>'+checks.map(x=>'<tr><td>'+x.c.f.date+'</td><td>'+x.c.d+'</td><td>'+x.r.date+'</td><td>'+safe(normalizeTime(x.r.time))+'</td><td>'+safe(String(x.r.p[0]).padStart(4,'0'))+'</td><td>G'+pad(x.g)+' — '+safe(animal(x.g))+'</td><td>'+(x.hit?'<b style="color:var(--green)">Sim</b>':'Não')+'</td></tr>').join('')+'</tbody></table>':'<div class="mutedbox">Sem resultados posteriores na base para os filtros atuais.</div>';
  renderFederalDeep(cases,days);
  renderFederalRanking(days,rows,feds);
- renderFederalValidation(cases);
+ renderFederalValidation(cases,rows,latest,days);
  const custom=federalCustom();$('fedRegistry').innerHTML='<h3>Federais cadastradas</h3><table><thead><tr><th>Data</th><th>Milhares (1º–5º)</th><th>Pedras ausentes</th><th>Origem</th></tr></thead><tbody>'+feds.map(f=>'<tr><td>'+f.date+'</td><td>'+f.p.join(' · ')+'</td><td>'+(federalMissing(f).join(', ')||'Nenhuma')+'</td><td>'+(custom.some(x=>x.date===f.date)?'Registro local':'Imagem fornecida')+'</td></tr>').join('')+'</tbody></table>';
 }
 $('fedDigit').innerHTML+=[...Array(10)].map((_,i)=>'<option value="'+i+'">Pedra '+i+'</option>').join('');

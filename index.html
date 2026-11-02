@@ -119,6 +119,12 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 <h3>Ausências em cada Federal e resultado posterior</h3><div id="fedEvents" class="scroll"></div>
 <h3>Detalhamento por pedra ausente</h3><div id="fedDigits" class="scroll"></div>
 <h3>Cada cabeça conferida</h3><div id="fedChecks" class="scroll"></div>
+<div class="panel" style="border-color:#39785d"><h2>🧪 Testes 9, 10 e 11 — aprofundamento da Federal</h2>
+<p class="muted">Usam os mesmos filtros de pedra e janela do Teste 8. Cada linha representa uma verificação pedra × cabeça; uma cabeça pode aparecer em mais de um caso de pedra ausente.</p>
+<h3>Teste 9 — Coincidências por dia após a Federal</h3><div id="fedByDay" class="scroll"></div>
+<h3>Teste 10 — Coincidências por horário</h3><div id="fedByHour" class="scroll"></div>
+<h3>Teste 11 — Grupos correspondentes que apareceram</h3><div id="fedByGroup" class="scroll"></div>
+<p class="hint">Referência dos Testes 9 e 10: média ponderada dos grupos selecionados (quantidade/25). No Teste 11, a referência por grupo é 4% por cabeça sob equiprobabilidade. Resultados históricos não são previsão; dias e horários sem registro não são tratados como falhas.</p></div>
 <p class="hint">A referência por prêmio é a proporção de grupos selecionados entre 25, assumindo grupos equiprováveis. As verificações por pedra podem compartilhar a mesma extração, por isso não são independentes. Dias sem resultados na base não são tratados como falhas. Um percentual histórico alto não demonstra previsão.</p>
 </div>
 <div class="panel"><h2>Adicionar uma Federal ao Teste 8</h2><p class="muted">As nove Federais enviadas nas imagens já estão incluídas. Para novas datas, informe somente os quatro últimos algarismos de cada um dos cinco primeiros prêmios.</p>
@@ -453,6 +459,20 @@ function federalRows(){return [...new Map([...federalSeed,...federalCustom()].ma
 function federalMissing(f){const seen=new Set(f.p.join(''));return Array.from({length:10},(_,i)=>i).filter(d=>!seen.has(String(d)))}
 function federalGroups(d){const out=[];for(let g=1;g<=25;g++){const last=g%10===d;let tens=false;for(let k=0;k<4;k++){const n=(g-1)*4+k+1,dez=n===100?0:n;if(Math.floor(dez/10)===d)tens=true}if(last||tens)out.push(g)}return out}
 function federalDayAdd(date,n){const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)}
+function renderFederalDeep(cases,days){
+ const pct=(a,b)=>b?(100*a/b).toFixed(1)+'%':'—';
+ const entries=cases.flatMap(c=>c.eligible.map(r=>({c,r,g:group(r.p[0]),hit:c.groups.includes(group(r.p[0])),offset:Math.round((Date.parse(r.date+'T12:00:00Z')-Date.parse(c.f.date+'T12:00:00Z'))/86400000),time:normalizeTime(r.time)})));
+ function summarize(arr){const n=arr.length,h=arr.filter(x=>x.hit).length,expected=arr.reduce((v,x)=>v+x.c.expected,0);return {n,h,expected,rate:pct(h,n),ref:n?(100*expected/n).toFixed(1)+'%':'—',diff:n?((100*(h-expected)/n)>=0?'+':'')+(100*(h-expected)/n).toFixed(1)+' p.p.':'—'};}
+ const dayRows=Array.from({length:days},(_,i)=>{const a=entries.filter(x=>x.offset===i+1);return {label:(i+1)+'º dia',...summarize(a)}});
+ const table=(headers,rows)=>'<table><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table>';
+ const common=x=>'<td>'+x.h+' / '+x.n+'</td><td>'+x.rate+'</td><td>'+x.ref+'</td><td>'+x.diff+'</td>';
+ $('fedByDay').innerHTML=table(['Dia após Federal','Coincidências / verificações','Taxa','Referência','Diferença'],dayRows.map(x=>'<tr><td>'+x.label+'</td>'+common(x)+'</tr>'));
+ const names={'11:00':'Manhã — 11h','14:00':'Tarde — 14h','15:45':'Tarde II — 15h45','19:00':'Noite — 19h'};
+ $('fedByHour').innerHTML=table(['Horário','Coincidências / verificações','Taxa','Referência','Diferença'],Object.keys(names).map(t=>{const x=summarize(entries.filter(e=>e.time===t));return '<tr><td>'+names[t]+'</td>'+common(x)+'</tr>'}));
+ const digits=[...new Set(cases.map(c=>c.d))].sort((a,b)=>a-b);
+ const groups=digits.flatMap(d=>{const sub=entries.filter(e=>e.c.d===d);return federalGroups(d).map(g=>({d,g,n:sub.length,h:sub.filter(e=>e.g===g).length}))});
+ $('fedByGroup').innerHTML=groups.length?table(['Pedra','Grupo','Ocorrências / cabeças','Taxa','Referência por grupo'],groups.map(x=>'<tr><td>'+x.d+'</td><td>G'+pad(x.g)+' — '+safe(animal(x.g))+'</td><td>'+x.h+' / '+x.n+'</td><td>'+pct(x.h,x.n)+'</td><td>4,0%</td></tr>')):'<div class="mutedbox">Sem pedras ausentes no filtro.</div>';
+}
 function renderFederal(){
  const selected=$('fedDigit').value,days=Number($('fedDays').value),rows=allChronological(),feds=federalRows(),latest=rows.length?rows[rows.length-1].date:null;
  const cases=feds.flatMap(f=>federalMissing(f).filter(d=>selected==='all'||String(d)===selected).map(d=>{
@@ -466,6 +486,7 @@ function renderFederal(){
  $('fedDigits').innerHTML=digits.length?'<table><thead><tr><th>Pedra</th><th>Federais com ausência</th><th>Grupos correspondentes</th><th>Coincidências / verificações</th><th>Taxa</th><th>Referência</th></tr></thead><tbody>'+digits.map(x=>{const count=x.sub.reduce((v,c)=>v+c.eligible.length,0),h=x.sub.reduce((v,c)=>v+c.hits.length,0),gs=federalGroups(x.d);return '<tr><td><b>'+x.d+'</b></td><td>'+x.sub.length+'</td><td>'+gs.map(g=>'G'+pad(g)).join(', ')+'</td><td>'+h+' / '+count+'</td><td>'+pct(h,count)+'</td><td>'+(100*gs.length/25).toFixed(1)+'%</td></tr>'}).join('')+'</tbody></table>':'<div class="mutedbox">Sem casos para exibir.</div>';
  const checks=cases.flatMap(c=>c.eligible.map(r=>({c,r,g:group(r.p[0]),hit:c.groups.includes(group(r.p[0]))}))).sort((a,b)=>b.r.date.localeCompare(a.r.date)||b.r.time.localeCompare(a.r.time));
  $('fedChecks').innerHTML=checks.length?'<table><thead><tr><th>Federal</th><th>Pedra</th><th>Data Sonhos</th><th>Horário</th><th>1º prêmio</th><th>Grupo</th><th>Coincidiu?</th></tr></thead><tbody>'+checks.map(x=>'<tr><td>'+x.c.f.date+'</td><td>'+x.c.d+'</td><td>'+x.r.date+'</td><td>'+safe(normalizeTime(x.r.time))+'</td><td>'+safe(String(x.r.p[0]).padStart(4,'0'))+'</td><td>G'+pad(x.g)+' — '+safe(animal(x.g))+'</td><td>'+(x.hit?'<b style="color:var(--green)">Sim</b>':'Não')+'</td></tr>').join('')+'</tbody></table>':'<div class="mutedbox">Sem resultados posteriores na base para os filtros atuais.</div>';
+ renderFederalDeep(cases,days);
  const custom=federalCustom();$('fedRegistry').innerHTML='<h3>Federais cadastradas</h3><table><thead><tr><th>Data</th><th>Milhares (1º–5º)</th><th>Pedras ausentes</th><th>Origem</th></tr></thead><tbody>'+feds.map(f=>'<tr><td>'+f.date+'</td><td>'+f.p.join(' · ')+'</td><td>'+(federalMissing(f).join(', ')||'Nenhuma')+'</td><td>'+(custom.some(x=>x.date===f.date)?'Registro local':'Imagem fornecida')+'</td></tr>').join('')+'</tbody></table>';
 }
 $('fedDigit').innerHTML+=[...Array(10)].map((_,i)=>'<option value="'+i+'">Pedra '+i+'</option>').join('');

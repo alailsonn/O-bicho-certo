@@ -263,6 +263,20 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
   <div class="card metric"><small>Coincidências / extrações</small><strong id="flDrawHits">—</strong><span class="small">1º prêmio da LOOK</span></div>
   <div class="card metric"><small>Referência por acaso</small><strong id="flExpected">—</strong><span class="small">média teórica por extração*</span></div>
  </div>
+ <div class="panel" style="border-color:#4980b1" id="flRankPanel">
+  <h2>🏅 Teste 18 — Ranking dos algarismos ausentes na PRIMEIRA LOOK posterior</h2>
+  <p class="muted">Para cada Federal, usa <b>somente o 1º prêmio da primeira extração LOOK cadastrada depois da Federal</b>, sem escolher horário. Cada algarismo ausente vale uma verificação separada. O ranking é calculado com <b>todos os algarismos</b>, mesmo quando o filtro acima seleciona um deles.</p>
+  <div class="grid">
+   <div class="card metric"><small>Federais com primeira LOOK</small><strong id="flRankFeds">—</strong><span class="small">de todas as Federais disponíveis</span></div>
+   <div class="card metric"><small>Melhor taxa observada</small><strong id="flRankLeader">—</strong><span class="small" id="flRankLeaderNote">Sem dados</span></div>
+   <div class="card metric"><small>Referência teórica por algarismo</small><strong>34,4%</strong><span class="small">em uma única milhar</span></div>
+   <div class="card metric"><small>Evidência após correção</small><strong id="flRankVerdict" style="font-size:19px">—</strong><span class="small">teste binomial + 10 comparações</span></div>
+  </div>
+  <h3>Ranking por algarismo (0 a 9)</h3><div class="scroll" id="flRankTable"></div>
+  <h3>Primeira extração posterior em cada data da Federal</h3><div class="scroll" id="flRankCases"></div>
+  <div class="actions" style="margin-top:12px"><button id="flRankExport">Exportar ranking CSV</button></div>
+  <p class="hint" id="flRankNote">Referência: 1 − (9/10)⁴ = 34,39% por algarismo. O teste é exploratório, com amostras pequenas e cobertura parcial da LOOK. A primeira extração <i>cadastrada</i> pode não ser a primeira que realmente ocorreu. Presença de dígito não é acerto da milhar inteira.</p>
+ </div>
  <div class="panel"><h2>📅 Resultado de cada Federal</h2><div class="scroll" id="flEventsTable"></div></div>
  <div class="panel"><h2>🔢 Quando cada algarismo ausente reapareceu?</h2><div class="scroll" id="flDigitsTable"></div></div>
  <div class="panel"><h2>📊 Comparação com coincidências esperadas por acaso</h2><div id="flStats"></div></div>
@@ -935,7 +949,73 @@ function flBuild(){
  }
  return {events,checks,fedHour};
 }
+// TESTE 18 — primeira LOOK posterior: uma verificação por algarismo e por Federal.
+// Independente do filtro flDigit e flMax: evita selecionar a janela olhando resultados.
+let flRankCsv=[];
+function flRankCalc(){
+ const feds=federalRows().slice().sort((a,b)=>a.date.localeCompare(b.date));
+ const fedHour=flClock($('flTime').value);
+ const allLook=lookAll().filter(r=>lookValid(r)&&r.p[0]!==undefined)
+   .sort((a,b)=>a.date.localeCompare(b.date)||flLookClock(a)-flLookClock(b));
+ const stats=Array.from({length:10},(_,d)=>({d,attempts:0,hits:0,federals:[]}));
+ const cases=[];
+ for(let i=0;i<feds.length;i++){
+  const f=feds[i],next=feds[i+1]?.date||null;
+  const missing=federalMissing(f).map(Number);
+  if(!missing.length)continue;
+  const first=allLook.find(r=>(r.date>f.date||(r.date===f.date&&fedHour!==null&&flLookClock(r)>fedHour))&&(!next||r.date<next));
+  if(!first){cases.push({date:f.date,missing,first:null,found:[],days:null});continue;}
+  const p=String(first.p[0]).padStart(4,'0');
+  const found=missing.filter(d=>p.includes(String(d)));
+  for(const d of missing){const st=stats[d];st.attempts++;if(found.includes(d))st.hits++;st.federals.push(f.date)}
+  cases.push({date:f.date,missing,first,p,found,days:flDateDays(f.date,first.date)});
+ }
+ return {stats,cases};
+}
+// Teste binomial exato unilateral: H1 = taxa acima dos 34,39% de referência.
+function flRankOneSided(hits,n,p0){
+ if(!n)return null;
+ let sum=0,coefficient=1;
+ for(let k=0;k<=n;k++){
+  if(k>=hits)sum+=coefficient*Math.pow(p0,k)*Math.pow(1-p0,n-k);
+  coefficient*=k<n?(n-k)/(k+1):1;
+ }
+ return Math.min(1,Math.max(0,sum));
+}
+function renderFlRank(){
+ const {stats,cases}=flRankCalc(),p0=1-Math.pow(.9,4);
+ const filled=stats.filter(x=>x.attempts);
+ const ranked=stats.slice().sort((a,b)=>{
+  const ea=a.attempts?a.hits/a.attempts-p0:-Infinity;
+  const eb=b.attempts?b.hits/b.attempts-p0:-Infinity;
+  return eb-ea||b.attempts-a.attempts||a.d-b.d;
+ });
+ $('flRankFeds').textContent=cases.filter(x=>x.first).length+' / '+cases.length;
+ const lead=ranked.find(x=>x.attempts);
+ $('flRankLeader').textContent=lead?String(lead.d):'—';
+ $('flRankLeaderNote').textContent=lead?flPercent(lead.hits,lead.attempts)+' em '+lead.attempts+' Federal(is) — descrição, não previsão':'Aguardando resultados';
+ const significant=filled.filter(x=>Math.min(1,10*flRankOneSided(x.hits,x.attempts,p0))<.05);
+ $('flRankVerdict').textContent=significant.length?'Investigar':'Não comprovada';
+ const table=ranked.map(x=>{
+  if(!x.attempts)return '<tr><td><b>'+x.d+'</b></td><td>0</td><td>—</td><td>—</td><td>34,4%</td><td>—</td><td>—</td><td>Sem amostra</td></tr>';
+  const rate=x.hits/x.attempts,delta=100*(rate-p0),ci=wilson95(x.hits,x.attempts),p=Math.min(1,10*flRankOneSided(x.hits,x.attempts,p0));
+  const status=x.attempts<10?'Amostra pequena':p<.05?'Diferença estatística*':'Não conclusivo';
+  return '<tr><td><b>'+x.d+'</b></td><td>'+x.attempts+'</td><td>'+x.hits+'</td><td>'+flPercent(x.hits,x.attempts)+'</td><td>34,4%</td><td>'+(delta>=0?'+':'')+delta.toFixed(1).replace('.',',')+' p.p.</td><td>'+ci.map(v=>(100*v).toFixed(1).replace('.',',')+'%').join(' a ')+'</td><td>'+status+'</td></tr>';
+ });
+ $('flRankTable').innerHTML='<table><thead><tr><th>Algarismo</th><th>Federais verificadas</th><th>Coincidências</th><th>Taxa observada</th><th>Por acaso</th><th>Diferença</th><th>IC 95%</th><th>Leitura</th></tr></thead><tbody>'+table.join('')+'</tbody></table>';
+ $('flRankCases').innerHTML=cases.length?'<table><thead><tr><th>Federal</th><th>Ausentes</th><th>Primeira LOOK cadastrada depois</th><th>1º prêmio</th><th>Dígitos encontrados</th><th>Cobertura</th></tr></thead><tbody>'+cases.map(x=>'<tr><td>'+safe(x.date)+'</td><td>'+x.missing.join(', ')+'</td><td>'+(x.first?safe(x.first.date)+' '+safe(x.first.horario_real||x.first.time.slice(0,2)+':20'):'—')+'</td><td>'+(x.first?'<b>'+safe(x.p)+'</b>':'—')+'</td><td>'+(x.first?(x.found.length?x.found.join(', '):'Nenhum'):'Sem extração posterior')+'</td><td>'+(x.first?(x.days>1?'Lacuna de '+(x.days-1)+' dia(s)':'Primeiro dia elegível*'):'Sem dados')+'</td></tr>').join('')+'</tbody></table>':'<div class="mutedbox">Sem Federais para comparar.</div>';
+ $('flRankNote').textContent='* Referência por algarismo em uma milhar independente: '+flPercent(p0,1)+'. Ranking descritivo: '+filled.length+' algarismo(s) com dados. Intervalo de Wilson 95%; teste binomial unilateral com correção de Bonferroni para dez comparações, sem comprovar previsão. '+(cases.filter(x=>x.days>1).length?'Há lacunas de datas antes de algumas primeiras LOOK cadastradas. ':'')+'Sem horário confirmado da Federal, o teste começa no dia seguinte. A primeira LOOK cadastrada pode não ser a primeira que ocorreu. A presença de um dígito não representa acertar os quatro algarismos do 1º prêmio. Os testes retrospectivos não mostram causalidade.';
+ flRankCsv=stats.map(x=>({algarismo:x.d,federais:x.attempts,coincidencias:x.hits,taxa_percentual:x.attempts?(100*x.hits/x.attempts).toFixed(2):'',referencia_percentual:(p0*100).toFixed(2),p_corrigido:x.attempts?Math.min(1,10*flRankOneSided(x.hits,x.attempts,p0)).toFixed(6):''}));
+}
+$('flRankExport').onclick=()=>{
+ const cols=['algarismo','federais','coincidencias','taxa_percentual','referencia_percentual','p_corrigido'];
+ const csv='\uFEFF'+cols.join(';')+'\r\n'+flRankCsv.map(r=>cols.map(k=>'"'+String(r[k]??'').replace(/"/g,'""')+'"').join(';')).join('\r\n');
+ const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+ const a=document.createElement('a');a.href=url;a.download='teste18-ranking-primeira-look.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+
 function renderFederalLook(){
+ renderFlRank();
  const {events,checks,fedHour}=flBuild();
  const covered=events.filter(e=>e.draws),hitEvents=events.filter(e=>e.foundAny).length;
  const hits=checks.filter(c=>c.hit).length;

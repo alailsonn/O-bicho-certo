@@ -1,0 +1,34 @@
+
+name: Atualizar LOOK Goias
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  coletar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Instalar dependencias
+        run: pip install requests beautifulsoup4
+      - name: Coletar LOOK
+        run: python coletor_look.py
+      - name: Salvar historico
+        run: |
+          if [ -n "$(git status --porcelain -- data/look/results.json)" ]; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add data/look/results.json
+            git commit -m 'Atualiza resultados LOOK Goias'
+            git push
+          else
+            echo 'Sem resultados novos'
+          fi

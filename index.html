@@ -16,7 +16,7 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 <header><div class="brand"><div class="logo">🐾</div><div><h1>O BICHO CERTO</h1><p>Análise estatística • Loteria dos Sonhos / LOTECE</p></div></div></header>
 <main>
 <div class="notice"><b>Estatística, não previsão:</b> frequências e atrasos descrevem resultados passados. Cada extração é independente; um grupo repetido ou atrasado não ganha maior probabilidade no próximo sorteio. Este painel é independente e não recebe apostas.</div>
-<nav><button class="tab active" data-tab="dashboard">Painel</button><button class="tab" data-tab="primeiro">🎯 1º Prêmio</button><button class="tab" data-tab="transicoes">🔁 Cabeça entre horários</button><button class="tab" data-tab="federal">🇧🇷 Federal × Sonhos</button><button class="tab" data-tab="chama7">🔥 Chama dos 7</button><button class="tab" data-tab="pedras">🔬 Ausentes e dobrados</button><button class="tab" data-tab="base">Cadastrar / importar</button><button class="tab" data-tab="ajuda">Como usar</button></nav>
+<nav><button class="tab active" data-tab="dashboard">Painel</button><button class="tab" data-tab="primeiro">🎯 1º Prêmio</button><button class="tab" data-tab="transicoes">🔁 Cabeça entre horários</button><button class="tab" data-tab="federal">🇧🇷 Federal × Sonhos</button><button class="tab" data-tab="chama7">🔥 Chama dos 7</button><button class="tab" data-tab="look">🔎 LOOK Goiás</button><button class="tab" data-tab="pedras">🔬 Ausentes e dobrados</button><button class="tab" data-tab="base">Cadastrar / importar</button><button class="tab" data-tab="ajuda">Como usar</button></nav>
 
 <section id="dashboard">
 <div class="panel" style="border-color:#39785d">
@@ -177,6 +177,22 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
   <div id="chama15Mapa" class="scroll"></div>
   <p class="hint" id="chama15Aviso">Amostras pequenas e comparação de 25 grupos geram destaques por acaso. Nenhum grupo deve ser considerado mais provável nos próximos sorteios a partir desta classificação.</p>
 </div>
+
+<!-- TESTE 16 — Registro prospectivo, realizado antes do resultado-alvo -->
+<div class="panel" id="chamaTeste16" style="border-color:#39785d">
+<h2>🧪 Teste 16 — Validação futura da Chama dos 7</h2>
+<p class="muted">Registra <b>antes do próximo resultado</b> os grupos chamados (+7 / −7) a partir da cabeça já conhecida do horário anterior. Depois compara com o 1º prêmio publicado. Não cria palpites retroativos nem altera registros salvos. Os dados ficam somente neste navegador.</p>
+<div class="row">
+<div><label class="small" for="chama16Date">Data do próximo resultado</label><input type="date" id="chama16Date"></div>
+<div><label class="small" for="chama16Time">Próximo horário</label><select id="chama16Time"><option value="14:00">14h (origem 11h)</option><option value="15:45">15h45 (origem 14h)</option><option value="19:00">19h (origem 15h45)</option></select></div>
+<div><label class="small">Ação</label><button class="primary" id="chama16Save" style="width:100%">Registrar antes da extração</button></div>
+</div>
+<p id="chama16Message" class="hint">Cadastre primeiro o resultado do horário anterior. O registro só é permitido antes do horário-alvo e quando ainda não existe resultado para ele.</p>
+<div class="grid"><div class="card metric"><small>Registros prospectivos</small><strong id="chama16Total">0</strong></div><div class="card metric"><small>Conferidos</small><strong id="chama16Checked">0</strong></div><div class="card metric"><small>Coincidências</small><strong id="chama16Hits">0</strong></div><div class="card metric"><small>Taxa prospectiva</small><strong id="chama16Rate">—</strong><span class="small">Referência teórica: 8%</span></div></div>
+<div class="actions" style="margin-top:12px"><button id="chama16Export">Exportar registros JSON</button></div>
+<h3>Registros e conferências</h3><div id="chama16Table" class="scroll"></div>
+<p class="hint">A conferência exige que o resultado seguinte esteja cadastrado. Não há registro automático em segundo plano: é necessário abrir o site e registrar após a extração anterior, antes da seguinte. Evite apagar dados do navegador. As taxas não garantem acertos futuros.</p>
+</div>
 <div class="panel"><h2>Histórico de conferências</h2><div id="chamaHistorico" class="scroll"></div></div>
 <div class="panel"><p class="hint">Esta análise descreve coincidências históricas, não uma probabilidade comprovada de acerto futuro. A referência de 8% pressupõe grupos equiprováveis e resultados independentes. O histórico pode ser pequeno e as escolhas foram feitas após observar resultados.</p></div>
 </section>
@@ -210,6 +226,21 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 <div class="panel"><h2>Importar histórico (CSV)</h2><p class="muted">O arquivo deve ter as colunas: <b>data,horario,concurso,p1,p2,p3,p4,p5</b>. Use data AAAA-MM-DD e horário 11:00, 14:00, 15:45 ou 19:00. Uma linha por extração.</p><input id="csv" type="file" accept=".csv,text/csv"><p class="hint">A importação é feita no navegador. Confira os dados antes de analisar.</p></div>
 <div class="panel"><div class="row"><h2 style="margin:0">Base cadastrada</h2><span class="small" id="baseCount">0 registros</span></div><div id="allRows" class="scroll"></div></div>
 </section>
+
+
+<section id="look" class="hidden">
+<div class="panel" style="border-color:#39785d"><h2>🔎 LOOK Goiás — pesquisa e histórico independente</h2>
+<p class="muted">Base separada da LOTECE. Período de acompanhamento: <b>01/10/2026 a 02/11/2026</b>. Os oito horários do dia 01/10 foram conferidos em fonte pública (1º ao 5º prêmio). Os demais dias ainda precisam ser importados ou cadastrados; o site não inventa resultados nem faz coleta automática.</p>
+<div class="row"><div><label class="small">Data inicial</label><input id="lookStart" type="date" value="2026-10-01"></div><div><label class="small">Data final</label><input id="lookEnd" type="date" value="2026-11-02"></div><div><label class="small">Horário</label><select id="lookFilter"><option value="all">Todos os horários</option><option value="07:00">07h20</option><option value="09:00">09h20</option><option value="11:00">11h20</option><option value="14:00">14h20</option><option value="16:00">16h20</option><option value="18:00">18h20</option><option value="21:00">21h20</option><option value="23:00">23h20</option></select></div></div>
+<p class="hint">Fonte dos resultados iniciais: <a href="https://www.resultadofacil.com.br/resultados-look-loterias-do-dia-2026-10-01" target="_blank" rel="noopener" style="color:#8ee8bb">LOOK — 01/10/2026</a>. O 1º ao 5º prêmio são milhares; não misturar soma/multiplicação do 6º e 7º com prêmios de milhar.</p></div>
+<div class="grid"><div class="card metric"><small>Extrações na seleção</small><strong id="lookN">—</strong></div><div class="card metric"><small>Dias com resultados</small><strong id="lookDays">—</strong></div><div class="card metric"><small>1º prêmios</small><strong id="lookHeads">—</strong></div><div class="card metric"><small>Grupo líder no 1º</small><strong id="lookLeader">—</strong></div></div>
+<div class="panel"><h2>📊 Pesquisa LOOK — grupos na cabeça e Chama dos 7</h2><div id="lookStats"></div><h3>Histórico das extrações</h3><div class="scroll" id="lookTable"></div></div>
+<div class="panel"><h2>➕ Alimentar a base LOOK</h2><p class="muted">Cadastre manualmente o 1º ao 5º prêmio de cada horário. O resultado fica salvo neste navegador, separado da base LOTECE.</p>
+<div class="row"><div><label class="small">Data</label><input id="lookDate" type="date" min="2026-10-01"></div><div><label class="small">Horário LOOK</label><select id="lookTime"><option value="07:00">07h20</option><option value="09:00">09h20</option><option value="11:00">11h20</option><option value="14:00">14h20</option><option value="16:00">16h20</option><option value="18:00">18h20</option><option value="21:00">21h20</option><option value="23:00">23h20</option></select></div></div>
+<div class="row" style="margin-top:10px"><div><label class="small">1º prêmio</label><input class="lookPrize" inputmode="numeric" maxlength="4" placeholder="0000"></div><div><label class="small">2º</label><input class="lookPrize" inputmode="numeric" maxlength="4" placeholder="0000"></div><div><label class="small">3º</label><input class="lookPrize" inputmode="numeric" maxlength="4" placeholder="0000"></div><div><label class="small">4º</label><input class="lookPrize" inputmode="numeric" maxlength="4" placeholder="0000"></div><div><label class="small">5º</label><input class="lookPrize" inputmode="numeric" maxlength="4" placeholder="0000"></div></div>
+<div class="actions" style="margin-top:12px"><button class="primary" id="lookAdd">Salvar resultado LOOK</button><button id="lookExport">Exportar LOOK CSV</button><button id="lookReset">Limpar resultados adicionados</button></div><p class="hint" id="lookMessage"></p>
+<h3>Importar vários dias por CSV</h3><p class="hint">Formato: <b>data,horario,p1,p2,p3,p4,p5</b>, uma linha por horário. Exemplo: 2026-10-02,07:00,1234,2345,3456,4567,5678. Aceita também p6 a p10, mas a análise usa apenas os cinco primeiros. Importação substitui a mesma data e horário, sem duplicar.</p><input type="file" id="lookCsv" accept=".csv,text/csv"><p class="hint">A importação é local. Consulte a fonte e confira as milhares antes de usar os dados.</p>
+</div></section>
 
 <section id="ajuda" class="hidden">
 <div class="panel"><h2>Como o Bicho Certo calcula</h2>
@@ -672,6 +703,7 @@ function renderChama7(){
  const byPair=allChecks.filter(x=>pair==='all'||x.from+'|'+x.to===pair);
  const checks=byPair.filter(x=>selected==='all'||x.g===Number(selected));
  renderChama15(allChecks,byPair,period,pair);
+ renderChama16();
  const hits=checks.filter(x=>x.hit).length;
  $('chamaTotal').textContent=checks.length;$('chamaAcertos').textContent=hits;
  $('chamaTaxa').textContent=checks.length?(100*hits/checks.length).toFixed(1).replace('.',',')+'%':'—';
@@ -719,6 +751,39 @@ function renderChama15(allChecks,byPair,period,pair){
  $('chama15Aviso').textContent=(eligible?'Foram classificados '+eligible+' grupo(s) com no mínimo '+minN+' par(es). ':'Nenhum grupo atingiu o mínimo de '+minN+' pares. ')+
  'O ranking usa os mesmos resultados do teste principal: não são avaliações independentes. A escolha entre 25 grupos após ver as taxas e as amostras pequenas podem produzir aparentes destaques por acaso. Referência 8%: hipótese de grupos equiprováveis, não uma taxa garantida.';
 }
+
+// TESTE 16: registro prospectivo. Usa o horário local do dispositivo para impedir backfill.
+const chama16Key='obichocerto_chama16_prospectivo_v1';
+function chama16Records(){try{const x=JSON.parse(localStorage.getItem(chama16Key)||'[]');return Array.isArray(x)?x:[]}catch(e){return []}}
+function chama16Map(){return new Map([...publicDb,...db].filter(r=>r&&r.date&&Array.isArray(r.p)&&r.p.length===5).map(r=>[r.date+'|'+normalizeTime(r.time),r]))}
+function chama16LocalDate(){const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
+function renderChama16(){
+ const rec=chama16Records(),map=chama16Map(),rows=rec.map(r=>{
+  const actual=map.get(r.date+'|'+r.to),g=actual?group(actual.p[0]):null;
+  return {...r,actual:g,hit:g===null?null:r.targets.includes(g)};
+ });
+ const checked=rows.filter(r=>r.hit!==null),hits=checked.filter(r=>r.hit).length;
+ $('chama16Total').textContent=rec.length;$('chama16Checked').textContent=checked.length;
+ $('chama16Hits').textContent=hits;$('chama16Rate').textContent=checked.length?(100*hits/checked.length).toFixed(1).replace('.',',')+'%':'—';
+ $('chama16Table').innerHTML=rows.length?'<table><thead><tr><th>Registrado em</th><th>Data</th><th>Transição</th><th>Origem</th><th>Chamados</th><th>Resultado seguinte</th><th>Conferência</th></tr></thead><tbody>'+rows.slice().reverse().map(r=>'<tr><td>'+safe(r.savedAt)+'</td><td>'+safe(r.date)+'</td><td>'+r.from+' → '+r.to+'</td><td>G'+pad(r.origin)+' '+safe(animal(r.origin))+'</td><td>G'+pad(r.targets[0])+' / G'+pad(r.targets[1])+'</td><td>'+(r.actual===null?'Pendente':'G'+pad(r.actual)+' '+safe(animal(r.actual)))+'</td><td>'+(r.hit===null?'Aguardando':r.hit?'<span class="tag">Coincidiu</span>':'Não coincidiu')+'</td></tr>').join('')+'</tbody></table>':'<div class="mutedbox">Nenhum registro futuro realizado neste navegador.</div>';
+}
+$('chama16Date').value=chama16LocalDate();
+$('chama16Save').onclick=()=>{
+ const date=$('chama16Date').value,to=$('chama16Time').value,idx=times.indexOf(to),from=times[idx-1],msg=$('chama16Message');
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||idx<1){msg.textContent='Informe data e horário válidos.';return}
+ const targetDate=new Date(date+'T'+to+':00');
+ if(!Number.isFinite(targetDate.getTime())||targetDate.getTime()<=Date.now()){msg.textContent='O horário-alvo já passou. Não é permitido registrar retroativamente.';return}
+ const map=chama16Map(),origin=map.get(date+'|'+from);
+ if(!origin){msg.textContent='A cabeça do horário anterior ('+from+') ainda não está cadastrada para '+date+'. Importe esse resultado antes de registrar.';return}
+ if(map.has(date+'|'+to)){msg.textContent='O resultado-alvo já está cadastrado; não é possível criar um registro retroativo.';return}
+ const rec=chama16Records();if(rec.some(r=>r.date===date&&r.to===to)){msg.textContent='Já existe registro para essa data e horário. Ele não será substituído.';return}
+ const g=group(origin.p[0]),targets=chamaTargets(g),savedAt=new Date().toLocaleString('pt-BR');
+ rec.push({date,from,to,origin:g,targets,savedAt,originPrize:String(origin.p[0])});
+ try{localStorage.setItem(chama16Key,JSON.stringify(rec));msg.textContent='Registro salvo antes do resultado: G'+pad(g)+' → G'+pad(targets[0])+' / G'+pad(targets[1])+'. Aguarde o próximo resultado para conferir.';renderChama16()}
+ catch(e){msg.textContent='Não foi possível salvar neste navegador. Verifique armazenamento e permissões.'}
+};
+$('chama16Export').onclick=()=>{const blob=new Blob([JSON.stringify(chama16Records(),null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='chama-dos-7-teste16-registros.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+
 $('chama15Min').onchange=renderChama7;
 
 for(let g=1;g<=25;g++)$('chamaGrupo').insertAdjacentHTML('beforeend','<option value="'+g+'">G'+pad(g)+' — '+animal(g)+'</option>');
@@ -741,13 +806,45 @@ $('clear').onclick=()=>{if(confirm('Apagar toda a base salva neste navegador?'))
 $('export').onclick=()=>{let csv='data,horario,concurso,p1,p2,p3,p4,p5\n'+db.map(r=>[r.date,r.time,'"'+String(r.contest||'').replaceAll('"','""')+'"',...r.p.map(n=>String(n).padStart(4,'0'))].join(',')).join('\n');let a=document.createElement('a'),u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.href=u;a.download='base-o-bicho-certo.csv';a.click();URL.revokeObjectURL(u)};
 $('csv').onchange=async e=>{let file=e.target.files[0];if(!file)return;let lines=(await file.text()).trim().split(/\r?\n/),added=0,errors=0;for(let line of lines.slice(1)){let c=line.split(',').map(x=>x.trim().replace(/^"|"$/g,''));if(c.length<8){errors++;continue}let [date,time,contest,...p]=c;p=p.slice(0,5);if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!times.includes(time)||p.length!==5||p.some(n=>!/^\d{1,4}$/.test(n)||Number(n)>9999)){errors++;continue}db.push({id:Date.now()+'-'+added+'-'+Math.random().toString(16).slice(2),date,time,contest,p:p.map(Number)});added++}persist();alert(`${added} registro(s) importado(s). ${errors} linha(s) ignorada(s).`);e.target.value=''};
 ['period','drawFilter','placeFilter'].forEach(id=>$(id).onchange=render);
+
+// LOOK Goiás: histórico separado da LOTECE, com oito extrações verificadas de 01/10/2026.
+const lookSeed=[
+ ['07:00','8102','8471','3367','9519','3876'],
+ ['09:00','8215','4477','1308','5704','8449'],
+ ['11:00','3048','9414','1631','5363','1871'],
+ ['14:00','3873','3407','7136','3119','1954'],
+ ['16:00','9654','4361','5376','0534','2439'],
+ ['18:00','8707','2253','5710','8776','7429'],
+ ['21:00','8679','5776','1071','8247','9785'],
+ ['23:00','9806','8943','1652','3710','0947']
+].map(x=>({date:'2026-10-01',time:x[0],p:x.slice(1),source:'Resultado Fácil — 01/10/2026'}));
+const lookKey='obicho-certo-look-v1';
+function lookSaved(){try{let a=JSON.parse(localStorage.getItem(lookKey)||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
+function lookAll(){let m=new Map(lookSeed.map(r=>[r.date+'|'+r.time,r]));lookSaved().forEach(r=>m.set(r.date+'|'+r.time,r));return [...m.values()].sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time))}
+function lookValid(r){return /^\d{4}-\d{2}-\d{2}$/.test(r.date)&&['07:00','09:00','11:00','14:00','16:00','18:00','21:00','23:00'].includes(r.time)&&Array.isArray(r.p)&&r.p.length>=5&&r.p.slice(0,5).every(n=>/^\d{1,4}$/.test(String(n)))}
+function lookSaveBatch(a){let m=new Map(lookSaved().map(r=>[r.date+'|'+r.time,r]));a.forEach(r=>m.set(r.date+'|'+r.time,r));try{localStorage.setItem(lookKey,JSON.stringify([...m.values()]));renderLook();return true}catch(e){$('lookMessage').textContent='Erro ao salvar no navegador.';return false}}
+function renderLook(){let all=lookAll(),a=all.filter(r=>r.date>=$('lookStart').value&&r.date<=$('lookEnd').value&&($('lookFilter').value==='all'||r.time===$('lookFilter').value));
+ let counts={};a.forEach(r=>{let g=group(r.p[0]);counts[g]=(counts[g]||0)+1});let rank=Object.entries(counts).sort((x,y)=>y[1]-x[1]||Number(x[0])-Number(y[0]));
+ $('lookN').textContent=a.length;$('lookDays').textContent=new Set(a.map(r=>r.date)).size;$('lookHeads').textContent=a.length;$('lookLeader').textContent=rank.length?'G'+pad(rank[0][0]):'—';
+ let pairs=0,hits=0,detail=[];let byday={};all.forEach(r=>(byday[r.date]??=[]).push(r));Object.values(byday).forEach(rows=>{rows.sort((x,y)=>x.time.localeCompare(y.time));for(let i=0;i<rows.length-1;i++){let x=rows[i],y=rows[i+1];if(!a.includes(x)||!a.includes(y))continue;let ix=['07:00','09:00','11:00','14:00','16:00','18:00','21:00','23:00'];if(ix.indexOf(y.time)!==ix.indexOf(x.time)+1)continue;let g=group(x.p[0]),t=[(g+6)%25+1,(g+17)%25+1],h=t.includes(group(y.p[0]));pairs++;if(h)hits++;detail.push({g,t,h})}});
+ $('lookStats').innerHTML='<p><b>Chama dos 7 na LOOK:</b> '+hits+' coincidência(s) em '+pairs+' pares completos ('+(pairs?(hits/pairs*100).toFixed(1).replace('.',',')+'%':'sem amostra')+'). Referência teórica: 8%.</p><p class="small">Somente horários adjacentes completos do mesmo dia; nenhuma ligação entre dias. Não é previsão.</p><h3>Grupos mais frequentes no 1º prêmio</h3>'+(rank.length?'<table><tr><th>Grupo</th><th>Ocorrências</th></tr>'+rank.slice(0,25).map(([g,n])=>'<tr><td>G'+pad(g)+' — '+animal(Number(g))+'</td><td>'+n+'</td></tr>').join('')+'</table>':'<div class="mutedbox">Nenhum resultado no período.</div>');
+ $('lookTable').innerHTML=a.length?'<table><thead><tr><th>Data</th><th>Hora</th><th>1º</th><th>2º</th><th>3º</th><th>4º</th><th>5º</th><th>Fonte</th></tr></thead><tbody>'+a.slice().reverse().map(r=>'<tr><td>'+safe(r.date)+'</td><td>'+safe(r.time)+'</td>'+r.p.slice(0,5).map(n=>'<td>'+safe(String(n).padStart(4,'0'))+'</td>').join('')+'<td>'+safe(r.source||'Cadastro local')+'</td></tr>').join('')+'</tbody></table>':'<div class="mutedbox">Ainda não há resultados nessa seleção.</div>';
+}
+['lookStart','lookEnd','lookFilter'].forEach(id=>$(id).onchange=renderLook);
+$('lookDate').value='2026-11-02';
+$('lookAdd').onclick=()=>{let r={date:$('lookDate').value,time:$('lookTime').value,p:[...document.querySelectorAll('.lookPrize')].map(x=>x.value.trim()),source:'Cadastro local'};if(!lookValid(r)){ $('lookMessage').textContent='Informe data, horário e cinco milhares válidas (0000 a 9999).';return}if(lookSaveBatch([r])){$('lookMessage').textContent='Resultado salvo na base LOOK.';document.querySelectorAll('.lookPrize').forEach(x=>x.value='')}};
+$('lookCsv').onchange=async e=>{let f=e.target.files[0];if(!f)return;let lines=(await f.text()).replace(/^\uFEFF/,'').trim().split(/\r?\n/),batch=[],bad=0;for(let line of lines){if(!line.trim()||/^data[,;]/i.test(line))continue;let v=line.split(/[;,]/).map(x=>x.trim().replace(/^"|"$/g,''));let r={date:v[0],time:v[1],p:v.slice(2,7),source:'CSV importado'};if(lookValid(r))batch.push(r);else bad++}if(batch.length&&lookSaveBatch(batch))$('lookMessage').textContent=batch.length+' linhas válidas importadas; '+bad+' ignoradas.';else $('lookMessage').textContent='Nenhuma linha válida. '+bad+' linha(s) ignorada(s).';e.target.value=''};
+$('lookExport').onclick=()=>{let csv='data,horario,p1,p2,p3,p4,p5\n'+lookAll().map(r=>[r.date,r.time,...r.p.slice(0,5).map(n=>String(n).padStart(4,'0'))].join(',')).join('\n');let u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=u;a.download='look-goias-historico.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)};
+$('lookReset').onclick=()=>{if(confirm('Apagar somente os resultados LOOK adicionados? Os resultados iniciais verificados de 01/10 permanecem.')){localStorage.removeItem(lookKey);renderLook();$('lookMessage').textContent='Dados adicionados apagados.'}};
+renderLook();
+
 const CHECK_EVERY=15*60*1000;let nextCheck=Date.now()+CHECK_EVERY;
 function updateClock(){let left=Math.max(0,nextCheck-Date.now()),mins=Math.floor(left/60000),secs=Math.floor((left%60000)/1000);$('countdown').textContent=String(mins).padStart(2,'0')+':'+String(secs).padStart(2,'0');if(left===0){$('syncStatus').textContent='Horário de verificação alcançado. A fonte oficial precisa ser consultada; a coleta automática ainda não está conectada.';$('countdown').textContent='00:00';}}
 setInterval(updateClock,1000);
 setInterval(()=>{if(Date.now()>=nextCheck){nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Nova janela de verificação iniciada. Para conferir os resultados publicados, use “Verificar fonte”.';}},1000);
 $('checkNow').onclick=()=>{nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Fonte oficial aberta para conferência. Após validar os resultados, cadastre-os ou importe o CSV.';window.open('https://lotece.com.br/','_blank','noopener');updateClock()};
 $('refreshPanel').onclick=()=>{render();nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Painel recalculado com os dados já cadastrados. Nenhum resultado externo foi baixado.';updateClock()};
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['dashboard','primeiro','transicoes','federal','chama7','pedras','base','ajuda'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab))});
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['dashboard','primeiro','transicoes','federal','chama7','look','pedras','base','ajuda'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab))});
 try{db=JSON.parse(localStorage.getItem('obicho-certo-lotece')||'[]')}catch(e){db=[]}
 async function loadPublicHistory(){
  try{

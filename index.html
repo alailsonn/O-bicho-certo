@@ -156,6 +156,27 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 <div class="grid"><div class="card metric"><small>Pares conferidos</small><strong id="chamaTotal">0</strong></div><div class="card metric"><small>Coincidências (+7 ou −7)</small><strong id="chamaAcertos">0</strong></div><div class="card metric"><small>Taxa histórica</small><strong id="chamaTaxa">—</strong></div><div class="card metric"><small>Referência teórica</small><strong>8%</strong><span class="small">2 dos 25 grupos, se equiprováveis</span></div></div>
 <div class="panel"><h2>Grupos da Chama dos 7</h2><div id="chamaExemplo"></div></div>
 <div class="panel"><h2>Desempenho por transição</h2><div id="chamaPorHorario" class="scroll"></div></div>
+<!-- TESTE 15 — Ranking da Chama dos 7, baseado em todos os grupos de origem -->
+<div class="panel" id="chamaTeste15" style="border-color:#816138">
+  <h2>🧪 Teste 15 — Ranking dos 25 grupos da Chama dos 7</h2>
+  <p class="muted">Classificação <b>retrospectiva e exploratória</b> de todos os grupos que saíram no 1º prêmio. Para cada grupo de origem, verifica se a cabeça da extração seguinte, no mesmo dia, corresponde a G+7 ou G−7. Compara a taxa observada com a referência teórica de <b>8%</b>, supondo grupos equiprováveis e extrações independentes.</p>
+  <div class="row">
+    <div><label class="small" for="chama15Min">Mínimo de pares para aparecer na classificação</label><select id="chama15Min"><option value="1">1 par — apenas exploração</option><option value="3" selected>3 pares</option><option value="5">5 pares</option><option value="10">10 pares</option><option value="20">20 pares</option></select></div>
+    <div><label class="small">Filtros usados no ranking</label><p class="hint" id="chama15Filtro">Período e transição selecionados acima. O grupo de origem selecionado não restringe o ranking.</p></div>
+  </div>
+  <div class="grid" style="margin-top:13px">
+    <div class="card metric"><small>Grupos com pelo menos 1 par</small><strong id="chama15Observados">0/25</strong></div>
+    <div class="card metric"><small>Grupos no mínimo escolhido</small><strong id="chama15Classificados">0</strong></div>
+    <div class="card metric"><small>Acertos / pares no filtro</small><strong id="chama15Total">0 / 0</strong></div>
+    <div class="card metric"><small>Diferença geral versus 8%</small><strong id="chama15Diferenca">—</strong></div>
+  </div>
+  <h3>Classificação por grupo de origem</h3>
+  <div id="chama15Ranking" class="scroll"></div>
+  <h3>Mapa dos 25 grupos por transição</h3>
+  <p class="hint">As três colunas de horários aparecem mesmo quando um filtro de transição está ativo. Cada célula informa coincidências / pares e taxa, usando o período escolhido. O ranking acima obedece ao filtro de transição.</p>
+  <div id="chama15Mapa" class="scroll"></div>
+  <p class="hint" id="chama15Aviso">Amostras pequenas e comparação de 25 grupos geram destaques por acaso. Nenhum grupo deve ser considerado mais provável nos próximos sorteios a partir desta classificação.</p>
+</div>
 <div class="panel"><h2>Histórico de conferências</h2><div id="chamaHistorico" class="scroll"></div></div>
 <div class="panel"><p class="hint">Esta análise descreve coincidências históricas, não uma probabilidade comprovada de acerto futuro. A referência de 8% pressupõe grupos equiprováveis e resultados independentes. O histórico pode ser pequeno e as escolhas foram feitas após observar resultados.</p></div>
 </section>
@@ -639,17 +660,18 @@ function renderChama7(){
  let min=null, period=$('chamaPeriodo').value;
  if(latest&&period!=='all'){let dt=new Date(latest+'T12:00:00');dt.setDate(dt.getDate()-Number(period)+1);min=dt.toISOString().slice(0,10)}
  const selected=$('chamaGrupo').value, pair=$('chamaPar').value;
- const checks=[];
+ const allChecks=[];
  for(const r of all){
    if(min&&r.date<min)continue;
    const t=normalizeTime(r.time), idx=times.indexOf(t);
    if(idx<0||idx>=times.length-1)continue;
-   const key=t+'|'+times[idx+1];if(pair!=='all'&&pair!==key)continue;
    const next=map.get(r.date+'|'+times[idx+1]);if(!next)continue;
-   const g=group(r.p[0]);if(selected!=='all'&&g!==Number(selected))continue;
-   const targets=chamaTargets(g), actual=group(next.p[0]);
-   checks.push({date:r.date,from:t,to:times[idx+1],g,targets,actual,hit:targets.includes(actual)});
+   const g=group(r.p[0]),targets=chamaTargets(g),actual=group(next.p[0]);
+   allChecks.push({date:r.date,from:t,to:times[idx+1],g,targets,actual,hit:targets.includes(actual)});
  }
+ const byPair=allChecks.filter(x=>pair==='all'||x.from+'|'+x.to===pair);
+ const checks=byPair.filter(x=>selected==='all'||x.g===Number(selected));
+ renderChama15(allChecks,byPair,period,pair);
  const hits=checks.filter(x=>x.hit).length;
  $('chamaTotal').textContent=checks.length;$('chamaAcertos').textContent=hits;
  $('chamaTaxa').textContent=checks.length?(100*hits/checks.length).toFixed(1).replace('.',',')+'%':'—';
@@ -659,6 +681,46 @@ function renderChama7(){
  $('chamaPorHorario').innerHTML='<table><thead><tr><th>Transição</th><th>Pares</th><th>Acertos</th><th>Taxa</th></tr></thead><tbody>'+[[times[0],times[1]],[times[1],times[2]],[times[2],times[3]]].map(([a,b])=>{const sub=checks.filter(x=>x.from===a&&x.to===b),h=sub.filter(x=>x.hit).length;return '<tr><td>'+a+' → '+b+'</td><td>'+sub.length+'</td><td>'+h+'</td><td>'+pct(h,sub.length)+'</td></tr>'}).join('')+'</tbody></table>';
  $('chamaHistorico').innerHTML=checks.length?'<table><thead><tr><th>Data</th><th>Horários</th><th>Origem</th><th>Chama +7 / −7</th><th>Cabeça seguinte</th><th>Resultado</th></tr></thead><tbody>'+checks.slice().reverse().map(x=>'<tr><td>'+safe(x.date)+'</td><td>'+x.from+' → '+x.to+'</td><td>G'+pad(x.g)+' '+safe(animal(x.g))+'</td><td>G'+pad(x.targets[0])+' / G'+pad(x.targets[1])+'</td><td>G'+pad(x.actual)+' '+safe(animal(x.actual))+'</td><td>'+(x.hit?'<span class="tag">Coincidiu</span>':'Não coincidiu')+'</td></tr>').join('')+'</tbody></table>':'<div class="mutedbox">Não há pares de horários completos para os filtros escolhidos.</div>';
 }
+
+// TESTE 15 — todos os grupos, sem escolher a origem com base nos resultados.
+function renderChama15(allChecks,byPair,period,pair){
+ const minN=Number($('chama15Min').value)||3;
+ const pct=(h,n)=>n?(100*h/n).toFixed(1).replace('.',',')+'%':'—';
+ const diff=(h,n)=>n?((100*h/n-8)>=0?'+':'')+(100*h/n-8).toFixed(1).replace('.',',')+' p.p.':'—';
+ const stats=Array.from({length:25},(_,i)=>{
+   const g=i+1,sub=byPair.filter(x=>x.g===g),n=sub.length,h=sub.filter(x=>x.hit).length;
+   return {g,n,h,rate:n?h/n:0,eligible:n>=minN};
+ });
+ const obs=stats.filter(x=>x.n>0).length,eligible=stats.filter(x=>x.eligible).length;
+ const hit=byPair.filter(x=>x.hit).length,n=byPair.length;
+ $('chama15Observados').textContent=obs+' / 25';
+ $('chama15Classificados').textContent=eligible;
+ $('chama15Total').textContent=hit+' / '+n;
+ $('chama15Diferenca').textContent=diff(hit,n);
+ $('chama15Filtro').textContent='Período: '+(period==='all'?'todo o histórico':'últimos '+period+' dias da base')+' · Transição: '+(pair==='all'?'todos os horários':pair.replace('|',' → '))+'. O grupo escolhido no filtro acima NÃO restringe este ranking.';
+ // Grupos com amostra mínima são exibidos primeiro, ordenados pela diferença observada;
+ // os demais continuam visíveis para evitar viés de ocultação.
+ const sorted=stats.slice().sort((a,b)=>Number(b.eligible)-Number(a.eligible)||(a.eligible?(b.rate-a.rate||b.n-a.n||a.g-b.g):(b.n-a.n||a.g-b.g)));
+ let position=0;
+ $('chama15Ranking').innerHTML='<table><thead><tr><th>Posição*</th><th>Grupo de origem</th><th>Chamados (+7 / −7)</th><th>Pares</th><th>Acertos</th><th>Taxa</th><th>Referência</th><th>Diferença</th><th>Amostra</th></tr></thead><tbody>'+sorted.map(x=>{
+   const t=chamaTargets(x.g),p=x.eligible?String(++position)+'º':'—';
+   return '<tr'+(x.eligible?'':' style="opacity:.72"')+'><td>'+p+'</td><td><b>G'+pad(x.g)+' — '+safe(animal(x.g))+'</b></td><td>G'+pad(t[0])+' / G'+pad(t[1])+'</td><td>'+x.n+'</td><td>'+x.h+'</td><td>'+pct(x.h,x.n)+'</td><td>8,0%</td><td>'+diff(x.h,x.n)+'</td><td>'+(x.eligible?'Mínimo atingido':x.n?'Abaixo do mínimo':'Sem casos')+'</td></tr>';
+ }).join('')+'</tbody></table>'+
+ '<p class="hint">*Posição é somente a classificação histórica dos grupos com pelo menos '+minN+' par(es). Os 25 grupos são mostrados, incluindo os sem casos. Taxa maior não prova capacidade de previsão.</p>';
+ const pairs=[[times[0],times[1]],[times[1],times[2]],[times[2],times[3]]];
+ $('chama15Mapa').innerHTML='<table><thead><tr><th>Grupo</th>'+pairs.map(([a,b])=>'<th>'+a+' → '+b+'</th>').join('')+'<th>Total no período (3 transições)</th></tr></thead><tbody>'+stats.map(x=>{
+   const cells=pairs.map(([a,b])=>{
+     const sub=allChecks.filter(y=>y.g===x.g&&y.from===a&&y.to===b),h=sub.filter(y=>y.hit).length;
+     return '<td>'+(sub.length?h+' / '+sub.length+' ('+pct(h,sub.length)+')':'—')+'</td>';
+   });
+   const total=allChecks.filter(y=>y.g===x.g),hits=total.filter(y=>y.hit).length;
+   return '<tr><td><b>G'+pad(x.g)+' — '+safe(animal(x.g))+'</b></td>'+cells.join('')+'<td>'+(total.length?hits+' / '+total.length+' ('+pct(hits,total.length)+')':'—')+'</td></tr>';
+ }).join('')+'</tbody></table>';
+ $('chama15Aviso').textContent=(eligible?'Foram classificados '+eligible+' grupo(s) com no mínimo '+minN+' par(es). ':'Nenhum grupo atingiu o mínimo de '+minN+' pares. ')+
+ 'O ranking usa os mesmos resultados do teste principal: não são avaliações independentes. A escolha entre 25 grupos após ver as taxas e as amostras pequenas podem produzir aparentes destaques por acaso. Referência 8%: hipótese de grupos equiprováveis, não uma taxa garantida.';
+}
+$('chama15Min').onchange=renderChama7;
+
 for(let g=1;g<=25;g++)$('chamaGrupo').insertAdjacentHTML('beforeend','<option value="'+g+'">G'+pad(g)+' — '+animal(g)+'</option>');
 ['chamaGrupo','chamaPeriodo','chamaPar'].forEach(id=>$(id).onchange=renderChama7);
 

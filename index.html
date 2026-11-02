@@ -16,7 +16,7 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 <header><div class="brand"><div class="logo">🐾</div><div><h1>O BICHO CERTO</h1><p>Análise estatística • Loteria dos Sonhos / LOTECE</p></div></div></header>
 <main>
 <div class="notice"><b>Estatística, não previsão:</b> frequências e atrasos descrevem resultados passados. Cada extração é independente; um grupo repetido ou atrasado não ganha maior probabilidade no próximo sorteio. Este painel é independente e não recebe apostas.</div>
-<nav><button class="tab active" data-tab="dashboard">Painel</button><button class="tab" data-tab="primeiro">🎯 1º Prêmio</button><button class="tab" data-tab="transicoes">🔁 Cabeça entre horários</button><button class="tab" data-tab="pedras">🔬 Ausentes e dobrados</button><button class="tab" data-tab="base">Cadastrar / importar</button><button class="tab" data-tab="ajuda">Como usar</button></nav>
+<nav><button class="tab active" data-tab="dashboard">Painel</button><button class="tab" data-tab="primeiro">🎯 1º Prêmio</button><button class="tab" data-tab="transicoes">🔁 Cabeça entre horários</button><button class="tab" data-tab="federal">🇧🇷 Federal × Sonhos</button><button class="tab" data-tab="pedras">🔬 Ausentes e dobrados</button><button class="tab" data-tab="base">Cadastrar / importar</button><button class="tab" data-tab="ajuda">Como usar</button></nav>
 
 <section id="dashboard">
 <div class="panel" style="border-color:#39785d">
@@ -108,6 +108,22 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 <div id="transitionMapDetail" class="scroll" style="margin-top:12px"></div>
 <h3>Histórico de cada transição</h3><div id="transitionDetails" class="scroll"></div>
 <p class="hint">Referência teórica: grupo idêntico ao 1º anterior = 4%; aparecer em qualquer um dos cinco prêmios anteriores = 1 − (24/25)⁵ ≈ 18,46%, se os grupos forem independentes e equiprováveis. Um mesmo grupo pode aparecer em mais de uma posição. Taxas históricas não garantem resultados futuros; várias comparações aumentam a chance de encontrar diferenças por acaso.</p>
+</div></section>
+
+
+<section id="federal" class="hidden">
+<div class="panel"><h2>🇧🇷 Teste 8 — Federal × Loteria dos Sonhos</h2>
+<p class="muted">Analisa somente os <b>4 últimos algarismos</b> dos cinco primeiros prêmios da Federal. Cada pedra ausente seleciona os grupos cujo número termina nela e os grupos com dezenas na faixa iniciada por ela (por exemplo, pedra 5 → G05, G13, G14, G15 e G25). Acompanha o <b>1º prêmio</b> da Loteria dos Sonhos nos <b>3 dias corridos seguintes</b>, excluindo o dia da Federal.</p>
+<div class="row"><div><label class="small" for="fedDigit">Pedra ausente</label><select id="fedDigit"><option value="all">Todas as pedras</option></select></div><div><label class="small" for="fedDays">Janela após a Federal</label><select id="fedDays"><option value="3">3 dias corridos</option><option value="1">1 dia corrido</option><option value="2">2 dias corridos</option><option value="5">5 dias corridos</option><option value="7">7 dias corridos</option></select></div></div>
+<div id="fedSummary" style="margin-top:15px"></div>
+<h3>Ausências em cada Federal e resultado posterior</h3><div id="fedEvents" class="scroll"></div>
+<h3>Detalhamento por pedra ausente</h3><div id="fedDigits" class="scroll"></div>
+<h3>Cada cabeça conferida</h3><div id="fedChecks" class="scroll"></div>
+<p class="hint">A referência por prêmio é a proporção de grupos selecionados entre 25, assumindo grupos equiprováveis. As verificações por pedra podem compartilhar a mesma extração, por isso não são independentes. Dias sem resultados na base não são tratados como falhas. Um percentual histórico alto não demonstra previsão.</p>
+</div>
+<div class="panel"><h2>Adicionar uma Federal ao Teste 8</h2><p class="muted">As nove Federais enviadas nas imagens já estão incluídas. Para novas datas, informe somente os quatro últimos algarismos de cada um dos cinco primeiros prêmios.</p>
+<div class="row"><div><label class="small">Data da Federal</label><input id="fedDate" type="date"></div><div><label class="small">1º prêmio</label><input class="fedPrize" maxlength="4" inputmode="numeric" placeholder="0000"></div><div><label class="small">2º prêmio</label><input class="fedPrize" maxlength="4" inputmode="numeric" placeholder="0000"></div><div><label class="small">3º prêmio</label><input class="fedPrize" maxlength="4" inputmode="numeric" placeholder="0000"></div><div><label class="small">4º prêmio</label><input class="fedPrize" maxlength="4" inputmode="numeric" placeholder="0000"></div><div><label class="small">5º prêmio</label><input class="fedPrize" maxlength="4" inputmode="numeric" placeholder="0000"></div></div>
+<div class="actions" style="margin-top:12px"><button class="primary" id="fedAdd">Salvar Federal neste navegador</button><button id="fedExport">Exportar Federais JSON</button></div><p id="fedMessage" class="hint">Os novos registros ficam salvos neste navegador, separados da base pública.</p><div id="fedRegistry" class="scroll"></div>
 </div></section>
 
 <section id="pedras" class="hidden">
@@ -418,7 +434,46 @@ function renderTransitions(){
 $('transitionPeriod').onchange=renderTransitions;
 $('transitionPair').onchange=renderTransitions;
 
-function render(){renderTransitions();renderFirst();trackRender();renderStones();let rows=chosen(),pr=selectedPrizes(rows),gm=freq(pr,x=>group(x.n)),dm=freq(pr,x=>String(x.n).slice(-2)),top=Object.entries(gm).sort((a,b)=>b[1]-a[1])[0],seen=new Set(Object.keys(gm).map(Number));
+
+// TESTE 8 — Federais transcritas das imagens fornecidas; cada milhar tem quatro dígitos.
+const federalSeed=[
+ {date:'2026-10-03',p:['7469','1210','7767','1317','9412']},
+ {date:'2026-10-07',p:['2050','2560','3643','4384','3648']},
+ {date:'2026-10-11',p:['9795','5844','8905','2440','1501']},
+ {date:'2026-10-14',p:['7637','5621','8748','5165','5592']},
+ {date:'2026-10-18',p:['6831','1652','0252','8093','9231']},
+ {date:'2026-10-21',p:['8003','3062','4756','4114','5674']},
+ {date:'2026-10-24',p:['4383','7006','5140','4147','9305']},
+ {date:'2026-10-28',p:['3296','1832','4774','0827','6316']},
+ {date:'2026-11-01',p:['6338','1871','4389','2267','0022']}
+];
+const federalKey='obicho-certo-federal-v1';
+function federalCustom(){try{const a=JSON.parse(localStorage.getItem(federalKey)||'[]');return Array.isArray(a)?a.filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x.date)&&Array.isArray(x.p)&&x.p.length===5&&x.p.every(v=>/^\d{4}$/.test(v))):[]}catch(e){return []}}
+function federalRows(){return [...new Map([...federalSeed,...federalCustom()].map(x=>[x.date,x])).values()].sort((a,b)=>a.date.localeCompare(b.date))}
+function federalMissing(f){const seen=new Set(f.p.join(''));return Array.from({length:10},(_,i)=>i).filter(d=>!seen.has(String(d)))}
+function federalGroups(d){const out=[];for(let g=1;g<=25;g++){const last=g%10===d;let tens=false;for(let k=0;k<4;k++){const n=(g-1)*4+k+1,dez=n===100?0:n;if(Math.floor(dez/10)===d)tens=true}if(last||tens)out.push(g)}return out}
+function federalDayAdd(date,n){const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)}
+function renderFederal(){
+ const selected=$('fedDigit').value,days=Number($('fedDays').value),rows=allChronological(),feds=federalRows(),latest=rows.length?rows[rows.length-1].date:null;
+ const cases=feds.flatMap(f=>federalMissing(f).filter(d=>selected==='all'||String(d)===selected).map(d=>{
+  const groups=federalGroups(d),end=federalDayAdd(f.date,days),eligible=rows.filter(r=>r.date>f.date&&r.date<=end),hits=eligible.filter(r=>groups.includes(group(r.p[0]))),future=latest===null||latest<end;
+  return {f,d,groups,end,eligible,hits,future,expected:groups.length/25};
+ }));
+ const n=cases.reduce((a,c)=>a+c.eligible.length,0),hits=cases.reduce((a,c)=>a+c.hits.length,0),expect=cases.reduce((a,c)=>a+c.eligible.length*c.expected,0),pct=(a,b)=>b?(100*a/b).toFixed(1)+'%':'—';
+ $('fedSummary').innerHTML='<div class="grid"><div class="card metric"><small>Federais cadastradas</small><strong>'+feds.length+'</strong></div><div class="card metric"><small>Casos de pedras ausentes</small><strong>'+cases.length+'</strong></div><div class="card metric"><small>Coincidências / verificações</small><strong>'+hits+' / '+n+'</strong><span class="small">'+pct(hits,n)+'</span></div><div class="card metric"><small>Referência ponderada</small><strong>'+(n?(100*expect/n).toFixed(1)+'%':'—')+'</strong><span class="small">'+(n?'Esperadas: '+expect.toFixed(1):'Sem sorteios posteriores')+'</span></div></div>';
+ $('fedEvents').innerHTML=cases.length?'<table><thead><tr><th>Federal</th><th>Pedra ausente</th><th>Grupos selecionados</th><th>Janela</th><th>Acertos / cabeças</th><th>Referência</th><th>Cobertura</th></tr></thead><tbody>'+cases.map(c=>'<tr><td>'+c.f.date+'</td><td><b>'+c.d+'</b></td><td>'+c.groups.map(g=>'G'+pad(g)).join(', ')+'</td><td>'+federalDayAdd(c.f.date,1)+' a '+c.end+'</td><td><b>'+c.hits.length+' / '+c.eligible.length+'</b> ('+pct(c.hits.length,c.eligible.length)+')</td><td>'+(100*c.expected).toFixed(1)+'%</td><td>'+(c.future?'Janela não encerrada na base':'Até o fim da janela*')+'</td></tr>').join('')+'</tbody></table><p class="hint">*Mesmo quando a janela terminou, a base pode conter horários ou dias faltantes; a contagem usa apenas resultados realmente cadastrados.</p>':'<div class="mutedbox">Nenhuma Federal com essa pedra ausente.</div>';
+ const digits=Array.from({length:10},(_,d)=>({d,sub:cases.filter(c=>c.d===d)})).filter(x=>x.sub.length);
+ $('fedDigits').innerHTML=digits.length?'<table><thead><tr><th>Pedra</th><th>Federais com ausência</th><th>Grupos correspondentes</th><th>Coincidências / verificações</th><th>Taxa</th><th>Referência</th></tr></thead><tbody>'+digits.map(x=>{const count=x.sub.reduce((v,c)=>v+c.eligible.length,0),h=x.sub.reduce((v,c)=>v+c.hits.length,0),gs=federalGroups(x.d);return '<tr><td><b>'+x.d+'</b></td><td>'+x.sub.length+'</td><td>'+gs.map(g=>'G'+pad(g)).join(', ')+'</td><td>'+h+' / '+count+'</td><td>'+pct(h,count)+'</td><td>'+(100*gs.length/25).toFixed(1)+'%</td></tr>'}).join('')+'</tbody></table>':'<div class="mutedbox">Sem casos para exibir.</div>';
+ const checks=cases.flatMap(c=>c.eligible.map(r=>({c,r,g:group(r.p[0]),hit:c.groups.includes(group(r.p[0]))}))).sort((a,b)=>b.r.date.localeCompare(a.r.date)||b.r.time.localeCompare(a.r.time));
+ $('fedChecks').innerHTML=checks.length?'<table><thead><tr><th>Federal</th><th>Pedra</th><th>Data Sonhos</th><th>Horário</th><th>1º prêmio</th><th>Grupo</th><th>Coincidiu?</th></tr></thead><tbody>'+checks.map(x=>'<tr><td>'+x.c.f.date+'</td><td>'+x.c.d+'</td><td>'+x.r.date+'</td><td>'+safe(normalizeTime(x.r.time))+'</td><td>'+safe(String(x.r.p[0]).padStart(4,'0'))+'</td><td>G'+pad(x.g)+' — '+safe(animal(x.g))+'</td><td>'+(x.hit?'<b style="color:var(--green)">Sim</b>':'Não')+'</td></tr>').join('')+'</tbody></table>':'<div class="mutedbox">Sem resultados posteriores na base para os filtros atuais.</div>';
+ const custom=federalCustom();$('fedRegistry').innerHTML='<h3>Federais cadastradas</h3><table><thead><tr><th>Data</th><th>Milhares (1º–5º)</th><th>Pedras ausentes</th><th>Origem</th></tr></thead><tbody>'+feds.map(f=>'<tr><td>'+f.date+'</td><td>'+f.p.join(' · ')+'</td><td>'+(federalMissing(f).join(', ')||'Nenhuma')+'</td><td>'+(custom.some(x=>x.date===f.date)?'Registro local':'Imagem fornecida')+'</td></tr>').join('')+'</tbody></table>';
+}
+$('fedDigit').innerHTML+=[...Array(10)].map((_,i)=>'<option value="'+i+'">Pedra '+i+'</option>').join('');
+$('fedDigit').onchange=renderFederal;$('fedDays').onchange=renderFederal;
+$('fedAdd').onclick=()=>{const date=$('fedDate').value,inputs=[...document.querySelectorAll('.fedPrize')],p=inputs.map(x=>x.value.trim());if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||p.some(v=>!/^[0-9]{1,4}$/.test(v))){$('fedMessage').textContent='Informe uma data válida e cinco milhares com 1 a 4 algarismos.';return}const rows=federalCustom().filter(x=>x.date!==date);rows.push({date,p:p.map(x=>x.padStart(4,'0'))});localStorage.setItem(federalKey,JSON.stringify(rows));inputs.forEach(x=>x.value='');$('fedMessage').textContent='Federal de '+date+' salva neste navegador. A análise foi recalculada.';renderFederal()};
+$('fedExport').onclick=()=>{const blob=new Blob([JSON.stringify(federalRows(),null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='federais-teste8.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+
+function render(){renderFederal();renderTransitions();renderFirst();trackRender();renderStones();let rows=chosen(),pr=selectedPrizes(rows),gm=freq(pr,x=>group(x.n)),dm=freq(pr,x=>String(x.n).slice(-2)),top=Object.entries(gm).sort((a,b)=>b[1]-a[1])[0],seen=new Set(Object.keys(gm).map(Number));
 $('nDraws').textContent=rows.length;$('nPrizes').textContent=pr.length;$('leader').textContent=top?'Grupo '+pad(top[0]):'—';$('leaderSub').textContent=top?animal(Number(top[0]))+' • '+top[1]+' ocorrência(s)':'Sem dados';$('missing').textContent=25-seen.size;
 $('periodLabel').textContent=`${rows.length} extração(ões) no filtro selecionado. ${$('period').value==='all'?'Histórico completo': 'Janela de '+$('period').value+' dias a partir da data mais recente cadastrada'}.`;
 let allgroups=Array.from({length:25},(_,i)=>i+1).reduce((o,g)=>(o[g]=gm[g]||0,o),{});$('rank').innerHTML=rankHtml(allgroups,Math.max(1,pr.length),k=>`Grupo ${pad(k)} — ${animal(Number(k))}`);
@@ -441,7 +496,7 @@ setInterval(updateClock,1000);
 setInterval(()=>{if(Date.now()>=nextCheck){nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Nova janela de verificação iniciada. Para conferir os resultados publicados, use “Verificar fonte”.';}},1000);
 $('checkNow').onclick=()=>{nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Fonte oficial aberta para conferência. Após validar os resultados, cadastre-os ou importe o CSV.';window.open('https://lotece.com.br/','_blank','noopener');updateClock()};
 $('refreshPanel').onclick=()=>{render();nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Painel recalculado com os dados já cadastrados. Nenhum resultado externo foi baixado.';updateClock()};
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['dashboard','primeiro','transicoes','pedras','base','ajuda'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab))});
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['dashboard','primeiro','transicoes','federal','pedras','base','ajuda'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab))});
 try{db=JSON.parse(localStorage.getItem('obicho-certo-lotece')||'[]')}catch(e){db=[]}
 async function loadPublicHistory(){
  try{

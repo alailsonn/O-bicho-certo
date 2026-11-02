@@ -71,6 +71,11 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 <select id="advancedWindow" style="margin:8px 0 16px;max-width:320px"><option value="8">8 extrações</option><option value="20">20 extrações</option><option value="40">40 extrações</option></select>
 <div class="grid"><div class="card metric"><small>Avaliações</small><strong id="advTests">—</strong></div><div class="card metric"><small>Coincidências no Top 5</small><strong id="advHits">—</strong></div><div class="card metric"><small>Taxa retrospectiva</small><strong id="advRate">—</strong></div><div class="card metric"><small>Referência aleatória</small><strong>20%</strong></div></div>
 <p class="hint" id="advNote"></p>
+<h3>📐 Confiabilidade estatística</h3>
+<p class="muted">Intervalo de confiança de 95% (método de Wilson) e teste binomial bilateral contra a referência teórica de 20%. São medidas de incerteza dos resultados passados, não de previsão.</p>
+<div class="grid"><div class="card metric"><small>Intervalo de 95%</small><strong id="confInterval">—</strong><span class="small">Faixa estimada da taxa</span></div><div class="card metric"><small>Valor-p bilateral</small><strong id="confP">—</strong><span class="small">Teste exato contra 20%</span></div><div class="card metric"><small>Diferença observada</small><strong id="confDiff">—</strong><span class="small">Em pontos percentuais</span></div><div class="card metric"><small>Conclusão do teste</small><strong id="confStatus" style="font-size:19px">—</strong><span class="small">Critério de 5%</span></div></div>
+<p class="hint" id="confNote"></p>
+<h3>Confiabilidade por horário</h3><div class="scroll" id="confByTime"></div>
 <h3>Comparação entre janelas</h3><div class="scroll" id="advWindows"></div>
 <h3>Desempenho retrospectivo por horário (1º prêmio)</h3><p class="hint">Cada teste utiliza somente resultados anteriores, conforme a janela selecionada acima.</p><div class="scroll" id="advByTime"></div>
 <h3>Frequência por extração (1º prêmio)</h3><div class="scroll" id="advTimes"></div>
@@ -160,6 +165,29 @@ function advBacktest(rows,windowSize){
  }
  return {tests,hits,rate:tests?100*hits/tests:null};
 }
+// Intervalo de Wilson para proporção binomial (95%).
+function wilson95(hits,tests){
+ if(!tests)return null;
+ const z=1.959963984540054,p=hits/tests,d=1+z*z/tests;
+ const center=(p+z*z/(2*tests))/d;
+ const half=z*Math.sqrt(p*(1-p)/tests+z*z/(4*tests*tests))/d;
+ return [Math.max(0,center-half),Math.min(1,center+half)];
+}
+// Teste binomial exato bilateral: soma probabilidades <= à do resultado observado.
+function exactBinomialP(hits,tests,p0=0.2){
+ if(!tests)return null;
+ let logs=[0];
+ for(let k=1;k<=tests;k++)logs[k]=logs[k-1]+Math.log(tests-k+1)-Math.log(k);
+ const lp=k=>logs[k]+k*Math.log(p0)+(tests-k)*Math.log1p(-p0);
+ const observed=lp(hits);let total=0;
+ for(let k=0;k<=tests;k++)if(lp(k)<=observed+1e-9)total+=Math.exp(lp(k));
+ return Math.min(1,total);
+}
+function confidenceInfo(hits,tests){
+ if(!tests)return {interval:'—',pvalue:'—',diff:'—',status:'Sem dados',p:null};
+ const interval=wilson95(hits,tests),p=exactBinomialP(hits,tests);
+ return {interval:interval.map(v=>(v*100).toFixed(1)+'%').join(' a '),pvalue:p.toFixed(3),diff:((hits/tests-.2)*100>=0?'+':'')+((hits/tests-.2)*100).toFixed(1)+' p.p.',status:p<.05?'Diferença detectada':'Inconclusivo',p};
+}
 function renderAdvanced(rows){
  const size=Number($('advancedWindow').value),result=advBacktest(rows,size);
  $('advTests').textContent=result.tests;
@@ -177,6 +205,15 @@ function renderAdvanced(rows){
     const stat=timeStats[normalizeTime(rows[i].time)];
     if(stat){stat.tests++;if(top.includes(group(rows[i].p[0])))stat.hits++;}
   }
+  const conf=confidenceInfo(result.hits,result.tests);
+  $('confInterval').textContent=conf.interval;
+  $('confP').textContent=conf.pvalue;
+  $('confDiff').textContent=conf.diff;
+  $('confStatus').textContent=conf.status;
+  $('confNote').textContent=result.tests
+    ? (conf.p<.05?'O teste encontrou diferença estatística em relação a 20%, mas isso não comprova capacidade de prever resultados futuros.':'A diferença observada em relação a 20% não é estatisticamente conclusiva. Não significa que os métodos sejam equivalentes.')+' O intervalo considera as avaliações como observações binomiais; avaliações com janelas sobrepostas podem ser dependentes, tornando a incerteza real maior. Comparar várias janelas e horários também aumenta a chance de resultados aparentes por acaso.'
+    : 'Ainda não há avaliações suficientes para calcular a confiabilidade.';
+  $('confByTime').innerHTML='<table><thead><tr><th>Extração</th><th>Avaliações</th><th>Coincidências</th><th>Taxa</th><th>Intervalo de 95%</th><th>Valor-p</th></tr></thead><tbody>'+byTime.map(x=>{const c=confidenceInfo(x.hits,x.tests);return '<tr><td>'+x.label+'</td><td>'+x.tests+'</td><td>'+x.hits+'</td><td>'+(x.tests?(100*x.hits/x.tests).toFixed(1)+'%':'—')+'</td><td>'+c.interval+'</td><td>'+c.pvalue+'</td></tr>'}).join('')+'</tbody></table>';
   $('advByTime').innerHTML='<table><thead><tr><th>Extração</th><th>Avaliações</th><th>Coincidências no Top 5</th><th>Taxa</th><th>Referência teórica</th></tr></thead><tbody>'+byTime.map(x=>'<tr><td>'+x.label+'</td><td>'+x.tests+'</td><td>'+x.hits+'</td><td>'+(x.tests?(100*x.hits/x.tests).toFixed(1)+'%':'—')+'</td><td>20%</td></tr>').join('')+'</tbody></table>';
  const all=[...new Map([...publicDb,...db].map(x=>[x.date+'|'+normalizeTime(x.time),x])).values()].filter(r=>Array.isArray(r.p)&&r.p.length===5);
  const names={'11:00':'Manhã','14:00':'Tarde','15:45':'Tarde II','19:00':'Noite'};

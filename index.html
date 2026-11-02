@@ -105,6 +105,9 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 <h3>Ausentes que reapareceram na extração seguinte</h3><p class="hint">Em cada par de extrações, contamos quantos algarismos ausentes na primeira aparecem nas 20 posições da segunda. A referência teórica para um algarismo específico aparecer ao menos uma vez em 20 posições independentes e uniformes é 1 − (9/10)²⁰ ≈ 87,84%.</p><div id="stoneReturn"></div>
 <h3>🧪 Teste 3 — ausente reaparece como dobrado</h3><p class="hint">Para cada algarismo ausente em uma extração, verificamos se ele forma um par consecutivo (00, 11, …, 99) em alguma das cinco milhares da próxima extração disponível. Comparamos a taxa com a probabilidade teórica para milhares uniformes e independentes. Isso não é uma previsão.</p><div id="stoneDoubleReturn"></div>
 <h3>🧪 Teste 4 — atraso até reaparecer e presença de dobrado</h3><p class="hint">Para cada algarismo ausente, contamos quantas extrações disponíveis se passaram até sua primeira reaparição nas 20 posições. Na extração em que ele reaparece, verificamos se também forma um par consecutivo igual. Casos ainda sem retorno ficam pendentes, sem serem contados como acertos ou falhas definitivas.</p><div id="stoneDelayReturn"></div>
+<h3>🧪 Teste 5 — monitoramento dos algarismos ausentes</h3>
+<p class="hint">Mostra os algarismos ausentes na última extração do filtro, o histórico de cada um e o que aconteceu depois de ausências anteriores. As taxas são retrospectivas, não probabilidades para a próxima extração. Ausências recentes sem resultado seguinte não entram na taxa de retorno.</p>
+<div id="stoneMonitor"></div>
 <h3>Cruzamento com dobrados na extração anterior</h3><div class="scroll" id="stoneCross"></div>
 <h3>Comparação por horário da extração seguinte</h3><div class="scroll" id="stoneByTime"></div>
 <h3>Últimas extrações — detalhes</h3><div class="scroll" id="stoneRecent"></div>
@@ -301,7 +304,7 @@ function renderStones(){
  $('stoneMissing').textContent=infos.filter(x=>x.missing.length).length;
  $('stoneDouble').textContent=infos.filter(x=>x.hasDouble).length;
  $('stonePairs').textContent=pairs.length;
- if(!infos.length){['stoneLatest','stoneFrequency','stoneReturn','stoneCross','stoneByTime','stoneRecent','stoneDoubleReturn','stoneDelayReturn'].forEach(id=>$(id).innerHTML='<div class="mutedbox">Sem resultados para este filtro.</div>');return}
+ if(!infos.length){['stoneLatest','stoneFrequency','stoneReturn','stoneCross','stoneByTime','stoneRecent','stoneDoubleReturn','stoneDelayReturn','stoneMonitor'].forEach(id=>$(id).innerHTML='<div class="mutedbox">Sem resultados para este filtro.</div>');return}
  const last=infos[infos.length-1];
  $('stoneLatest').innerHTML='<b>'+safe(last.row.date)+' · '+safe(normalizeTime(last.row.time))+'</b><div class="small">Milhares: '+last.row.p.map(n=>safe(String(n).padStart(4,'0'))).join(' · ')+'</div><p>Ausentes: <b>'+(last.missing.join(', ')||'nenhum')+'</b></p><p>Dobrados: <b>'+(last.doubles.map(d=>d.pair+' ('+d.prize+'º)').join(', ')||'nenhum')+'</b></p>';
  const freq=Array(10).fill(0);infos.forEach(x=>x.missing.forEach(d=>freq[Number(d)]++));
@@ -344,6 +347,23 @@ function renderStones(){
  '<div class="scroll"><table><thead><tr><th>Tempo até primeiro retorno</th><th>Algarismos</th><th>% dos retornos</th><th>Com dobrado no retorno</th><th>Referência teórica*</th></tr></thead><tbody>'+
  delayCounts.map((x,i)=>'<tr><td>'+x.label+'</td><td>'+x.n+'</td><td>'+fmt(x.n)+'</td><td>'+x.doubles+'</td><td>'+(100*(i===3?Math.pow(1-theoReturn,3):expectedDelay(i+1))).toFixed(2)+'%</td></tr>').join('')+'</tbody></table></div>'+
  '<p class="hint">*Referência teórica para a primeira reaparição em 20 posições uniformes e independentes. As porcentagens observadas usam apenas retornos já encontrados; os pendentes causam censura e tornam a comparação direta com a referência limitada. “Com dobrado” significa que o mesmo algarismo apareceu como par adjacente na extração do primeiro retorno. Os horários filtrados contam apenas extrações daquele horário. Não indica vantagem de previsão.</p>';
+  // Teste 5: somente o histórico conhecido, com denominadores explícitos.
+  const monitored=Array.from({length:10},(_,i)=>{
+    const digit=String(i);
+    const absentIndices=infos.flatMap((info,j)=>info.missing.includes(digit)?[j]:[]);
+    const past=absentIndices.filter(j=>j<infos.length-1);
+    const nextHits=past.filter(j=>infos[j+1].digits.includes(digit)).length;
+    const nextDoubles=past.filter(j=>infos[j+1].doubles.some(d=>d.digit===digit)).length;
+    let lastSeen=-1;
+    for(let j=infos.length-1;j>=0;j--)if(infos[j].digits.includes(digit)){lastSeen=j;break;}
+    return {digit,absences:absentIndices.length,eligible:past.length,nextHits,nextDoubles,missingNow:last.missing.includes(digit),delay:lastSeen<0?null:infos.length-1-lastSeen};
+  });
+  const missingNow=monitored.filter(x=>x.missingNow);
+  const monitorCards=missingNow.length?missingNow.map(x=>'<span class="tag" style="font-size:17px;padding:7px 12px">'+x.digit+'</span>').join(''):'<span class="muted">Nenhum algarismo ausente na última extração deste filtro.</span>';
+  $('stoneMonitor').innerHTML='<div class="panel" style="margin-top:12px"><b>Última extração do filtro: '+safe(last.row.date)+' · '+safe(normalizeTime(last.row.time))+'</b><p>Algarismos ausentes agora:</p><div>'+monitorCards+'</div><p class="hint">Quando não há ausentes, o monitor continua exibindo o histórico de 0 a 9. O filtro de horário acompanha apenas extrações daquele horário.</p></div>'+
+    '<div class="scroll"><table><thead><tr><th>Algarismo</th><th>Ausente agora?</th><th>Ausências no histórico</th><th>Extrações desde a última aparição</th><th>Retorno na próxima (casos)</th><th>Taxa de retorno</th><th>Retorno como dobrado</th></tr></thead><tbody>'+
+    monitored.map(x=>'<tr'+(x.missingNow?' style="background:#19352e"':'')+'><td><b>'+x.digit+'</b></td><td>'+(x.missingNow?'Sim':'Não')+'</td><td>'+x.absences+' de '+infos.length+'</td><td>'+(x.delay===null?'Não apareceu':x.delay)+'</td><td>'+x.nextHits+' de '+x.eligible+'</td><td>'+(x.eligible?(100*x.nextHits/x.eligible).toFixed(1)+'%':'—')+'</td><td>'+x.nextDoubles+' de '+x.eligible+'</td></tr>').join('')+'</tbody></table></div>'+
+    '<p class="hint">Referências sob 20 algarismos independentes e uniformes: ausência de um algarismo ≈ '+(100*Math.pow(.9,20)).toFixed(1)+'% por extração; reaparecimento na extração seguinte ≈ '+(100*theoReturn).toFixed(1)+'%; retorno como dobrado ≈ '+(100*theoreticalDouble).toFixed(1)+'%. As taxas por algarismo são amostras pequenas e podem oscilar. O atraso não aumenta a chance futura.</p>';
  const cross=flag=>{const sub=pairs.filter(p=>p.hadDouble===flag),n=sub.reduce((v,p)=>v+p.miss,0),hits=sub.reduce((v,p)=>v+p.returned,0);return {pairs:sub.length,n,hits,rate:n?(100*hits/n).toFixed(1)+'%':'—'}};
  const yes=cross(true),no=cross(false);
  $('stoneCross').innerHTML='<table><thead><tr><th>Extração anterior</th><th>Pares</th><th>Ausentes avaliados</th><th>Reapareceram</th><th>Taxa</th></tr></thead><tbody><tr><td>Com dobrados</td><td>'+yes.pairs+'</td><td>'+yes.n+'</td><td>'+yes.hits+'</td><td>'+yes.rate+'</td></tr><tr><td>Sem dobrados</td><td>'+no.pairs+'</td><td>'+no.n+'</td><td>'+no.hits+'</td><td>'+no.rate+'</td></tr></tbody></table>';

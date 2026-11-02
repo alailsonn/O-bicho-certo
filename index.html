@@ -16,7 +16,7 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 <header><div class="brand"><div class="logo">🐾</div><div><h1>O BICHO CERTO</h1><p>Análise estatística • Loteria dos Sonhos / LOTECE</p></div></div></header>
 <main>
 <div class="notice"><b>Estatística, não previsão:</b> frequências e atrasos descrevem resultados passados. Cada extração é independente; um grupo repetido ou atrasado não ganha maior probabilidade no próximo sorteio. Este painel é independente e não recebe apostas.</div>
-<nav><button class="tab active" data-tab="dashboard">Painel</button><button class="tab" data-tab="primeiro">🎯 1º Prêmio</button><button class="tab" data-tab="transicoes">🔁 Cabeça entre horários</button><button class="tab" data-tab="federal">🇧🇷 Federal × Sonhos</button><button class="tab" data-tab="chama7">🔥 Chama dos 7</button><button class="tab" data-tab="look">🔎 LOOK Goiás</button><button class="tab" data-tab="looktrail">🧭 Rastro dos ausentes</button><button class="tab" data-tab="fedlook">🔍 Federal × LOOK</button><button class="tab" data-tab="pedras">🔬 Ausentes e dobrados</button><button class="tab" data-tab="base">Cadastrar / importar</button><button class="tab" data-tab="ajuda">Como usar</button></nav>
+<nav><button class="tab active" data-tab="dashboard">Painel</button><button class="tab" data-tab="primeiro">🎯 1º Prêmio</button><button class="tab" data-tab="transicoes">🔁 Cabeça entre horários</button><button class="tab" data-tab="federal">🇧🇷 Federal × Sonhos</button><button class="tab" data-tab="chama7">🔥 Chama dos 7</button><button class="tab" data-tab="look">🔎 LOOK Goiás</button><button class="tab" data-tab="looktrail">🧭 Rastro dos ausentes</button><button class="tab" data-tab="lookgroups">🐾 Teste 20 — Grupos</button><button class="tab" data-tab="fedlook">🔍 Federal × LOOK</button><button class="tab" data-tab="pedras">🔬 Ausentes e dobrados</button><button class="tab" data-tab="base">Cadastrar / importar</button><button class="tab" data-tab="ajuda">Como usar</button></nav>
 
 <section id="dashboard">
 <div class="panel" style="border-color:#39785d">
@@ -284,6 +284,32 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
   <div class="scroll" id="ltRanking"></div>
   <p class="hint">Referência teórica sob dígitos independentes e uniformes: um dígito específico tem chance de <b>34,39%</b> de aparecer em uma milhar. A chance de surgir ao menos uma vez cresce com a quantidade de extrações. Amostras com origens sobrepostas não são testes independentes. "Pendente" significa não encontrado <b>nos dados conferidos</b>.</p>
  </div>
+</section>
+
+
+<!-- TESTE 20 — AUSENTES X GRUPOS PRINCIPAIS E AUXILIARES -->
+<section id="lookgroups" class="hidden">
+ <div class="panel" style="border-color:#39785d">
+  <h2>🐾 Teste 20 — Algarismo ausente × Grupos principais e auxiliares</h2>
+  <p class="muted">Para cada extração da LOOK Goiás, identifica algarismos ausentes nas cinco milhares. Confere o <b>grupo do 1º prêmio da próxima extração cadastrada</b>, separando grupos principais e auxiliares conforme a regra combinada. Um grupo pode ser principal e auxiliar ao mesmo tempo. Esta é uma análise histórica, não previsão.</p>
+  <div class="row">
+   <div><label class="small" for="lgStart">Data inicial</label><input type="date" id="lgStart" value="2026-11-02"></div>
+   <div><label class="small" for="lgEnd">Data final</label><input type="date" id="lgEnd" value="2026-11-02"></div>
+   <div><label class="small" for="lgTime">Horário de origem</label><select id="lgTime"><option value="all">Todos</option><option value="07:20">07h20</option><option value="09:20">09h20</option><option value="11:20">11h20</option><option value="14:20">14h20</option><option value="16:20">16h20</option><option value="18:20">18h20</option><option value="19:20">19h20</option><option value="21:20">21h20</option><option value="23:20">23h20</option></select></div>
+   <div><label class="small" for="lgDigit">Algarismo ausente</label><select id="lgDigit"><option value="all">Todos (0–9)</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option></select></div>
+  </div>
+  <div class="actions" style="margin-top:12px"><button id="lgExample" class="primary">Exemplo: 02/11 às 16h20 (6 → grupo 06)</button><button id="lgFull">Ver todo o histórico</button><button id="lgExport">Exportar Teste 20 CSV</button></div>
+  <p class="hint">A próxima extração é a próxima <b>cadastrada</b>. Se faltarem horários no banco, a análise não comprova que foi a extração real imediatamente seguinte. Para o 0, os grupos principais são 01, 02 e 03, exatamente como combinado; o grupo 25 (dezena 00) não entra nessa regra.</p>
+ </div>
+ <div class="grid">
+  <div class="card metric"><small>Casos avaliados</small><strong id="lgTotal">—</strong><span class="small">com extração seguinte</span></div>
+  <div class="card metric"><small>Grupo principal</small><strong id="lgMain">—</strong><span class="small">coincidências</span></div>
+  <div class="card metric"><small>Grupo auxiliar</small><strong id="lgAux">—</strong><span class="small">coincidências</span></div>
+  <div class="card metric"><small>Principal ou auxiliar</small><strong id="lgEither">—</strong><span class="small">sem contar coincidência dupla duas vezes</span></div>
+ </div>
+ <div class="panel"><h2>📋 Tabela combinada: principais e auxiliares</h2><div class="scroll" id="lgRules"></div></div>
+ <div class="panel"><h2>🔍 Conferência extração por extração</h2><p id="lgSummary" class="hint"></p><div class="scroll" id="lgRows"></div></div>
+ <div class="panel"><h2>📊 Ranking por algarismo ausente</h2><div class="scroll" id="lgRank"></div><p class="hint">Cada grupo tem probabilidade diferente de cair nas listas de principais/auxiliares conforme o tamanho delas. As estatísticas não comprovam relação causal com o algarismo ausente.</p></div>
 </section>
 
 <section id="fedlook" class="hidden">
@@ -909,7 +935,7 @@ function lookActualTime(r){const raw=String((r&&r.horario_real)||((r&&r.time)||'
 function lookSlot(r){let t=lookActualTime(r);return t==='19:20'?'18:00':(/^\d{2}:20$/.test(t)?t.slice(0,2)+':00':t)}
 function lookAll(){let m=new Map();[lookSeed,lookPublic,lookSaved()].forEach(src=>src.forEach(r=>m.set(r.date+'|'+lookActualTime(r),r)));return [...m.values()].sort((a,b)=>a.date.localeCompare(b.date)||lookActualTime(a).localeCompare(lookActualTime(b)))}
 function lookValid(r){return r&&/^\d{4}-\d{2}-\d{2}$/.test(r.date)&&/^(07|09|11|14|16|18|19|21|23):(00|20)$/.test(String(r.time))&&Array.isArray(r.p)&&r.p.length>=5&&r.p.slice(0,5).every(n=>/^\d{1,4}$/.test(String(n)))}
-function lookSaveBatch(a){let m=new Map(lookSaved().map(r=>[r.date+'|'+lookActualTime(r),r]));a.forEach(r=>m.set(r.date+'|'+lookActualTime(r),r));try{localStorage.setItem(lookKey,JSON.stringify([...m.values()]));renderLook();renderFederalLook();renderLookTrail();return true}catch(e){$('lookMessage').textContent='Erro ao salvar no navegador.';return false}}
+function lookSaveBatch(a){let m=new Map(lookSaved().map(r=>[r.date+'|'+lookActualTime(r),r]));a.forEach(r=>m.set(r.date+'|'+lookActualTime(r),r));try{localStorage.setItem(lookKey,JSON.stringify([...m.values()]));renderLook();renderFederalLook();renderLookTrail();renderLookGroups();return true}catch(e){$('lookMessage').textContent='Erro ao salvar no navegador.';return false}}
 function renderLook(){let all=lookAll(),a=all.filter(r=>r.date>=$('lookStart').value&&r.date<=$('lookEnd').value&&($('lookFilter').value==='all'||lookSlot(r)===$('lookFilter').value||lookActualTime(r)===$('lookFilter').value));
  let counts={};a.forEach(r=>{let g=group(r.p[0]);counts[g]=(counts[g]||0)+1});let rank=Object.entries(counts).sort((x,y)=>y[1]-x[1]||Number(x[0])-Number(y[0]));
  $('lookN').textContent=a.length;$('lookDays').textContent=new Set(a.map(r=>r.date)).size;$('lookHeads').textContent=a.length;$('lookLeader').textContent=rank.length?'G'+pad(rank[0][0]):'—';
@@ -922,7 +948,7 @@ $('lookDate').value='2026-11-02';
 $('lookAdd').onclick=()=>{let r={date:$('lookDate').value,time:$('lookTime').value,p:[...document.querySelectorAll('.lookPrize')].map(x=>x.value.trim()),source:'Cadastro local'};if(!lookValid(r)){ $('lookMessage').textContent='Informe data, horário e cinco milhares válidas (0000 a 9999).';return}if(lookSaveBatch([r])){$('lookMessage').textContent='Resultado salvo na base LOOK.';document.querySelectorAll('.lookPrize').forEach(x=>x.value='')}};
 $('lookCsv').onchange=async e=>{let f=e.target.files[0];if(!f)return;let lines=(await f.text()).replace(/^\uFEFF/,'').trim().split(/\r?\n/),batch=[],bad=0;for(let line of lines){if(!line.trim()||/^data[,;]/i.test(line))continue;let v=line.split(/[;,]/).map(x=>x.trim().replace(/^"|"$/g,''));let r={date:v[0],time:v[1],p:v.slice(2,7),source:'CSV importado'};if(lookValid(r))batch.push(r);else bad++}if(batch.length&&lookSaveBatch(batch))$('lookMessage').textContent=batch.length+' linhas válidas importadas; '+bad+' ignoradas.';else $('lookMessage').textContent='Nenhuma linha válida. '+bad+' linha(s) ignorada(s).';e.target.value=''};
 $('lookExport').onclick=()=>{let csv='data,horario,p1,p2,p3,p4,p5\n'+lookAll().map(r=>[r.date,lookActualTime(r),...r.p.slice(0,5).map(n=>String(n).padStart(4,'0'))].join(',')).join('\n');let u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=u;a.download='look-goias-historico.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)};
-$('lookReset').onclick=()=>{if(confirm('Apagar somente os resultados LOOK adicionados neste navegador? Os resultados publicados em JSON e os resultados iniciais de 01/10 permanecem.')){localStorage.removeItem(lookKey);renderLook();renderFederalLook();renderLookTrail();$('lookMessage').textContent='Dados adicionados apagados.'}};
+$('lookReset').onclick=()=>{if(confirm('Apagar somente os resultados LOOK adicionados neste navegador? Os resultados publicados em JSON e os resultados iniciais de 01/10 permanecem.')){localStorage.removeItem(lookKey);renderLook();renderFederalLook();renderLookTrail();renderLookGroups();$('lookMessage').textContent='Dados adicionados apagados.'}};
 renderLook();
 async function loadPublicLookHistory(){
  try{
@@ -943,7 +969,7 @@ async function loadPublicLookHistory(){
   // Cada horário real possui sua própria chave; não descartar 19:20.
   const keys=new Set();
   lookPublic=valid.filter(r=>{const key=r.date+'|'+lookActualTime(r);if(keys.has(key))return false;keys.add(key);return true});
-  renderLook();renderFederalLook();renderLookTrail();
+  renderLook();renderFederalLook();renderLookTrail();renderLookGroups();
   $('lookMessage').textContent=lookPublic.length+' extrações LOOK carregadas do JSON publicado ('+(data.length-lookPublic.length)+' inválidas ou duplicadas).';
  }catch(err){
   $('lookMessage').textContent='Histórico JSON da LOOK indisponível. A base inicial e os registros locais continuam acessíveis. Para importar os dados agora, use o CSV abaixo.';
@@ -1038,6 +1064,43 @@ $('ltExport').onclick=()=>{
  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='teste19-rastro-look-goias.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 renderLookTrail();
+
+
+// TESTE 20 — Ausentes da LOOK x grupo do primeiro prêmio da próxima LOOK cadastrada.
+const lgMainGroups=[[1,2,3],[3,4,5],[5,6,7,8],[8,9,10],[10,11,12,13],[13,14,15],[15,16,17,18],[18,19,20],[20,21,22,23],[23,24,25]];
+const lgAuxGroups=[[10,20],[1,11,21],[2,12,22],[3,13,23],[4,14,24],[5,15,25],[6,16],[7,17],[8,18],[9,19]];
+const lgFmt=x=>String(x).padStart(2,'0');
+let lgCsvRows=[];
+function renderLookGroups(){
+ const all=lookAll().filter(lookValid).sort((a,b)=>a.date.localeCompare(b.date)||lookActualTime(a).localeCompare(lookActualTime(b)));
+ const rows=[];
+ for(let i=0;i<all.length;i++){
+  const r=all[i], t=lookActualTime(r);
+  if(r.date<$('lgStart').value||r.date>$('lgEnd').value||($('lgTime').value!=='all'&&t!==$('lgTime').value))continue;
+  for(const d of ltMissing(r)){
+   if($('lgDigit').value!=='all'&&$('lgDigit').value!==d)continue;
+   const n=Number(d),next=all[i+1]||null,g=next?group(next.p[0]):null;
+   const main=g!==null&&lgMainGroups[n].includes(g),aux=g!==null&&lgAuxGroups[n].includes(g);
+   rows.push({r,d,next,g,main,aux});
+  }
+ }
+ const evaluated=rows.filter(x=>x.next),m=evaluated.filter(x=>x.main).length,a=evaluated.filter(x=>x.aux).length,e=evaluated.filter(x=>x.main||x.aux).length;
+ $('lgTotal').textContent=evaluated.length;
+ $('lgMain').textContent=m+' / '+evaluated.length;
+ $('lgAux').textContent=a+' / '+evaluated.length;
+ $('lgEither').textContent=e+' / '+evaluated.length;
+ $('lgRules').innerHTML='<table><thead><tr><th>Ausente</th><th>Principais</th><th>Auxiliares</th></tr></thead><tbody>'+lgMainGroups.map((v,d)=>'<tr><td><b>'+d+'</b></td><td>'+v.map(lgFmt).join(' · ')+'</td><td>'+lgAuxGroups[d].map(lgFmt).join(' · ')+'</td></tr>').join('')+'</tbody></table>';
+ $('lgSummary').textContent=rows.length+' casos encontrados; '+(rows.length-evaluated.length)+' sem resultado posterior cadastrado. Só casos com resultado seguinte entram nas taxas.';
+ const shown=rows.slice().reverse();
+ $('lgRows').innerHTML=shown.length?'<p class="small">Exibindo '+Math.min(150,shown.length)+' de '+shown.length+' casos. O CSV contém todos.</p><table><thead><tr><th>Origem</th><th>Faltou</th><th>Principais</th><th>Auxiliares</th><th>LOOK seguinte (1º)</th><th>Grupo</th><th>Resultado</th></tr></thead><tbody>'+shown.slice(0,150).map(x=>'<tr><td>'+safe(ltDateTime(x.r))+'</td><td><b>'+x.d+'</b></td><td>'+lgMainGroups[Number(x.d)].map(lgFmt).join(', ')+'</td><td>'+lgAuxGroups[Number(x.d)].map(lgFmt).join(', ')+'</td><td>'+(x.next?safe(ltDateTime(x.next))+' · <b>'+safe(ltPad(x.next.p[0]))+'</b>':'Aguardando')+'</td><td>'+(x.g===null?'—':lgFmt(x.g))+'</td><td>'+(x.next?(x.main&&x.aux?'Principal e auxiliar':x.main?'Principal':x.aux?'Auxiliar':'Nenhum'):'Pendente')+'</td></tr>').join('')+'</tbody></table>':'<div class="mutedbox">Nenhum caso neste filtro; aumente o período.</div>';
+ $('lgRank').innerHTML='<table><thead><tr><th>Algarismo</th><th>Casos</th><th>Principal</th><th>Auxiliar</th><th>Qualquer um</th><th>Taxa combinada</th></tr></thead><tbody>'+[...Array(10).keys()].map(d=>{const z=evaluated.filter(x=>Number(x.d)===d),mm=z.filter(x=>x.main).length,aa=z.filter(x=>x.aux).length,ee=z.filter(x=>x.main||x.aux).length;return '<tr><td><b>'+d+'</b></td><td>'+z.length+'</td><td>'+mm+'</td><td>'+aa+'</td><td>'+ee+'</td><td>'+(z.length?(100*ee/z.length).toFixed(1).replace('.',',')+'%':'—')+'</td></tr>'}).join('')+'</tbody></table>';
+ lgCsvRows=rows.map(x=>[x.r.date,lookActualTime(x.r),x.d,lgMainGroups[Number(x.d)].map(lgFmt).join(' '),lgAuxGroups[Number(x.d)].map(lgFmt).join(' '),x.next?.date||'',x.next?lookActualTime(x.next):'',x.next?ltPad(x.next.p[0]):'',x.g===null?'':lgFmt(x.g),x.next?(x.main&&x.aux?'PRINCIPAL E AUXILIAR':x.main?'PRINCIPAL':x.aux?'AUXILIAR':'NENHUM'):'PENDENTE']);
+}
+['lgStart','lgEnd','lgTime','lgDigit'].forEach(id=>$(id).onchange=renderLookGroups);
+$('lgExample').onclick=()=>{$('lgStart').value='2026-11-02';$('lgEnd').value='2026-11-02';$('lgTime').value='16:20';$('lgDigit').value='6';renderLookGroups()};
+$('lgFull').onclick=()=>{$('lgStart').value='2026-10-01';$('lgEnd').value=lookAll().slice(-1)[0]?.date||'2026-11-02';$('lgTime').value='all';$('lgDigit').value='all';renderLookGroups()};
+$('lgExport').onclick=()=>{const columns=['origem_data','origem_hora','algarismo_ausente','principais','auxiliares','seguinte_data','seguinte_hora','milhar_primeiro','grupo_primeiro','classificacao'];const quote=x=>'"'+String(x??'').replace(/"/g,'""')+'"';const csv='\uFEFF'+columns.join(';')+'\r\n'+lgCsvRows.map(r=>r.map(quote).join(';')).join('\r\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='teste20-grupos-look.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+renderLookGroups();
 
 // TESTE 17 — Federal x LOOK: sem previsão, sem cruzar loterias na mesma base.
 // A falta do horário da Federal exclui a data inteira para garantir sequência temporal.
@@ -1191,7 +1254,7 @@ setInterval(updateClock,1000);
 setInterval(()=>{if(Date.now()>=nextCheck){nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Nova janela de verificação iniciada. Para conferir os resultados publicados, use “Verificar fonte”.';}},1000);
 $('checkNow').onclick=()=>{nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Fonte oficial aberta para conferência. Após validar os resultados, cadastre-os ou importe o CSV.';window.open('https://lotece.com.br/','_blank','noopener');updateClock()};
 $('refreshPanel').onclick=()=>{render();nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Painel recalculado com os dados já cadastrados. Nenhum resultado externo foi baixado.';updateClock()};
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['dashboard','primeiro','transicoes','federal','chama7','look','looktrail','fedlook','pedras','base','ajuda'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab))});
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['dashboard','primeiro','transicoes','federal','chama7','look','looktrail','lookgroups','fedlook','pedras','base','ajuda'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab))});
 try{db=JSON.parse(localStorage.getItem('obicho-certo-lotece')||'[]')}catch(e){db=[]}
 async function loadPublicHistory(){
  try{

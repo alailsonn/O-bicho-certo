@@ -16,7 +16,7 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 <header><div class="brand"><div class="logo">🐾</div><div><h1>O BICHO CERTO</h1><p>Análise estatística • Loteria dos Sonhos / LOTECE</p></div></div></header>
 <main>
 <div class="notice"><b>Estatística, não previsão:</b> frequências e atrasos descrevem resultados passados. Cada extração é independente; um grupo repetido ou atrasado não ganha maior probabilidade no próximo sorteio. Este painel é independente e não recebe apostas.</div>
-<nav><button class="tab active" data-tab="dashboard">Painel</button><button class="tab" data-tab="primeiro">🎯 1º Prêmio</button><button class="tab" data-tab="base">Cadastrar / importar</button><button class="tab" data-tab="ajuda">Como usar</button></nav>
+<nav><button class="tab active" data-tab="dashboard">Painel</button><button class="tab" data-tab="primeiro">🎯 1º Prêmio</button><button class="tab" data-tab="pedras">🔬 Ausentes e dobrados</button><button class="tab" data-tab="base">Cadastrar / importar</button><button class="tab" data-tab="ajuda">Como usar</button></nav>
 
 <section id="dashboard">
 <div class="panel" style="border-color:#39785d">
@@ -93,6 +93,21 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 <div class="panel"><h2>Últimos primeiros prêmios da seleção</h2><div id="firstRecent" class="scroll"></div></div>
 <p class="hint">Atraso significa quantidade de extrações analisadas desde a última ocorrência. Não aumenta a chance do grupo no próximo sorteio. Com poucos registros, os indicadores são especialmente instáveis.</p>
 </section>
+
+
+<section id="pedras" class="hidden">
+<div class="panel"><h2>🔬 Algarismos ausentes e dobrados — 1º ao 5º prêmio</h2>
+<p class="muted">Cada extração contém 20 posições (cinco milhares com quatro algarismos). A análise identifica quais algarismos de 0 a 9 não apareceram e quais pares consecutivos iguais (00, 11, …, 99) surgiram dentro de uma mesma milhar. Os dados são descritivos, não previsões.</p>
+<div class="row"><div><label class="small" for="stoneTime">Extrações analisadas</label><select id="stoneTime"><option value="all">Todos os horários</option><option value="11:00">Manhã</option><option value="14:00">Tarde</option><option value="15:45">Tarde II</option><option value="19:00">Noite</option></select></div><div><label class="small" for="stoneWindow">Histórico para o teste</label><select id="stoneWindow"><option value="all">Todo o histórico</option><option value="30">Últimas 30 extrações</option><option value="60">Últimas 60 extrações</option></select></div></div>
+<div class="grid" style="margin-top:14px"><div class="card metric"><small>Extrações</small><strong id="stoneDraws">0</strong></div><div class="card metric"><small>Com ausentes</small><strong id="stoneMissing">0</strong></div><div class="card metric"><small>Com dobrados</small><strong id="stoneDouble">0</strong></div><div class="card metric"><small>Pares consecutivos</small><strong id="stonePairs">0</strong></div></div>
+<h3>Última extração analisada</h3><div id="stoneLatest" class="mutedbox">Aguardando dados.</div>
+<h3>Frequência dos algarismos ausentes</h3><div class="scroll" id="stoneFrequency"></div>
+<h3>Ausentes que reapareceram na extração seguinte</h3><p class="hint">Em cada par de extrações, contamos quantos algarismos ausentes na primeira aparecem nas 20 posições da segunda. A referência teórica para um algarismo específico aparecer ao menos uma vez em 20 posições independentes e uniformes é 1 − (9/10)²⁰ ≈ 87,84%.</p><div id="stoneReturn"></div>
+<h3>Cruzamento com dobrados na extração anterior</h3><div class="scroll" id="stoneCross"></div>
+<h3>Comparação por horário da extração seguinte</h3><div class="scroll" id="stoneByTime"></div>
+<h3>Últimas extrações — detalhes</h3><div class="scroll" id="stoneRecent"></div>
+<p class="hint">A comparação utiliza apenas extrações consecutivas disponíveis no histórico ordenado; se faltarem registros, o próximo resultado disponível pode não ser o sorteio imediatamente seguinte. Horários filtrados são comparados entre si. O cruzamento é exploratório e não demonstra vantagem preditiva.</p>
+</div></section>
 
 <section id="base" class="hidden">
 <div class="panel"><h2>Adicionar uma extração</h2>
@@ -263,7 +278,45 @@ $('trackSave').onclick=()=>{const date=$('trackDate').value,time=$('trackTime').
  records.push({date,time,window:windowSize,top,recordedAt:new Date().toISOString()});localStorage.setItem(trackKey,JSON.stringify(records));$('trackMessage').textContent='Seleção registrada antes da extração: '+top.map(g=>'G'+pad(g)).join(', ')+'.';trackRender();};
 $('trackExport').onclick=()=>{const data=JSON.stringify(getTracks(),null,2),blob=new Blob([data],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='acompanhamento-diario.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
 $('firstPeriod').onchange=renderFirst;$('firstTime').onchange=renderFirst;
-function render(){renderFirst();trackRender();let rows=chosen(),pr=selectedPrizes(rows),gm=freq(pr,x=>group(x.n)),dm=freq(pr,x=>String(x.n).slice(-2)),top=Object.entries(gm).sort((a,b)=>b[1]-a[1])[0],seen=new Set(Object.keys(gm).map(Number));
+
+// Algarismos das 20 posições das cinco milhares, preservando zeros à esquerda.
+function stoneDigits(row){return row.p.map(n=>String(n).padStart(4,'0')).join('')}
+function stoneInfo(row){
+ const digits=stoneDigits(row),present=new Set(digits),missing=Array.from({length:10},(_,i)=>String(i)).filter(d=>!present.has(d));
+ const doubles=[];
+ row.p.forEach((n,i)=>{const m=String(n).padStart(4,'0');for(let j=0;j<3;j++)if(m[j]===m[j+1])doubles.push({digit:m[j],pair:m[j]+m[j],prize:i+1})});
+ return {row,digits,missing,doubles,hasDouble:doubles.length>0};
+}
+function renderStones(){
+ const all=allChronological(),time=$('stoneTime').value,limit=$('stoneWindow').value;
+ let rows=time==='all'?all:all.filter(r=>normalizeTime(r.time)===time);
+ if(limit!=='all')rows=rows.slice(-Number(limit));
+ const infos=rows.map(stoneInfo),pairs=infos.slice(1).map((curr,i)=>{
+   const prev=infos[i],returning=prev.missing.filter(d=>curr.digits.includes(d));
+   return {prev,curr,returning,miss:prev.missing.length,returned:returning.length,hadDouble:prev.hasDouble};
+ });
+ $('stoneDraws').textContent=infos.length;
+ $('stoneMissing').textContent=infos.filter(x=>x.missing.length).length;
+ $('stoneDouble').textContent=infos.filter(x=>x.hasDouble).length;
+ $('stonePairs').textContent=pairs.length;
+ if(!infos.length){['stoneLatest','stoneFrequency','stoneReturn','stoneCross','stoneByTime','stoneRecent'].forEach(id=>$(id).innerHTML='<div class="mutedbox">Sem resultados para este filtro.</div>');return}
+ const last=infos[infos.length-1];
+ $('stoneLatest').innerHTML='<b>'+safe(last.row.date)+' · '+safe(normalizeTime(last.row.time))+'</b><div class="small">Milhares: '+last.row.p.map(n=>safe(String(n).padStart(4,'0'))).join(' · ')+'</div><p>Ausentes: <b>'+(last.missing.join(', ')||'nenhum')+'</b></p><p>Dobrados: <b>'+(last.doubles.map(d=>d.pair+' ('+d.prize+'º)').join(', ')||'nenhum')+'</b></p>';
+ const freq=Array(10).fill(0);infos.forEach(x=>x.missing.forEach(d=>freq[Number(d)]++));
+ $('stoneFrequency').innerHTML='<table><thead><tr><th>Algarismo</th><th>Extrações ausente</th><th>Frequência</th></tr></thead><tbody>'+freq.map((n,i)=>'<tr><td>'+i+'</td><td>'+n+'</td><td>'+(100*n/infos.length).toFixed(1)+'%</td></tr>').join('')+'</tbody></table>';
+ const opportunities=pairs.reduce((n,p)=>n+p.miss,0),returns=pairs.reduce((n,p)=>n+p.returned,0),pct=opportunities?100*returns/opportunities:null;
+ $('stoneReturn').innerHTML='<div class="grid"><div class="card metric"><small>Algarismos ausentes avaliados</small><strong>'+opportunities+'</strong></div><div class="card metric"><small>Reaparecimentos</small><strong>'+returns+'</strong></div><div class="card metric"><small>Taxa observada</small><strong>'+(pct===null?'—':pct.toFixed(1)+'%')+'</strong></div><div class="card metric"><small>Referência teórica</small><strong>87,8%</strong></div></div><p class="hint">A taxa é por algarismo ausente, não por extração. As observações dentro de uma mesma extração não são independentes; não interprete a diferença como prova de influência.</p>';
+ const cross=flag=>{const sub=pairs.filter(p=>p.hadDouble===flag),n=sub.reduce((v,p)=>v+p.miss,0),hits=sub.reduce((v,p)=>v+p.returned,0);return {pairs:sub.length,n,hits,rate:n?(100*hits/n).toFixed(1)+'%':'—'}};
+ const yes=cross(true),no=cross(false);
+ $('stoneCross').innerHTML='<table><thead><tr><th>Extração anterior</th><th>Pares</th><th>Ausentes avaliados</th><th>Reapareceram</th><th>Taxa</th></tr></thead><tbody><tr><td>Com dobrados</td><td>'+yes.pairs+'</td><td>'+yes.n+'</td><td>'+yes.hits+'</td><td>'+yes.rate+'</td></tr><tr><td>Sem dobrados</td><td>'+no.pairs+'</td><td>'+no.n+'</td><td>'+no.hits+'</td><td>'+no.rate+'</td></tr></tbody></table>';
+ const labels={'11:00':'Manhã','14:00':'Tarde','15:45':'Tarde II','19:00':'Noite'};
+ $('stoneByTime').innerHTML='<table><thead><tr><th>Horário seguinte</th><th>Pares</th><th>Ausentes avaliados</th><th>Reapareceram</th><th>Taxa</th></tr></thead><tbody>'+Object.entries(labels).map(([t,label])=>{const sub=pairs.filter(p=>normalizeTime(p.curr.row.time)===t),n=sub.reduce((v,p)=>v+p.miss,0),hits=sub.reduce((v,p)=>v+p.returned,0);return '<tr><td>'+label+'</td><td>'+sub.length+'</td><td>'+n+'</td><td>'+hits+'</td><td>'+(n?(100*hits/n).toFixed(1)+'%':'—')+'</td></tr>'}).join('')+'</tbody></table>';
+ $('stoneRecent').innerHTML='<table><thead><tr><th>Data</th><th>Horário</th><th>Milhares (1º–5º)</th><th>Ausentes</th><th>Dobrados</th></tr></thead><tbody>'+infos.slice(-20).reverse().map(x=>'<tr><td>'+safe(x.row.date)+'</td><td>'+safe(labels[normalizeTime(x.row.time)]||x.row.time)+'</td><td>'+x.row.p.map(n=>safe(String(n).padStart(4,'0'))).join(' · ')+'</td><td>'+(x.missing.join(', ')||'—')+'</td><td>'+(x.doubles.map(d=>d.pair).join(', ')||'—')+'</td></tr>').join('')+'</tbody></table>';
+}
+$('stoneTime').onchange=renderStones;
+$('stoneWindow').onchange=renderStones;
+
+function render(){renderFirst();trackRender();renderStones();let rows=chosen(),pr=selectedPrizes(rows),gm=freq(pr,x=>group(x.n)),dm=freq(pr,x=>String(x.n).slice(-2)),top=Object.entries(gm).sort((a,b)=>b[1]-a[1])[0],seen=new Set(Object.keys(gm).map(Number));
 $('nDraws').textContent=rows.length;$('nPrizes').textContent=pr.length;$('leader').textContent=top?'Grupo '+pad(top[0]):'—';$('leaderSub').textContent=top?animal(Number(top[0]))+' • '+top[1]+' ocorrência(s)':'Sem dados';$('missing').textContent=25-seen.size;
 $('periodLabel').textContent=`${rows.length} extração(ões) no filtro selecionado. ${$('period').value==='all'?'Histórico completo': 'Janela de '+$('period').value+' dias a partir da data mais recente cadastrada'}.`;
 let allgroups=Array.from({length:25},(_,i)=>i+1).reduce((o,g)=>(o[g]=gm[g]||0,o),{});$('rank').innerHTML=rankHtml(allgroups,Math.max(1,pr.length),k=>`Grupo ${pad(k)} — ${animal(Number(k))}`);
@@ -286,7 +339,7 @@ setInterval(updateClock,1000);
 setInterval(()=>{if(Date.now()>=nextCheck){nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Nova janela de verificação iniciada. Para conferir os resultados publicados, use “Verificar fonte”.';}},1000);
 $('checkNow').onclick=()=>{nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Fonte oficial aberta para conferência. Após validar os resultados, cadastre-os ou importe o CSV.';window.open('https://lotece.com.br/','_blank','noopener');updateClock()};
 $('refreshPanel').onclick=()=>{render();nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Painel recalculado com os dados já cadastrados. Nenhum resultado externo foi baixado.';updateClock()};
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['dashboard','primeiro','base','ajuda'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab))});
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['dashboard','primeiro','pedras','base','ajuda'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab))});
 try{db=JSON.parse(localStorage.getItem('obicho-certo-lotece')||'[]')}catch(e){db=[]}
 async function loadPublicHistory(){
  try{

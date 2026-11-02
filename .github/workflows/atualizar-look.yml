@@ -3,8 +3,7 @@ name: Atualizar LOOK Goias
 
 on:
   schedule:
-    - cron: '*/15 * * * *'
-  workflow_dispatch:
+    - cron: '35,50 0,2,10,12,14,17,19,21,22 * * *' 
 
 permissions:
   contents: write

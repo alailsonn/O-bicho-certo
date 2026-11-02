@@ -59,6 +59,12 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 <p class="hint" id="firstSummary"></p></div>
 <div class="grid"><div class="card metric"><small>1º prêmios analisados</small><strong id="firstTotal">0</strong></div><div class="card metric"><small>Grupo mais frequente</small><strong id="firstLeader">—</strong><span class="small" id="firstLeaderInfo">Sem dados</span></div><div class="card metric"><small>Grupos ainda ausentes</small><strong id="firstAbsent">25</strong></div><div class="card metric"><small>Grupos observados</small><strong id="firstSeen">0</strong></div></div>
 <div class="two"><div class="panel"><h2>Top 5 por frequência no 1º prêmio</h2><div id="firstTop"></div></div><div class="panel"><h2>Grupos há mais extrações sem aparecer</h2><div id="firstLate"></div></div></div>
+<div class="panel"><h2>📊 Histórico de desempenho — teste retrospectivo</h2>
+<p class="muted">Antes de cada resultado, o sistema seleciona os 5 grupos mais frequentes nas 8 extrações anteriores do filtro. Depois verifica se o 1º prêmio seguinte pertenceu a esses grupos. Nenhum resultado futuro é usado para montar a seleção.</p>
+<div class="grid"><div class="card metric"><small>Testes realizados</small><strong id="btTests">0</strong></div><div class="card metric"><small>Coincidências</small><strong id="btHits">0</strong></div><div class="card metric"><small>Taxa observada</small><strong id="btRate">—</strong></div><div class="card metric"><small>Referência teórica</small><strong>20%</strong><span class="small">5 de 25 grupos, sob chances iguais</span></div></div>
+<p class="hint" id="btInfo">São necessárias pelo menos 9 extrações para iniciar a avaliação.</p>
+<div id="btTable" class="scroll"></div>
+</div>
 <div class="panel"><h2>Ranking dos 25 grupos — apenas 1º prêmio</h2><div id="firstRanking" class="scroll"></div></div>
 <div class="panel"><h2>Últimos primeiros prêmios da seleção</h2><div id="firstRecent" class="scroll"></div></div>
 <p class="hint">Atraso significa quantidade de extrações analisadas desde a última ocorrência. Não aumenta a chance do grupo no próximo sorteio. Com poucos registros, os indicadores são especialmente instáveis.</p>
@@ -116,8 +122,25 @@ function firstRows(){
  return rows.filter(r=>Array.isArray(r.p)&&r.p.length===5).sort((a,b)=>a.date.localeCompare(b.date)||(order[normalizeTime(a.time)]??9)-(order[normalizeTime(b.time)]??9));
 }
 function normalizeTime(t){return ({'Manhã':'11:00','Tarde':'14:00','Tarde II':'15:45','Noite':'19:00'})[t]||t}
+function renderBacktest(rows){
+ const windowSize=8, tests=[];
+ for(let i=windowSize;i<rows.length;i++){
+  const history=rows.slice(i-windowSize,i), counts=Array(26).fill(0);
+  history.forEach(r=>counts[group(r.p[0])]++);
+  const top=Array.from({length:25},(_,j)=>j+1).sort((a,b)=>counts[b]-counts[a]||a-b).slice(0,5);
+  const actual=group(rows[i].p[0]);
+  tests.push({row:rows[i],top,actual,hit:top.includes(actual)});
+ }
+ const hits=tests.filter(t=>t.hit).length;
+ $('btTests').textContent=tests.length;
+ $('btHits').textContent=hits;
+ $('btRate').textContent=tests.length?(100*hits/tests.length).toFixed(1)+'%':'—';
+ $('btInfo').textContent=tests.length?`Janela de ${windowSize} extrações anteriores • ${tests.length} avaliação(ões). A referência de 20% pressupõe grupos equiprováveis; amostras pequenas oscilam muito.`:`Ainda não há dados suficientes: são necessárias ao menos ${windowSize+1} extrações no período e horário selecionados.`;
+ $('btTable').innerHTML=tests.length?`<table><thead><tr><th>Data</th><th>Extração</th><th>Top 5 anterior</th><th>Grupo realizado</th><th>Coincidiu?</th></tr></thead><tbody>${[...tests].reverse().map(t=>`<tr><td>${safe(t.row.date)}</td><td>${safe(t.row.time)}</td><td>${t.top.map(g=>'G'+pad(g)).join(', ')}</td><td>G${pad(t.actual)} — ${animal(t.actual)}</td><td>${t.hit?'Sim':'Não'}</td></tr>`).join('')}</tbody></table>`:'<div class="mutedbox">Sem testes suficientes para este filtro. Amplie o período ou acrescente resultados históricos verificados.</div>';
+}
 function renderFirst(){
  const rows=firstRows(),counts=Array(26).fill(0),last=Array(26).fill(-1);
+ renderBacktest(rows);
  rows.forEach((r,i)=>{const g=group(r.p[0]);counts[g]++;last[g]=i});
  const stats=Array.from({length:25},(_,i)=>{const g=i+1;return {g,count:counts[g],delay:last[g]===-1?null:rows.length-1-last[g],last:last[g]===-1?null:rows[last[g]]}});
  const ranked=[...stats].sort((a,b)=>b.count-a.count||a.g-b.g),late=[...stats].sort((a,b)=>(b.delay??rows.length)-(a.delay??rows.length)||a.g-b.g),top=ranked[0];

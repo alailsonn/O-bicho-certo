@@ -81,6 +81,14 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 <h3>Frequência por extração (1º prêmio)</h3><div class="scroll" id="advTimes"></div>
 <h3>Repetições consecutivas</h3><p class="hint" id="advRepeats"></p>
 </div>
+<div class="panel" id="dailyTracking"><h2>📅 Acompanhamento diário — registro prospectivo</h2>
+<p class="muted">Registre uma seleção estatística <b>antes</b> da extração. Depois, quando o resultado for publicado, o sistema verifica a coincidência. Registros são guardados neste navegador; não são apostas nem previsões.</p>
+<div class="row"><div><label class="small" for="trackDate">Data da extração futura</label><input id="trackDate" type="date"></div><div><label class="small" for="trackTime">Horário</label><select id="trackTime"><option value="11:00">Manhã</option><option value="14:00">Tarde</option><option value="15:45">Tarde II</option><option value="19:00">Noite</option></select></div><div><label class="small" for="trackWindow">Histórico anterior</label><select id="trackWindow"><option value="8">8 extrações</option><option value="20">20 extrações</option><option value="40">40 extrações</option></select></div></div>
+<div class="actions" style="margin-top:12px"><button id="trackSave" class="primary">Registrar Top 5 antes do sorteio</button><button id="trackExport">Exportar registros JSON</button></div>
+<p class="hint" id="trackMessage">Selecione uma data e horário futuros para registrar o Top 5 calculado somente com resultados anteriores.</p>
+<div class="grid"><div class="card metric"><small>Registros feitos</small><strong id="trackTotal">0</strong></div><div class="card metric"><small>Já conferidos</small><strong id="trackChecked">0</strong></div><div class="card metric"><small>Coincidências</small><strong id="trackHits">0</strong></div><div class="card metric"><small>Taxa observada</small><strong id="trackRate">—</strong></div></div>
+<div id="trackTable" class="scroll"></div><p class="hint">Importante: não altere ou apague registros após conhecer o resultado. A conferência usa o histórico público ou local e não altera o registro original.</p>
+</div>
 <div class="panel"><h2>Ranking dos 25 grupos — apenas 1º prêmio</h2><div id="firstRanking" class="scroll"></div></div>
 <div class="panel"><h2>Últimos primeiros prêmios da seleção</h2><div id="firstRecent" class="scroll"></div></div>
 <p class="hint">Atraso significa quantidade de extrações analisadas desde a última ocorrência. Não aumenta a chance do grupo no próximo sorteio. Com poucos registros, os indicadores são especialmente instáveis.</p>
@@ -238,8 +246,24 @@ function renderFirst(){
  $('firstRanking').innerHTML=`<table><thead><tr><th>Grupo</th><th>Vezes</th><th>%</th><th>Atraso</th><th>Última aparição</th></tr></thead><tbody>${ranked.map(x=>`<tr><td>${desc(x)}</td><td>${x.count}</td><td>${(x.count/rows.length*100).toFixed(1)}%</td><td>${x.delay===null?'Nunca':x.delay}</td><td>${x.last?safe(x.last.date)+' · '+safe(x.last.time):'—'}</td></tr>`).join('')}</tbody></table>`;
  $('firstRecent').innerHTML=`<table><thead><tr><th>Data</th><th>Extração</th><th>Milhar</th><th>Grupo</th></tr></thead><tbody>${[...rows].reverse().slice(0,30).map(r=>`<tr><td>${safe(r.date)}</td><td>${safe(r.time)}</td><td>${safe(String(r.p[0]).padStart(4,'0'))}</td><td>G${pad(group(r.p[0]))} — ${animal(group(r.p[0]))}</td></tr>`).join('')}</tbody></table>`;
 }
+// Registro prospectivo local: a seleção fica congelada antes da extração.
+const trackKey='obicho-certo-prospectivo-v1';
+function getTracks(){try{const v=JSON.parse(localStorage.getItem(trackKey)||'[]');return Array.isArray(v)?v:[]}catch(e){return []}}
+function allChronological(){const order={'11:00':0,'14:00':1,'15:45':2,'19:00':3};return [...new Map([...publicDb,...db].map(r=>[r.date+'|'+normalizeTime(r.time),r])).values()].filter(r=>Array.isArray(r.p)&&r.p.length===5).sort((a,b)=>a.date.localeCompare(b.date)||(order[normalizeTime(a.time)]??9)-(order[normalizeTime(b.time)]??9))}
+function trackRender(){const records=getTracks(),all=allChronological(),known=new Map(all.map(r=>[r.date+'|'+normalizeTime(r.time),r]));let checked=0,hits=0;
+ const lines=records.map(r=>{const result=known.get(r.date+'|'+r.time),actual=result?group(result.p[0]):null,hit=actual!==null&&r.top.includes(actual);if(result){checked++;if(hit)hits++}const label=({'11:00':'Manhã','14:00':'Tarde','15:45':'Tarde II','19:00':'Noite'})[r.time]||r.time;return `<tr><td>${safe(r.date)}</td><td>${label}</td><td>${r.window}</td><td>${r.top.map(g=>'G'+pad(g)).join(', ')}</td><td>${result?'G'+pad(actual):'Aguardando'}</td><td>${result?(hit?'Sim':'Não'):'—'}</td></tr>`});
+ $('trackTotal').textContent=records.length;$('trackChecked').textContent=checked;$('trackHits').textContent=hits;$('trackRate').textContent=checked?(100*hits/checked).toFixed(1)+'%':'—';$('trackTable').innerHTML=records.length?'<table><thead><tr><th>Data</th><th>Extração</th><th>Janela</th><th>Top 5 registrado</th><th>Resultado</th><th>Coincidiu?</th></tr></thead><tbody>'+lines.join('')+'</tbody></table>':'<div class="mutedbox">Nenhuma seleção prospectiva registrada neste navegador.</div>';
+}
+$('trackSave').onclick=()=>{const date=$('trackDate').value,time=$('trackTime').value,windowSize=Number($('trackWindow').value),now=new Date(),target=new Date(date+'T'+time+':00-03:00');
+ if(!date||!Number.isFinite(target.getTime())||target<=now){$('trackMessage').textContent='Escolha uma data e um horário futuros. Não é permitido registrar resultados passados.';return}
+ const records=getTracks();if(records.some(r=>r.date===date&&r.time===time)){$('trackMessage').textContent='Este horário já tem uma seleção registrada neste navegador.';return}
+ const order={'11:00':0,'14:00':1,'15:45':2,'19:00':3},all=allChronological(),prior=all.filter(r=>r.date<date||(r.date===date&&(order[normalizeTime(r.time)]??9)<order[time]));
+ if(prior.length<windowSize){$('trackMessage').textContent='Histórico insuficiente: são necessárias '+windowSize+' extrações anteriores para esta janela.';return}
+ const counts=Array(26).fill(0);prior.slice(-windowSize).forEach(r=>counts[group(r.p[0])]++);const top=Array.from({length:25},(_,i)=>i+1).sort((a,b)=>counts[b]-counts[a]||a-b).slice(0,5);
+ records.push({date,time,window:windowSize,top,recordedAt:new Date().toISOString()});localStorage.setItem(trackKey,JSON.stringify(records));$('trackMessage').textContent='Seleção registrada antes da extração: '+top.map(g=>'G'+pad(g)).join(', ')+'.';trackRender();};
+$('trackExport').onclick=()=>{const data=JSON.stringify(getTracks(),null,2),blob=new Blob([data],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='acompanhamento-diario.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
 $('firstPeriod').onchange=renderFirst;$('firstTime').onchange=renderFirst;
-function render(){renderFirst();let rows=chosen(),pr=selectedPrizes(rows),gm=freq(pr,x=>group(x.n)),dm=freq(pr,x=>String(x.n).slice(-2)),top=Object.entries(gm).sort((a,b)=>b[1]-a[1])[0],seen=new Set(Object.keys(gm).map(Number));
+function render(){renderFirst();trackRender();let rows=chosen(),pr=selectedPrizes(rows),gm=freq(pr,x=>group(x.n)),dm=freq(pr,x=>String(x.n).slice(-2)),top=Object.entries(gm).sort((a,b)=>b[1]-a[1])[0],seen=new Set(Object.keys(gm).map(Number));
 $('nDraws').textContent=rows.length;$('nPrizes').textContent=pr.length;$('leader').textContent=top?'Grupo '+pad(top[0]):'—';$('leaderSub').textContent=top?animal(Number(top[0]))+' • '+top[1]+' ocorrência(s)':'Sem dados';$('missing').textContent=25-seen.size;
 $('periodLabel').textContent=`${rows.length} extração(ões) no filtro selecionado. ${$('period').value==='all'?'Histórico completo': 'Janela de '+$('period').value+' dias a partir da data mais recente cadastrada'}.`;
 let allgroups=Array.from({length:25},(_,i)=>i+1).reduce((o,g)=>(o[g]=gm[g]||0,o),{});$('rank').innerHTML=rankHtml(allgroups,Math.max(1,pr.length),k=>`Grupo ${pad(k)} — ${animal(Number(k))}`);

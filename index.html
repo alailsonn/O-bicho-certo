@@ -11,12 +11,17 @@ main{max-width:1200px;margin:24px auto;padding:0 17px}.notice{background:#2c2619
 nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px solid var(--line);background:var(--panel2);color:var(--txt);padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:650}.tab.active,button.primary{background:var(--green);color:#062719;border-color:var(--green)}button.danger{border-color:#784444;color:#ffb0b0}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}.card,.panel{background:linear-gradient(145deg,#14243a,#101b2b);border:1px solid var(--line);border-radius:15px;padding:16px}.metric small,.muted,.hint{color:var(--muted)}.metric strong{display:block;font-size:28px;margin:6px 0 1px}.panel{margin-top:14px}.panel h2{font-size:18px;margin:0 0 13px}.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}.row>*{flex:1;min-width:120px}input,select{width:100%;background:#091525;color:var(--txt);border:1px solid var(--line);padding:11px;border-radius:9px;font:inherit}input[type=file]{padding:8px}.hint{font-size:12px;margin-top:6px}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:9px 7px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:600}.bar{height:7px;background:#263b55;border-radius:9px;overflow:hidden;min-width:55px}.bar i{display:block;height:100%;background:var(--green);border-radius:9px}.tag{display:inline-block;background:#1c3c33;color:#9af0c2;padding:3px 8px;border-radius:30px;font-size:12px;margin:2px}.mutedbox{padding:13px;border:1px dashed var(--line);border-radius:10px;color:var(--muted)}.hidden{display:none}.links a{color:#8ee8bb;margin-right:14px}.scroll{overflow:auto}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{flex:0 0 auto}.small{font-size:12px;color:var(--muted)}footer{text-align:center;padding:25px 0;color:var(--muted);font-size:12px}
 @media(max-width:760px){.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}h1{font-size:22px}.metric strong{font-size:23px}table{font-size:12px}th,td{padding:7px 5px}}
+.t24-checks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:12px 0}
+.t24-checks label{display:flex;gap:9px;align-items:center;background:#12273a;border:1px solid var(--line);border-radius:9px;padding:9px 10px;font-size:13px;cursor:pointer}
+.t24-checks input{width:auto;accent-color:var(--green);margin:0;flex-shrink:0}
+.t24-good{color:#6ee7b7;font-weight:700}.t24-caution{color:#f3c76b}
+@media(max-width:760px){.t24-checks{grid-template-columns:1fr}}
 </style></head>
 <body>
 <header><div class="brand"><div class="logo">🐾</div><div><h1>O BICHO CERTO</h1><p>Análise estatística • Loteria dos Sonhos / LOTECE</p></div></div></header>
 <main>
 <div class="notice"><b>Estatística, não previsão:</b> frequências e atrasos descrevem resultados passados. Cada extração é independente; um grupo repetido ou atrasado não ganha maior probabilidade no próximo sorteio. Este painel é independente e não recebe apostas.</div>
-<nav><button class="tab active" data-tab="dashboard">Painel</button><button class="tab" data-tab="primeiro">🎯 1º Prêmio</button><button class="tab" data-tab="transicoes">🔁 Cabeça entre horários</button><button class="tab" data-tab="federal">🇧🇷 Federal × Sonhos</button><button class="tab" data-tab="chama7">🔥 Chama dos 7</button><button class="tab" data-tab="look">🔎 LOOK Goiás</button><button class="tab" data-tab="looktrail">🧭 Rastro dos ausentes</button><button class="tab" data-tab="lookgroups">🐾 Teste 20 — Grupos</button><button class="tab" data-tab="lookhours">🕒 Teste 21 — Horários</button><button class="tab" data-tab="lookradar">🎯 Teste 22 — Radar</button><button class="tab" data-tab="fedlook">🔍 Federal × LOOK</button><button class="tab" data-tab="pedras">🔬 Ausentes e dobrados</button><button class="tab" data-tab="base">Cadastrar / importar</button><button class="tab" data-tab="ajuda">Como usar</button></nav>
+<nav><button class="tab active" data-tab="dashboard">Painel</button><button class="tab" data-tab="primeiro">🎯 1º Prêmio</button><button class="tab" data-tab="transicoes">🔁 Cabeça entre horários</button><button class="tab" data-tab="federal">🇧🇷 Federal × Sonhos</button><button class="tab" data-tab="chama7">🔥 Chama dos 7</button><button class="tab" data-tab="look">🔎 LOOK Goiás</button><button class="tab" data-tab="looktrail">🧭 Rastro dos ausentes</button><button class="tab" data-tab="lookgroups">🐾 Teste 20 — Grupos</button><button class="tab" data-tab="lookhours">🕒 Teste 21 — Horários</button><button class="tab" data-tab="lookradar">🎯 Teste 22 — Radar</button><button class="tab" data-tab="lookdyn">🧩 Teste 24 — Padrões Dinâmicos</button><button class="tab" data-tab="fedlook">🔍 Federal × LOOK</button><button class="tab" data-tab="pedras">🔬 Ausentes e dobrados</button><button class="tab" data-tab="base">Cadastrar / importar</button><button class="tab" data-tab="ajuda">Como usar</button></nav>
 
 <section id="dashboard">
 <div class="panel" style="border-color:#39785d">
@@ -380,6 +385,65 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
  <div class="panel"><h2>⚙️ Como o radar pontua os 25 grupos</h2>
   <p class="muted">A pontuação considera presença do grupo nas listas de <b>principais</b> e <b>auxiliares</b> dos ausentes; pares <b>iguais</b> e <b>invertidos</b> das posições 1–2, 2–3 e 3–4 de cada milhar do 1º ao 5º prêmio; regra <b>+7/−7</b> do grupo da cabeça; e frequência anterior de grupos em transições do mesmo horário e em 1ºs prêmios recentes. Os pesos são fixos: principais +1,35; auxiliares +1,25; par direto +0,80; par invertido +0,95; ±7 +0,40; frequência do horário e frequência recente, ambas com suavização e contribuição limitada. Um grupo em duas categorias soma contribuições.</p>
   <p class="hint">Grupos em empate são desempatos pela menor numeração, sem usar resultado futuro. O radar funciona mesmo quando nenhum algarismo está ausente. Não altera o coletor, o JSON público nem os Testes 19–21.</p>
+ </div>
+</section>
+
+<!-- TESTE 24 — PADRÕES DINÂMICOS: comparação retrospectiva, sem probabilidades inventadas -->
+<section id="lookdyn" class="hidden">
+ <div class="panel" style="border-color:#30896c">
+  <h2>🧩 Teste 24 — Padrões Dinâmicos | LOOK Goiás</h2>
+  <p class="muted">Estuda se grupos vistos nas posições anteriores <b>sobem para o 1º prêmio</b> da extração seguinte. Combina sinais de subida do 2º, presença do 3º ao 5º, dobradas e persistência. Compara <b>cinco grupos selecionados antes</b> de cada sorteio com os cinco grupos do Teste 22, sem modificar o Radar 22.</p>
+  <div class="row">
+   <div><label class="small" for="t24Period">Período de avaliação</label><select id="t24Period"><option value="30" selected>Últimos 30 dias cadastrados</option><option value="7">Últimos 7 dias</option><option value="90">Últimos 90 dias</option><option value="all">Todo o histórico</option></select></div>
+   <div><label class="small" for="t24Warm">Aquecimento mínimo anterior</label><select id="t24Warm"><option value="15">15 transições</option><option value="25" selected>25 transições</option><option value="50">50 transições</option></select></div>
+   <div><label class="small" for="t24Kind">Tipo de transição</label><select id="t24Kind"><option value="all">Todos os pares válidos</option><option value="same">Somente dentro do dia</option><option value="overnight">Somente virada 23h20 → 07h20</option></select></div>
+  </div>
+  <p class="hint">Use a seleção abaixo para comparar hipóteses. Os pesos são <b>fixos e heurísticos</b>, não probabilidades calibradas; mudar regras após ver os resultados pode melhorar artificialmente o histórico.</p>
+  <div class="t24-checks" id="t24Checks">
+   <label><input type="checkbox" id="t24Second" checked> Subida do 2º → 1º</label>
+   <label><input type="checkbox" id="t24Others" checked> Grupos do 3º ao 5º</label>
+   <label><input type="checkbox" id="t24Doubles" checked> Grupos dobrados na mesma extração</label>
+   <label><input type="checkbox" id="t24Persist" checked> Presença nas últimas 4 extrações</label>
+   <label><input type="checkbox" id="t24Recent" checked> Frequência recente no 1º</label>
+  </div>
+  <div class="actions"><button id="t24Refresh" class="primary">Recalcular Teste 24</button><button id="t24Export">Exportar validação CSV</button></div>
+  <p class="hint">Pares consecutivos válidos: horários previstos do mesmo dia e 23h20 → 07h20 do dia seguinte. Não ligamos resultados com dias ou extrações faltantes. Para cada avaliação, só entram informações anteriores ao sorteio conferido.</p>
+ </div>
+ <div class="panel" style="border-color:#387a61">
+  <h2>🐾 Cinco grupos para a próxima LOOK ainda não cadastrada</h2>
+  <p class="muted" id="t24Latest">Aguardando dados da LOOK Goiás...</p>
+  <div id="t24Cards" class="grid"></div>
+  <p class="hint" id="t24Warning"></p>
+  <div class="scroll" id="t24Reason"></div>
+ </div>
+ <div class="grid">
+  <div class="card metric"><small>Transições avaliadas</small><strong id="t24N">—</strong><span class="small">após aquecimento</span></div>
+  <div class="card metric"><small>Acertos (5 grupos)</small><strong id="t24Hits">—</strong><span class="small">1º prêmio seguinte</span></div>
+  <div class="card metric"><small>Taxa observada</small><strong id="t24Rate">—</strong><span id="t24CI" class="small">intervalo de 95%: —</span></div>
+  <div class="card metric"><small>Referência uniforme</small><strong>20,0%</strong><span class="small">5 de 25 grupos</span></div>
+ </div>
+ <div class="panel">
+  <h2>⚖️ Comparação justa: Teste 24 × Radar 22</h2>
+  <p id="t24CompareText" class="muted">Aguardando avaliação.</p>
+  <div class="scroll" id="t24Compare"></div>
+  <p class="hint">Mesmo conjunto de transições, mesmo aquecimento e mesmos resultados; cada modelo recebe somente o histórico disponível até a extração de origem. Uma diferença positiva na amostra não é evidência suficiente de ganho futuro.</p>
+ </div>
+ <div class="panel">
+  <h2>🔬 Padrões observados, separados por regra</h2>
+  <p class="muted">Taxa de o <b>1º prêmio seguinte</b> estar entre os grupos indicados pela regra de origem. A referência por acaso é ajustada à quantidade de grupos elegíveis em cada linha (um grupo = 4%).</p>
+  <div class="scroll" id="t24Patterns"></div>
+ </div>
+ <div class="two">
+  <div class="panel"><h2>🔢 Paridade e centena do 1º prêmio</h2><div id="t24Digits"></div><p class="hint">Paridade e centena são observações descritivas; <b>não são convertidas automaticamente em porcentagem de acerto de grupo</b>.</p></div>
+  <div class="panel"><h2>📍 Distribuição por horário</h2><div class="scroll" id="t24ByTime"></div></div>
+ </div>
+ <div class="panel">
+  <h2>🧾 Validação de cada extração</h2>
+  <p class="hint">Mostra até 120 avaliações recentes; exporte o CSV para conferir todas. O histórico de cada linha foi calculado antes da extração sorteada.</p>
+  <div class="scroll" id="t24Table"></div>
+ </div>
+ <div class="panel"><h2>🛡️ O que o teste pode e não pode concluir</h2>
+  <p class="muted">O fato de o Elefante (G12) ter passado do 2º prêmio às 09h20 para o 1º às 11h20, de o Urso (G23) aparecer em quatro folhas ou de o dígito 4 ocupar a centena três vezes em quatro extrações <b>não comprova</b> que esses padrões se repetirão. Em sorteios uniformes independentes, cada grupo individual tem 4% de chance no 1º prêmio; a combinação de cinco grupos tem 20%. O painel separa coincidências reais de hipóteses e não mostra percentuais de previsão sem validação. A base usada pelo coletor tem atualmente <b>somente 1º ao 5º prêmio</b>; ocorrências no 6º e 7º prêmio, como o Urso mostrado na imagem, não entram no cálculo até esses prêmios serem cadastrados. As avaliações têm janelas sobrepostas e diversas regras testadas, portanto os intervalos de 95% são apenas descritivos.</p>
  </div>
 </section>
 
@@ -1006,7 +1070,7 @@ function lookActualTime(r){const raw=String((r&&r.horario_real)||((r&&r.time)||'
 function lookSlot(r){let t=lookActualTime(r);return t==='19:20'?'18:00':(/^\d{2}:20$/.test(t)?t.slice(0,2)+':00':t)}
 function lookAll(){let m=new Map();[lookSeed,lookPublic,lookSaved()].forEach(src=>src.forEach(r=>m.set(r.date+'|'+lookActualTime(r),r)));return [...m.values()].sort((a,b)=>a.date.localeCompare(b.date)||lookActualTime(a).localeCompare(lookActualTime(b)))}
 function lookValid(r){return r&&/^\d{4}-\d{2}-\d{2}$/.test(r.date)&&/^(07|09|11|14|16|18|19|21|23):(00|20)$/.test(String(r.time))&&Array.isArray(r.p)&&r.p.length>=5&&r.p.slice(0,5).every(n=>/^\d{1,4}$/.test(String(n)))}
-function lookSaveBatch(a){let m=new Map(lookSaved().map(r=>[r.date+'|'+lookActualTime(r),r]));a.forEach(r=>m.set(r.date+'|'+lookActualTime(r),r));try{localStorage.setItem(lookKey,JSON.stringify([...m.values()]));renderLook();renderFederalLook();renderLookTrail();renderLookGroups();renderLookHours();renderLookRadar();return true}catch(e){$('lookMessage').textContent='Erro ao salvar no navegador.';return false}}
+function lookSaveBatch(a){let m=new Map(lookSaved().map(r=>[r.date+'|'+lookActualTime(r),r]));a.forEach(r=>m.set(r.date+'|'+lookActualTime(r),r));try{localStorage.setItem(lookKey,JSON.stringify([...m.values()]));renderLook();renderFederalLook();renderLookTrail();renderLookGroups();renderLookHours();renderLookRadar();renderLookDyn();return true}catch(e){$('lookMessage').textContent='Erro ao salvar no navegador.';return false}}
 function renderLook(){let all=lookAll(),a=all.filter(r=>r.date>=$('lookStart').value&&r.date<=$('lookEnd').value&&($('lookFilter').value==='all'||lookSlot(r)===$('lookFilter').value||lookActualTime(r)===$('lookFilter').value));
  let counts={};a.forEach(r=>{let g=group(r.p[0]);counts[g]=(counts[g]||0)+1});let rank=Object.entries(counts).sort((x,y)=>y[1]-x[1]||Number(x[0])-Number(y[0]));
  $('lookN').textContent=a.length;$('lookDays').textContent=new Set(a.map(r=>r.date)).size;$('lookHeads').textContent=a.length;$('lookLeader').textContent=rank.length?'G'+pad(rank[0][0]):'—';
@@ -1019,7 +1083,7 @@ $('lookDate').value='2026-11-02';
 $('lookAdd').onclick=()=>{let r={date:$('lookDate').value,time:$('lookTime').value,p:[...document.querySelectorAll('.lookPrize')].map(x=>x.value.trim()),source:'Cadastro local'};if(!lookValid(r)){ $('lookMessage').textContent='Informe data, horário e cinco milhares válidas (0000 a 9999).';return}if(lookSaveBatch([r])){$('lookMessage').textContent='Resultado salvo na base LOOK.';document.querySelectorAll('.lookPrize').forEach(x=>x.value='')}};
 $('lookCsv').onchange=async e=>{let f=e.target.files[0];if(!f)return;let lines=(await f.text()).replace(/^\uFEFF/,'').trim().split(/\r?\n/),batch=[],bad=0;for(let line of lines){if(!line.trim()||/^data[,;]/i.test(line))continue;let v=line.split(/[;,]/).map(x=>x.trim().replace(/^"|"$/g,''));let r={date:v[0],time:v[1],p:v.slice(2,7),source:'CSV importado'};if(lookValid(r))batch.push(r);else bad++}if(batch.length&&lookSaveBatch(batch))$('lookMessage').textContent=batch.length+' linhas válidas importadas; '+bad+' ignoradas.';else $('lookMessage').textContent='Nenhuma linha válida. '+bad+' linha(s) ignorada(s).';e.target.value=''};
 $('lookExport').onclick=()=>{let csv='data,horario,p1,p2,p3,p4,p5\n'+lookAll().map(r=>[r.date,lookActualTime(r),...r.p.slice(0,5).map(n=>String(n).padStart(4,'0'))].join(',')).join('\n');let u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=u;a.download='look-goias-historico.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)};
-$('lookReset').onclick=()=>{if(confirm('Apagar somente os resultados LOOK adicionados neste navegador? Os resultados publicados em JSON e os resultados iniciais de 01/10 permanecem.')){localStorage.removeItem(lookKey);renderLook();renderFederalLook();renderLookTrail();renderLookGroups();renderLookHours();renderLookRadar();$('lookMessage').textContent='Dados adicionados apagados.'}};
+$('lookReset').onclick=()=>{if(confirm('Apagar somente os resultados LOOK adicionados neste navegador? Os resultados publicados em JSON e os resultados iniciais de 01/10 permanecem.')){localStorage.removeItem(lookKey);renderLook();renderFederalLook();renderLookTrail();renderLookGroups();renderLookHours();renderLookRadar();renderLookDyn();$('lookMessage').textContent='Dados adicionados apagados.'}};
 renderLook();
 async function loadPublicLookHistory(){
  try{
@@ -1040,7 +1104,7 @@ async function loadPublicLookHistory(){
   // Cada horário real possui sua própria chave; não descartar 19:20.
   const keys=new Set();
   lookPublic=valid.filter(r=>{const key=r.date+'|'+lookActualTime(r);if(keys.has(key))return false;keys.add(key);return true});
-  renderLook();renderFederalLook();renderLookTrail();renderLookGroups();renderLookHours();renderLookRadar();
+  renderLook();renderFederalLook();renderLookTrail();renderLookGroups();renderLookHours();renderLookRadar();renderLookDyn();
   $('lookMessage').textContent=lookPublic.length+' extrações LOOK carregadas do JSON publicado ('+(data.length-lookPublic.length)+' inválidas ou duplicadas).';
  }catch(err){
   $('lookMessage').textContent='Histórico JSON da LOOK indisponível. A base inicial e os registros locais continuam acessíveis. Para importar os dados agora, use o CSV abaixo.';
@@ -1365,6 +1429,128 @@ $('r22Export').onclick=()=>{
 };
 renderLookRadar();
 
+// TESTE 24: padrões dinâmicos, ranking fixo e validação no tempo.
+let t24Csv = [];
+const t24Names = [
+ ['up2','Subida do 2º para o 1º'],
+ ['up35','3º ao 5º para o 1º'],
+ ['double','Grupo dobrado na origem'],
+ ['persist','Presença nas últimas quatro'],
+ ['any','Qualquer grupo do 1º ao 5º anterior'],
+ ['repeat','Repetição do 1º prêmio']
+];
+function t24Opts(){return {
+ second:$('t24Second').checked,others:$('t24Others').checked,
+ doubles:$('t24Doubles').checked,persist:$('t24Persist').checked,recent:$('t24Recent').checked
+}}
+function t24Enabled(o){return Object.values(o).some(Boolean)}
+function t24Score(origin,past,opts){
+ const p=origin.p.slice(0,5).map(group),freq=Array(26).fill(0);
+ p.forEach(g=>freq[g]++);
+ const recent=past.slice(-20),counts=Array(26).fill(0);
+ recent.forEach(r=>counts[group(r.p[0])]++);
+ // Só contar persistência em uma sequência de extrações válidas, sem pular lacunas.
+ const chain=[origin];
+ for(let j=past.length-2;j>=0&&chain.length<4;j--){
+  if(!r22PairType(past[j],chain[0]))break;
+  chain.unshift(past[j]);
+ }
+ const persist=Array(26).fill(0);
+ chain.forEach(r=>new Set(r.p.slice(0,5).map(group)).forEach(g=>persist[g]++));
+ const rows=[];
+ for(let g=1;g<=25;g++){
+  let score=0;const reasons=[];
+  if(opts.second&&p[1]===g){score+=2.0;reasons.push('2º prêmio anterior')}
+  if(opts.others){const n=p.slice(2).filter(v=>v===g).length;if(n){score+=0.80*Math.min(2,n);reasons.push('3º ao 5º anterior: '+n+' vez(es)')}}
+  if(opts.doubles&&freq[g]>=2){score+=1.50;reasons.push('dobrou '+freq[g]+' vezes na origem')}
+  if(opts.persist&&persist[g]>=2){score+=0.65*Math.min(3,persist[g]-1);reasons.push('presente em '+persist[g]+'/'+chain.length+' últimas extrações consecutivas')}
+  if(opts.recent&&counts[g]){score+=Math.min(1.50,0.35*counts[g]);reasons.push('1º prêmio em '+counts[g]+'/'+recent.length+' resultados anteriores')}
+  rows.push({g,score,reasons});
+ }
+ return rows.sort((a,b)=>b.score-a.score||a.g-b.g);
+}
+function t24Signals(origin,past){
+ const p=origin.p.slice(0,5).map(group),freq=Array(26).fill(0);p.forEach(g=>freq[g]++);
+ const chain=[origin];
+ for(let j=past.length-2;j>=0&&chain.length<4;j--){if(!r22PairType(past[j],chain[0]))break;chain.unshift(past[j])}
+ const counts=Array(26).fill(0);
+ chain.forEach(r=>new Set(r.p.slice(0,5).map(group)).forEach(g=>counts[g]++));
+ return {
+  up2:[p[1]],up35:[...new Set(p.slice(2))],
+  double:Array.from({length:25},(_,i)=>i+1).filter(g=>freq[g]>=2),
+  persist:Array.from({length:25},(_,i)=>i+1).filter(g=>counts[g]>=3&&chain.length>=3),
+  any:[...new Set(p)],repeat:[p[0]]
+ };
+}
+function t24PeriodCutoff(latest,n){if(n==='all'||!latest)return '0000-00-00';const d=new Date(latest+'T12:00:00Z');d.setUTCDate(d.getUTCDate()-Number(n)+1);return d.toISOString().slice(0,10)}
+function t24Run(){
+ const all=lookAll().filter(lookValid).sort((a,b)=>a.date.localeCompare(b.date)||lookActualTime(a).localeCompare(lookActualTime(b)));
+ const latest=all.length?all.at(-1).date:'';
+ const cutoff=t24PeriodCutoff(latest,$('t24Period').value);
+ const warm=Number($('t24Warm').value),kind=$('t24Kind').value,opts=t24Opts();
+ const transitions=[],checks=[];let valid=0,skipped=0,pre=0;
+ for(let i=0;i<all.length-1;i++){
+  const origin=all[i],next=all[i+1],type=r22PairType(origin,next);
+  if(!type){skipped++;continue}
+  const seen=all.slice(0,i+1),scores=t24Score(origin,seen,opts),picks=t24Enabled(opts)?scores.slice(0,5):[];
+  const old=r22Score(origin,seen,transitions).slice(0,5);
+  const actual=group(next.p[0]),signals=t24Signals(origin,seen);
+  if(valid>=warm&&origin.date>=cutoff){checks.push({origin,next,type,actual,picks,old,signals,hit:picks.some(x=>x.g===actual),oldHit:old.some(x=>x.g===actual)})}
+  else if(origin.date>=cutoff)pre++;
+  transitions.push({origin,next,g:actual});valid++;
+ }
+ const tests=kind==='all'?checks:checks.filter(x=>x.type===kind);
+ const recent=all.at(-1),current=recent&&t24Enabled(opts)?t24Score(recent,all,opts).slice(0,5):[];
+ return {all,latest,cutoff,warm,kind,opts,tests,current,valid,skipped,pre};
+}
+function t24Pct(n,d){return d?(100*n/d).toFixed(1).replace('.',',')+'%':'—'}
+function t24Group(g){return 'G'+pad(g)+' — '+safe(animal(g))}
+function t24Val(signals,actual){const arr=signals||[];return arr.length?{count:arr.length,hit:arr.includes(actual)?1:0}:null}
+function renderLookDyn(){
+ const d=t24Run(),tests=d.tests,n=tests.length,h=tests.filter(x=>x.hit).length,oh=tests.filter(x=>x.oldHit).length;
+ const recent=d.all.at(-1),hour=recent?lookActualTime(recent):'';
+ const nextLabel=hour==='23:20'?'07h20 do dia seguinte (se cadastrada)':(r22PlannedNext[hour]||[]).map(x=>x.replace(':','h')).join(' ou ')||'próxima extração válida';
+ $('t24Latest').textContent=recent?'Histórico disponível até '+ltDateTime(recent)+' · 1º prêmio '+ltPad(recent.p[0])+' (G'+pad(group(recent.p[0]))+'). Seleção para '+nextLabel+' enquanto ainda não houver o resultado seguinte.':'Não há registros LOOK válidos. Importe a base histórica.';
+ $('t24Cards').innerHTML=d.current.length?d.current.map((x,i)=>'<div class="card metric"><small>'+(i+1)+'º grupo selecionado</small><strong style="color:var(--green)">G'+pad(x.g)+'</strong><span class="small">'+safe(animal(x.g))+' · pontuação '+x.score.toFixed(2).replace('.',',')+'</span></div>').join(''):'<div class="mutedbox">'+(t24Enabled(d.opts)?'Importe resultados LOOK para classificar os grupos.':'Ative ao menos uma regra para gerar a seleção.')+'</div>';
+ $('t24Reason').innerHTML=d.current.length?'<table><thead><tr><th>Grupo</th><th>Pontuação heurística</th><th>Por que foi classificado</th></tr></thead><tbody>'+d.current.map(x=>'<tr><td><b>'+t24Group(x.g)+'</b></td><td>'+x.score.toFixed(2).replace('.',',')+'</td><td>'+safe(x.reasons.join(' · ')||'Empate de pontuação; menor número primeiro')+'</td></tr>').join('')+'</tbody></table>':'';
+ $('t24Warning').textContent='Ranking experimental com pesos fixos; os grupos não têm probabilidades individuais estimadas. '+d.valid+' pares cronológicos válidos no histórico; '+d.skipped+' pares não consecutivos ignorados. '+(n?'A seleção foi avaliada em '+n+' casos após aquecimento de '+d.warm+'.':'A seleção exige mais transições válidas para validação.');
+ $('t24N').textContent=n;$('t24Hits').textContent=d.current.length?h+' / '+n:'—';$('t24Rate').textContent=d.current.length?t24Pct(h,n):'—';
+ const ci=d.current.length?r22Wilson(h,n):null;
+ $('t24CI').textContent=ci?'95% descritivo: '+r22Percent(ci[0])+' a '+r22Percent(ci[1]):'intervalo de 95%: —';
+ $('t24CompareText').textContent=(d.cutoff==='0000-00-00'?'Todo o histórico':d.cutoff+' a '+d.latest)+': '+n+' transições avaliadas com '+d.warm+' pares anteriores de aquecimento. '+(n?'As escolhas foram feitas antes do resultado seguinte.':'Aguarde mais dados ou reduza o aquecimento.')+' O Radar 22 é reavaliado nas mesmas linhas.';
+ const rows=[['Teste 24 — regras selecionadas',d.current.length?h:null,n,'20,0%'],['Radar 22 original',oh,n,'20,0%']];
+ $('t24Compare').innerHTML='<table><thead><tr><th>Modelo</th><th>Acertos</th><th>Taxa observada</th><th>Referência</th></tr></thead><tbody>'+rows.map(x=>'<tr><td><b>'+x[0]+'</b></td><td>'+(x[1]===null?'—':x[1]+' / '+x[2])+'</td><td>'+(x[1]===null?'—':t24Pct(x[1],x[2]))+'</td><td>'+x[3]+'</td></tr>').join('')+'</tbody></table>';
+ const metrics=t24Names.map(([key,label])=>{
+  let total=0,hits=0,expected=0,scopes=0;
+  tests.forEach(t=>{const v=t24Val(t.signals[key],t.actual);if(!v)return;total++;hits+=v.hit;expected+=v.count/25;scopes+=v.count});
+  return {key,label,total,hits,expected,scopes};
+ });
+ $('t24Patterns').innerHTML='<table><thead><tr><th>Regra</th><th>Casos elegíveis</th><th>Acertos no 1º seguinte</th><th>Taxa observada</th><th>Referência uniforme*</th></tr></thead><tbody>'+metrics.map(m=>'<tr><td>'+safe(m.label)+'</td><td>'+m.total+'</td><td>'+m.hits+'</td><td>'+t24Pct(m.hits,m.total)+'</td><td>'+t24Pct(m.expected,m.total)+'</td></tr>').join('')+'</tbody></table><p class="hint">*Referência: média de (grupos elegíveis / 25) nas mesmas origens; não confundir presença em cinco prêmios com acerto do 1º. O sinal de persistência só considera blocos consecutivos de até quatro resultados e exige presença em pelo menos três.</p>';
+ const lastDays=d.all.filter(r=>r.date>=d.cutoff),even=lastDays.filter(r=>Number(String(r.p[0]).slice(-1))%2===0).length;
+ const hun=Array(10).fill(0);lastDays.forEach(r=>hun[Number(ltPad(r.p[0])[1])]++);
+ const topHun=hun.indexOf(Math.max(...hun));
+ let oddOdd=0,evenAfter=0,centSame=0,centN=0;
+ tests.forEach(t=>{const oldParity=Number(ltPad(t.origin.p[0]).slice(-1))%2,newParity=Number(ltPad(t.next.p[0]).slice(-1))%2;
+  const k=d.all.findIndex(r=>r===t.origin);
+  if(oldParity===1&&k>0&&r22PairType(d.all[k-1],t.origin)&&Number(ltPad(d.all[k-1].p[0]).slice(-1))%2===1){oddOdd++;if(newParity===0)evenAfter++}
+  centN++;if(ltPad(t.origin.p[0])[1]===ltPad(t.next.p[0])[1])centSame++;
+ });
+ $('t24Digits').innerHTML=lastDays.length?'<p><b>'+lastDays.length+'</b> primeiros prêmios na janela; dezenas pares: <b>'+even+' ('+t24Pct(even,lastDays.length)+')</b>. Referência teórica: 50%.</p><p>Centena (2º algarismo da milhar) mais observada: <b>'+topHun+'</b> em '+hun[topHun]+'/'+lastDays.length+' resultados. Referência por algarismo: 10%.</p><p>Após <b>dois primeiros prêmios ímpares consecutivos</b>, o seguinte foi par em <b>'+evenAfter+'/'+oddOdd+'</b> casos ('+t24Pct(evenAfter,oddOdd)+'); referência: 50%.</p><p>A centena repetiu do primeiro prêmio de origem para o seguinte em <b>'+centSame+'/'+centN+'</b> pares ('+t24Pct(centSame,centN)+'); referência: 10%.</p>':'<div class="mutedbox">Sem dados para os indicadores.</div>';
+ const hours=[...new Set(tests.map(t=>lookActualTime(t.origin)))].sort();
+ $('t24ByTime').innerHTML=hours.length?'<table><thead><tr><th>Origem</th><th>Testes</th><th>Teste 24</th><th>Radar 22</th></tr></thead><tbody>'+hours.map(hour=>{const a=tests.filter(t=>lookActualTime(t.origin)===hour);return '<tr><td>'+safe(hour)+'</td><td>'+a.length+'</td><td>'+(d.current.length?t24Pct(a.filter(t=>t.hit).length,a.length):'—')+'</td><td>'+t24Pct(a.filter(t=>t.oldHit).length,a.length)+'</td></tr>'}).join('')+'</tbody></table>':'<div class="mutedbox">Ainda não há transições válidas nessa seleção.</div>';
+ $('t24Table').innerHTML=tests.length?'<table><thead><tr><th>Origem</th><th>Tipo</th><th>5 grupos Teste 24</th><th>5 grupos Radar 22</th><th>Resultado seguinte</th><th>1º prêmio / grupo</th><th>T24</th><th>T22</th></tr></thead><tbody>'+tests.slice().reverse().slice(0,120).map(t=>'<tr><td>'+safe(ltDateTime(t.origin))+'</td><td>'+(t.type==='overnight'?'Virada +1 dia':'Mesmo dia')+'</td><td>'+t.picks.map(x=>'G'+pad(x.g)).join(' · ')+'</td><td>'+t.old.map(x=>'G'+pad(x.g)).join(' · ')+'</td><td>'+safe(ltDateTime(t.next))+'</td><td>'+ltPad(t.next.p[0])+' · G'+pad(t.actual)+'</td><td>'+(t.picks.length?(t.hit?'<span class="tag">Sim</span>':'Não'):'—')+'</td><td>'+(t.oldHit?'<span class="tag">Sim</span>':'Não')+'</td></tr>').join('')+'</tbody></table>':'<div class="mutedbox">Nenhum par após o aquecimento neste período. Tente todo o histórico ou aquecimento 15.</div>';
+ t24Csv=tests.map(t=>[t.type==='overnight'?'VIRADA_23H20_07H20':'MESMO_DIA',t.origin.date,lookActualTime(t.origin),t.origin.p.slice(0,5).map(ltPad).join(' '),t.picks.map(x=>'G'+pad(x.g)).join(' '),t.old.map(x=>'G'+pad(x.g)).join(' '),t.next.date,lookActualTime(t.next),ltPad(t.next.p[0]),'G'+pad(t.actual),t.picks.length?(t.hit?'SIM':'NAO'):'SEM_REGRAS',t.oldHit?'SIM':'NAO']);
+}
+['t24Period','t24Warm','t24Kind','t24Second','t24Others','t24Doubles','t24Persist','t24Recent'].forEach(id=>$(id).onchange=renderLookDyn);
+$('t24Refresh').onclick=renderLookDyn;
+$('t24Export').onclick=()=>{
+ const headers=['tipo_transicao','origem_data','origem_hora','origem_primeiros_5','cinco_grupos_teste24','cinco_grupos_teste22','resultado_data','resultado_hora','milhar_1_premio','grupo_1_premio','acerto_teste24','acerto_teste22'];
+ const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+ const csv='\uFEFF'+headers.join(';')+'\r\n'+t24Csv.map(r=>r.map(q).join(';')).join('\r\n');
+ const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='teste24-padroes-dinamicos-validacao.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)
+};
+renderLookDyn();
+
 // TESTE 17 — Federal x LOOK: sem previsão, sem cruzar loterias na mesma base.
 // A falta do horário da Federal exclui a data inteira para garantir sequência temporal.
 let flExportRows=[];
@@ -1517,7 +1703,7 @@ setInterval(updateClock,1000);
 setInterval(()=>{if(Date.now()>=nextCheck){nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Nova janela de verificação iniciada. Para conferir os resultados publicados, use “Verificar fonte”.';}},1000);
 $('checkNow').onclick=()=>{nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Fonte oficial aberta para conferência. Após validar os resultados, cadastre-os ou importe o CSV.';window.open('https://lotece.com.br/','_blank','noopener');updateClock()};
 $('refreshPanel').onclick=()=>{render();nextCheck=Date.now()+CHECK_EVERY;$('syncStatus').textContent='Painel recalculado com os dados já cadastrados. Nenhum resultado externo foi baixado.';updateClock()};
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['dashboard','primeiro','transicoes','federal','chama7','look','looktrail','lookgroups','lookhours','lookradar','fedlook','pedras','base','ajuda'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab))});
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['dashboard','primeiro','transicoes','federal','chama7','look','looktrail','lookgroups','lookhours','lookradar','lookdyn','fedlook','pedras','base','ajuda'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab))});
 try{db=JSON.parse(localStorage.getItem('obicho-certo-lotece')||'[]')}catch(e){db=[]}
 async function loadPublicHistory(){
  try{

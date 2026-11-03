@@ -274,7 +274,7 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 <h3>Importar vários dias por CSV</h3><p class="hint">Formato: <b>data,horario,p1,p2,p3,p4,p5</b>, uma linha por horário. Exemplo: 2026-10-02,07:00,1234,2345,3456,4567,5678. Aceita também p6 a p10, mas a análise usa apenas os cinco primeiros. Importação substitui a mesma data e horário, sem duplicar.</p><input accept=".csv,text/csv" id="lookCsv" type="file"/><p class="hint">A importação é local. Aceita horários reais como 07:20 e 19:20. Confira as milhares antes de usar os dados.</p>
 </div></section><section id="laboratorio" class="hidden">
 <div class="section-lead"><span class="eyebrow">PESQUISA · NÃO É PREVISÃO</span><h2>Laboratório de análises</h2><p>Comparação dos Testes 24 e 24.1 com o Radar 22 e estudo independente da Federal × LOOK. Nenhuma regra é promovida automaticamente.</p></div>
-<div class="lab-nav"><button class="lab-link active" data-pane="lookdyn" id="labT24">🧩 Teste 24 / 24.1</button><button class="lab-link" data-pane="fedlook" id="labFed">🇧🇷 Federal × LOOK</button></div><section  id="lookdyn">
+<div class="lab-nav"><button class="lab-link active" data-pane="lookdyn" id="labT24">🧩 Teste 24 / 24.1</button><button class="lab-link" data-pane="labRadarAudit" id="labR221">🧪 Radar 22.1 · Auditoria</button><button class="lab-link" data-pane="fedlook" id="labFed">🇧🇷 Federal × LOOK</button></div><section  id="lookdyn">
 <div class="panel" style="border-color:#30896c">
 <h2>🧩 Teste 24 — Padrões Dinâmicos | LOOK Goiás</h2>
 <p class="muted">Estuda se grupos vistos nas posições anteriores <b>sobem para o 1º prêmio</b> da extração seguinte. Combina sinais de subida do 2º, presença do 3º ao 5º, dobradas e persistência. Compara <b>cinco grupos selecionados antes</b> de cada sorteio com os cinco grupos do Teste 22, sem modificar o Radar 22.</p>
@@ -346,7 +346,22 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 <div class="panel"><h2>🛡️ O que o teste pode e não pode concluir</h2>
 <p class="muted">O fato de o Elefante (G12) ter passado do 2º prêmio às 09h20 para o 1º às 11h20, de o Urso (G23) aparecer em quatro folhas ou de o dígito 4 ocupar a centena três vezes em quatro extrações <b>não comprova</b> que esses padrões se repetirão. Em sorteios uniformes independentes, cada grupo individual tem 4% de chance no 1º prêmio; a combinação de cinco grupos tem 20%. O painel separa coincidências reais de hipóteses e não mostra percentuais de previsão sem validação. A base usada pelo coletor tem atualmente <b>somente 1º ao 5º prêmio</b>; ocorrências no 6º e 7º prêmio, como o Urso mostrado na imagem, não entram no cálculo até esses prêmios serem cadastrados. As avaliações têm janelas sobrepostas e diversas regras testadas, portanto os intervalos de 95% são apenas descritivos.</p>
 </div>
-</section><section class="hidden" id="fedlook">
+</section><section class="hidden" id="labRadarAudit">
+<div class="panel" style="border-color:#238d78">
+<h2>🧪 Radar 22.1 — Auditoria de regras | LOOK Goiás</h2>
+<p class="muted">Compara o <b>Radar 22 original</b> com sete versões em que apenas uma regra de pontuação é desativada. Os mesmos cinco grupos são selecionados antes de cada extração, com aquecimento cronológico e resultados do 1º prêmio. <b>Não altera pesos, regras ou seleções do Radar 22 principal.</b></p>
+<div class="row" style="align-items:end"><div><label class="small">Parâmetros da auditoria</label><div class="small">Usa a janela, o aquecimento e o tipo de transição escolhidos na aba <b>Radar 22</b>.</div></div><button type="button" id="r221Recalc">↻ Recalcular auditoria</button><button type="button" class="secondary" id="r221Export">Exportar auditoria CSV</button></div>
+<p class="hint" id="r221Summary">Abra esta aba para calcular o comparativo usando o histórico atual.</p>
+<div class="grid four" id="r221Metrics"><div class="card metric"><small>Casos comparados</small><strong id="r221N">—</strong></div><div class="card metric"><small>Radar 22 original</small><strong id="r221Base">—</strong></div><div class="card metric"><small>Maior taxa no histórico</small><strong id="r221Best">—</strong></div><div class="card metric"><small>Acertos após escolher no trecho antigo</small><strong id="r221Holdout">—</strong></div></div>
+<h3>Comparação pareada — remover uma regra de cada vez</h3>
+<p class="hint">A alteração não recebe acesso aos resultados futuros. <b>Diferença positiva</b> significa mais acertos nesta amostra, não vantagem comprovada para os próximos sorteios.</p>
+<div class="scroll" id="r221Table"></div>
+<h3>Teste de robustez: 70% antigo → 30% recente</h3>
+<div id="r221Split" class="mutedbox">Aguardando cálculo.</div>
+<p class="hint">A divisão cronológica mostra se uma regra escolhida pelo desempenho antigo também teria funcionado no trecho mais recente. Como todos esses sorteios já são conhecidos hoje, <b>não equivale a uma comprovação prospectiva</b>. O teste mais forte será acompanhar resultados novos sem reajustar a regra.</p>
+<div id="r221Alerts" class="mutedbox"></div>
+</div>
+<section class="hidden" id="fedlook">
 <div class="panel" style="border-color:#39785d">
 <h2>🔍 Teste 17 — Federal × LOOK Goiás | Algarismos ausentes</h2>
 <p class="muted">Para cada Federal, analisa os <b>quatro últimos algarismos do 1º ao 5º prêmio</b> (20 posições), identifica os dígitos de <b>0 a 9 que não apareceram</b> e procura esses mesmos dígitos na <b>milhar do 1º prêmio da LOOK Goiás</b>, em qualquer horário posterior.</p>
@@ -1107,11 +1122,124 @@ visualObserver.observe(document.querySelector('main'),{childList:true,subtree:tr
 
 // Navegação única da LOOK, histórico e laboratório.
 document.querySelectorAll('nav .tab').forEach(b=>b.onclick=()=>visualSelectTab(b.dataset.tab));
+
+// Radar 22.1 — Auditoria separada, sem modificar o algoritmo original.
+function r221Score(origin,seen,transitions,omit){
+ const missing=ltMissing(origin),pastHeads=seen.slice(-40),hour=lookActualTime(origin);
+ const matching=transitions.filter(t=>lookActualTime(t.origin)===hour);
+ const freqHour=Array(26).fill(0),freqRecent=Array(26).fill(0);
+ matching.forEach(t=>freqHour[t.g]++);pastHeads.forEach(r=>freqRecent[group(r.p[0])]++);
+ const exact=new Set(),inverse=new Set();
+ origin.p.slice(0,5).forEach(p=>{
+  const num=ltPad(p);
+  for(let i=0;i<=2;i++){
+   const pair=num.slice(i,i+2);
+   exact.add(group(pair));inverse.add(group(pair.split('').reverse().join('')));
+  }
+ });
+ const currentGroup=group(origin.p[0]);
+ const plus7=(currentGroup+6)%25+1,minus7=(currentGroup+17)%25+1;
+ const scores=[];
+ for(let g=1;g<=25;g++){
+  const main=missing.filter(d=>lgMainGroups[Number(d)].includes(g));
+  const aux=missing.filter(d=>lgAuxGroups[Number(d)].includes(g));
+  const pairExact=exact.has(g),pairInverse=inverse.has(g),seven=g===plus7||g===minus7;
+  const sameHourWeight=0.45*Math.min(2,((freqHour[g]+1)/(matching.length+25))*25);
+  const recentWeight=0.30*Math.min(2,((freqRecent[g]+1)/(pastHeads.length+25))*25);
+  const score=(omit==='principal'?0:1.35)*Math.min(2,main.length)+(omit==='auxiliar'?0:1.25)*Math.min(2,aux.length)+(pairExact&&omit!=='direto'?0.80:0)+(pairInverse&&omit!=='invertido'?0.95:0)+(seven&&omit!=='sete'?0.40:0)+(omit==='horario'?0:sameHourWeight)+(omit==='recente'?0:recentWeight);
+  const reasons=[];
+  if(main.length)reasons.push('principal dos ausentes '+main.join(', '));
+  if(aux.length)reasons.push('auxiliar dos ausentes '+aux.join(', '));
+  if(pairExact)reasons.push('par direto em milhar atual');
+  if(pairInverse)reasons.push('par invertido em milhar atual');
+  if(seven)reasons.push('chama ±7');
+  reasons.push('histórico anterior: '+freqHour[g]+'/'+matching.length+' no mesmo horário de origem');
+  scores.push({g,score,reasons});
+ }
+ return scores.sort((a,b)=>b.score-a.score||a.g-b.g);
+}
+const r221Rules=[
+ ['principal','Principal dos algarismos ausentes'],
+ ['auxiliar','Auxiliar dos algarismos ausentes'],
+ ['direto','Pares diretos da milhar'],
+ ['invertido','Pares invertidos da milhar'],
+ ['sete','Chamada ±7'],
+ ['horario','Histórico por horário'],
+ ['recente','Frequência recente do 1º prêmio']
+];
+let r221ExportRows=[];
+let r221LastHeaders=[];
+const r221Rate=(h,n)=>n?r22Percent(h/n):'—';
+function renderR221(){
+ const d=r22Model(),all=d.all,kind=d.kind,cutoff=d.cutoff,warm=d.warm;
+ const seq=[];const rows=[];let ignored=0;
+ for(let i=0;i<all.length-1;i++){
+  const a=all[i],b=all[i+1],type=r22PairType(a,b);
+  if(!type){ignored++;continue}
+  if(seq.length>=warm&&a.date>=cutoff&&(kind==='all'||kind===type)){
+   const seen=all.slice(0,i+1),actual=group(b.p[0]);
+   const standard=r22Score(a,seen,seq).slice(0,5).map(q=>q.g);
+   const versions={};
+   for(const [key] of r221Rules)versions[key]=r221Score(a,seen,seq,key).slice(0,5).map(q=>q.g);
+   rows.push({a,b,type,actual,standard,hit:standard.includes(actual),versions});
+  }
+  seq.push({origin:a,next:b,g:group(b.p[0])});
+ }
+ const n=rows.length,cut=Math.floor(n*.7),base=rows.filter(r=>r.hit).length;
+ const stats=[{key:'original',label:'Radar 22 original'},...r221Rules.map(([key,label])=>({key,label:'Sem '+label.toLowerCase()}))].map(item=>{
+  const picks=r=>item.key==='original'?r.standard:r.versions[item.key];
+  const hit=r=>picks(r).includes(r.actual);
+  const h=rows.filter(hit).length;
+  const early=rows.slice(0,cut).filter(hit).length,late=rows.slice(cut).filter(hit).length;
+  const changed=rows.filter(r=>picks(r).join(' ')!==r.standard.join(' ')).length;
+  const gained=rows.filter(r=>hit(r)&&!r.hit).length;
+  const lost=rows.filter(r=>!hit(r)&&r.hit).length;
+  return {...item,n,h,early,late,changed,gained,lost,rate:n?100*h/n:0};
+ });
+ const baseline=stats[0];
+ // Fixed deterministic tie break: original first, then input order.
+ const selected=stats.slice().sort((a,b)=>b.early-a.early||Number(a.key!=='original')-Number(b.key!=='original'))[0];
+ const best=stats.slice().sort((a,b)=>b.h-a.h||Number(a.key!=='original')-Number(b.key!=='original'))[0];
+ $('r221N').textContent=String(n);
+ $('r221Base').textContent=n?base+' / '+n+' ('+r221Rate(base,n)+')':'—';
+ $('r221Best').textContent=n?r221Rate(best.h,n):'—';
+ $('r221Holdout').textContent=n?selected.late+' / '+(n-cut):'—';
+ $('r221Summary').textContent=n?'Período: '+(cutoff==='0000-00-00'?'todo o histórico':cutoff+' até '+d.latest)+'. '+n+' transições avaliadas; aquecimento '+warm+'; '+ignored+' pares não consecutivos ignorados. Todas as oito versões usam os mesmos resultados e cinco grupos por extração.':'Não há avaliações com os filtros atuais; reduza o aquecimento ou amplie o período na aba Radar 22.';
+ $('r221Table').innerHTML=n?'<table><thead><tr><th>Versão</th><th>Acertos</th><th>Taxa</th><th>Diferença vs original</th><th>Ganhou / perdeu</th><th>Seleções alteradas</th><th>70% inicial</th><th>30% final</th></tr></thead><tbody>'+stats.map(x=>{
+  const delta=x.h-baseline.h;
+  return '<tr><td><b>'+safe(x.label)+'</b></td><td>'+x.h+'/'+n+'</td><td>'+r221Rate(x.h,n)+'</td><td style="color:'+(delta>0?'#59e3a6':delta<0?'#ffc18b':'#b4cad9')+'">'+(delta>0?'+':'')+delta+' acerto(s)</td><td>+'+x.gained+' / −'+x.lost+'</td><td>'+x.changed+'</td><td>'+x.early+'/'+cut+' ('+r221Rate(x.early,cut)+')</td><td>'+x.late+'/'+(n-cut)+' ('+r221Rate(x.late,n-cut)+')</td></tr>';
+ }).join('')+'</tbody></table>':'<p>Sem casos suficientes para análise.</p>';
+ if(n){
+  const diff=selected.late-baseline.late;
+  $('r221Split').innerHTML='Escolhendo a maior taxa apenas nas <b>'+cut+' avaliações iniciais</b>, a regra escolhida seria <b>'+safe(selected.label)+'</b> ('+selected.early+'/'+cut+'). Nas <b>'+(n-cut)+' avaliações finais</b>, ela teria <b>'+selected.late+' acertos</b> contra <b>'+baseline.late+' do original</b> ('+(diff>0?'+':'')+diff+'). '+(diff<=0?'<b>Isso não justifica substituir o Radar 22.</b>':'A vantagem neste trecho retrospectivo ainda necessita confirmação com sorteios posteriores.');
+ }else $('r221Split').textContent='Aguardando resultados.';
+ const duplicates=[];
+ for(let i=1;i<all.length;i++){
+  const p=all[i-1],q=all[i];
+  if(p.date===q.date&&p.p.slice(0,5).map(ltPad).join(' ')==q.p.slice(0,5).map(ltPad).join(' ')&&lookActualTime(p)!==lookActualTime(q))duplicates.push(p.date+' '+lookActualTime(p)+' / '+lookActualTime(q));
+ }
+ $('r221Alerts').innerHTML='<b>Qualidade dos dados:</b> '+(duplicates.length?'há '+duplicates.length+' possível(is) duplicação(ões) de cinco milhares em horários diferentes: '+safe(duplicates.join('; '))+'. Conferir na fonte antes de corrigir.':'não foram detectadas repetições consecutivas das cinco milhares em horários diferentes.')+' As datas ausentes e os horários faltantes não são tratados como sorteios negativos.';
+ r221LastHeaders=['tipo','origem_data','origem_hora','resultado_data','resultado_hora','milhar_1_premio','grupo_real','cinco_grupos_radar22','acerto_original'];
+ for(const [key] of r221Rules)r221LastHeaders.push('sem_'+key+'_grupos','sem_'+key+'_acerto');
+ r221ExportRows=rows.map(r=>{
+  const arr=[r.type==='overnight'?'VIRADA':'MESMO_DIA',r.a.date,lookActualTime(r.a),r.b.date,lookActualTime(r.b),ltPad(r.b.p[0]),'G'+pad(r.actual),r.standard.map(g=>'G'+pad(g)).join(' '),r.hit?'SIM':'NAO'];
+  for(const [key] of r221Rules)arr.push(r.versions[key].map(g=>'G'+pad(g)).join(' '),r.versions[key].includes(r.actual)?'SIM':'NAO');
+  return arr;
+ });
+}
+$('r221Recalc').onclick=renderR221;
+$('r221Export').onclick=()=>{
+ if(!r221ExportRows.length){renderR221();if(!r221ExportRows.length)return}
+ const quoted=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+ const csv='\uFEFF'+r221LastHeaders.join(';')+'\r\n'+r221ExportRows.map(row=>row.map(quoted).join(';')).join('\r\n');
+ const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='radar22-1-auditoria-regras.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+
 function labIsVisible(){return !$('laboratorio').classList.contains('hidden')}
-function renderLabCurrent(){if($('labFed').classList.contains('active'))renderFederalLook();else renderLookDyn()}
+function renderLabCurrent(){if($('labR221').classList.contains('active'))renderR221();else if($('labFed').classList.contains('active'))renderFederalLook();else renderLookDyn()}
 function setLabPane(id){
  document.querySelectorAll('#laboratorio .lab-link').forEach(x=>x.classList.toggle('active',x.dataset.pane===id));
- ['lookdyn','fedlook'].forEach(x=>$(x).classList.toggle('hidden',x!==id));
+ ['lookdyn','labRadarAudit','fedlook'].forEach(x=>$(x).classList.toggle('hidden',x!==id));
  renderLabCurrent();
 }
 document.querySelectorAll('#laboratorio .lab-link').forEach(x=>x.addEventListener('click',()=>setLabPane(x.dataset.pane)));

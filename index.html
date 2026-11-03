@@ -348,9 +348,10 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
   <div class="row">
    <div><label class="small" for="r22Period">Janela da validação</label><select id="r22Period"><option value="30">Últimos 30 dias cadastrados</option><option value="7">Últimos 7 dias cadastrados</option><option value="all">Todo o histórico</option></select></div>
    <div><label class="small" for="r22Warm">Aquecimento mínimo anterior</label><select id="r22Warm"><option value="15">15 transições</option><option value="25" selected>25 transições</option><option value="50">50 transições</option></select></div>
+   <div><label class="small" for="r22Kind">Tipo de transição</label><select id="r22Kind"><option value="all">Todas as transições válidas</option><option value="same">Somente dentro do dia</option><option value="overnight">Somente 23h20 → 07h20 (+1 dia)</option></select></div>
   </div>
   <div class="actions" style="margin-top:12px"><button id="r22Refresh" class="primary">Recalcular radar</button><button id="r22Export">Exportar validação CSV</button></div>
-  <p class="hint"><b>Sem olhar o futuro:</b> a seleção de cada linha é calculada antes do resultado seguinte. A validação aceita somente horários consecutivos previstos do <b>mesmo dia</b>; transições com lacunas ou entre dias não contam como acerto ou erro. Pesos fixos e exploratórios, sem ajuste para maximizar os acertos passados.</p>
+  <p class="hint"><b>Sem olhar o futuro:</b> a seleção de cada linha é calculada antes do resultado seguinte. São aceitos horários consecutivos do mesmo dia e a <b>virada de 23h20 para 07h20 do dia calendário seguinte</b>, apenas se ambos estiverem cadastrados. Viradas com dias faltantes, horários ausentes ou outras lacunas são excluídas. Os filtros não alteram os pesos nem o aquecimento cronológico do modelo.</p>
  </div>
  <div class="panel" style="border-color:#326b55">
   <h2>🐾 Radar para a próxima LOOK ainda não cadastrada</h2>
@@ -370,6 +371,9 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
   <p id="r22Summary" class="muted">Aguarde o carregamento do histórico.</p>
   <div id="r22Compare"></div>
   <div class="scroll" id="r22ByHour"></div>
+  <h3>🌙 Virada de dia: 23h20 → 07h20</h3>
+  <p id="r22OvernightSummary" class="muted">Aguardando dados para verificar a virada.</p>
+  <div class="scroll" id="r22OvernightDetails"></div>
   <p class="hint">Uma taxa superior a 20% nesta amostra não prova vantagem. O intervalo de Wilson é apenas descritivo; há múltiplos padrões e horários examinados e os resultados reais podem diferir do modelo uniforme.</p>
  </div>
  <div class="panel"><h2>🧾 Conferência de cada seleção anterior</h2><p class="hint">Confira os cinco grupos selecionados <b>antes</b> de cada 1º prêmio realizado. Exibindo até 150 registros; o CSV contém todos.</p><div class="scroll" id="r22Checks"></div></div>
@@ -1245,7 +1249,22 @@ const r22PlannedNext={
  '14:20':['16:20'],'16:20':['18:20','19:20'],
  '18:20':['19:20','21:20'],'19:20':['21:20'],'21:20':['23:20']
 };
-function r22Adjacent(a,b){return !!(a&&b&&a.date===b.date&&(r22PlannedNext[lookActualTime(a)]||[]).includes(lookActualTime(b)))}
+function r22Tomorrow(date){
+ const d=new Date(date+'T12:00:00Z');
+ if(Number.isNaN(d.getTime()))return null;
+ d.setUTCDate(d.getUTCDate()+1);
+ return d.toISOString().slice(0,10);
+}
+// Sem pular datas nem usar resultados futuros: a única passagem entre dias
+// aceita é 23h20 -> 07h20 da data calendário imediatamente seguinte.
+function r22PairType(a,b){
+ if(!a||!b)return null;
+ const ah=lookActualTime(a),bh=lookActualTime(b);
+ if(a.date===b.date&&(r22PlannedNext[ah]||[]).includes(bh))return 'same';
+ if(ah==='23:20'&&bh==='07:20'&&b.date===r22Tomorrow(a.date))return 'overnight';
+ return null;
+}
+function r22Adjacent(a,b){return !!r22PairType(a,b)}
 function r22Wilson(h,n){
  if(!n)return null;
  const z=1.96,p=h/n,z2=z*z,den=1+z2/n,mean=(p+z2/(2*n))/den,span=z*Math.sqrt((p*(1-p)+z2/(4*n))/n)/den;
@@ -1288,30 +1307,33 @@ function r22Score(origin,seen,transitions){
 }
 function r22Model(){
  const all=lookAll().filter(lookValid).sort((a,b)=>a.date.localeCompare(b.date)||lookActualTime(a).localeCompare(lookActualTime(b)));
- const period=$('r22Period').value,warm=Number($('r22Warm').value);
+ const period=$('r22Period').value,warm=Number($('r22Warm').value),kind=$('r22Kind').value;
  const latest=all.length?all[all.length-1].date:'';
  const cutoff=period==='all'?'0000-00-00':(()=>{const d=new Date(latest+'T12:00:00Z');d.setUTCDate(d.getUTCDate()-(Number(period)-1));return d.toISOString().slice(0,10)})();
- const transitions=[];let skipped=0,seenWarm=0;const tests=[];
+ const transitions=[];let skipped=0,seenWarm=0;const allTests=[];
  for(let i=0;i<all.length-1;i++){
-  const origin=all[i],next=all[i+1];
-  if(!r22Adjacent(origin,next)){skipped++;continue}
-  // Tudo usado aqui já era conhecido ANTES da publicação do próximo resultado.
+  const origin=all[i],next=all[i+1],type=r22PairType(origin,next);
+  if(!type){skipped++;continue}
+  // A pontuação usa apenas resultados anteriores à próxima extração.
+  // O filtro de tipo é aplicado APÓS a simulação cronológica para que não
+  // altere o aquecimento ou a informação conhecida em cada instante.
   const picks=r22Score(origin,all.slice(0,i+1),transitions).slice(0,5);
   const actual=group(next.p[0]),hit=picks.some(x=>x.g===actual);
   if(transitions.length>=warm&&origin.date>=cutoff){
-   tests.push({origin,next,picks,actual,hit});
+   allTests.push({origin,next,picks,actual,hit,type});
   }else if(origin.date>=cutoff)seenWarm++;
   transitions.push({origin,next,g:actual});
  }
+ const tests=kind==='all'?allTests:allTests.filter(t=>t.type===kind);
  const current=all.length?r22Score(all.at(-1),all,transitions).slice(0,5):[];
- return {all,tests,current,skipped,seenWarm,validPairs:transitions.length,latest,cutoff,warm};
+ return {all,tests,allTests,current,skipped,seenWarm,validPairs:transitions.length,latest,cutoff,warm,kind};
 }
 function renderLookRadar(){
- const {all,tests,current,skipped,seenWarm,validPairs,cutoff,latest,warm}=r22Model();
+ const {all,tests,allTests,current,skipped,seenWarm,validPairs,cutoff,latest,warm,kind}=r22Model();
  const recent=all.at(-1);const n=tests.length,h=tests.filter(x=>x.hit).length;
  if(recent){
   const latestHour=lookActualTime(recent);
-  const nextDesc=latestHour==='23:20'?'próxima data de extração':(r22PlannedNext[latestHour]||[]).map(x=>x.slice(0,2)+'h'+x.slice(3)).join(' ou ')||'próxima LOOK';
+  const nextDesc=latestHour==='23:20'?'07h20 do dia seguinte, se houver extração':(r22PlannedNext[latestHour]||[]).map(x=>x.slice(0,2)+'h'+x.slice(3)).join(' ou ')||'próxima LOOK';
   $('r22Latest').innerHTML='Última LOOK cadastrada: <b>'+safe(ltDateTime(recent))+'</b> · 1º prêmio <b>'+safe(ltPad(recent.p[0]))+'</b> (G'+pad(group(recent.p[0]))+'). Seleção para a <b>'+safe(nextDesc)+'</b>, apenas enquanto o resultado seguinte ainda não estiver cadastrado.';
  }else $('r22Latest').textContent='Nenhum resultado LOOK cadastrado. Importe o histórico antes de usar o radar.';
  $('r22Cards').innerHTML=current.length?current.map((x,i)=>'<div class="card metric"><small>'+(i+1)+'º grupo classificado</small><strong style="color:var(--green)">G'+pad(x.g)+'</strong><span class="small">'+safe(animal(x.g))+' · pontuação '+x.score.toFixed(2).replace('.',',')+'</span></div>').join(''):'<div class="mutedbox">Aguardando resultados LOOK.</div>';
@@ -1320,18 +1342,23 @@ function renderLookRadar(){
  $('r22N').textContent=n;$('r22Hits').textContent=h+' / '+n;$('r22Rate').textContent=n?r22Percent(h/n):'—';
  const ci=r22Wilson(h,n);
  $('r22Confidence').textContent=ci?'95% descritivo: '+r22Percent(ci[0])+' a '+r22Percent(ci[1]):'intervalo de 95%: —';
- $('r22Summary').textContent='Validação de '+(cutoff==='0000-00-00'?'todo o histórico':cutoff+' a '+latest)+': '+n+' transições avaliadas após aquecimento de '+warm+' transições anteriores; '+seenWarm+' no aquecimento e '+skipped+' ligações entre dias ou com horários não consecutivos excluídas. '+(n?'Taxa observada '+r22Percent(h/n)+' versus referência uniforme de 20,0%.':'Amplie o histórico ou reduza o aquecimento para obter testes suficientes.')+' Não há treinamento com resultados futuros.';
+ const scope=kind==='overnight'?'somente viradas 23h20 → 07h20':kind==='same'?'somente horários consecutivos do mesmo dia':'horários consecutivos e viradas 23h20 → 07h20';
+ $('r22Summary').textContent='Validação de '+(cutoff==='0000-00-00'?'todo o histórico':cutoff+' a '+latest)+': '+n+' transições avaliadas ('+scope+') após aquecimento de '+warm+' transições válidas anteriores; '+seenWarm+' no aquecimento e '+skipped+' ligações incompletas ou não consecutivas excluídas. '+(n?'Taxa observada '+r22Percent(h/n)+' versus referência uniforme de 20,0%.':'Amplie o histórico ou reduza o aquecimento para obter testes suficientes.')+' As seleções usam somente resultados anteriores, sem ajuste de pesos.';
  $('r22Compare').innerHTML=n?'<p><b>Observado:</b> '+h+' de '+n+' ('+r22Percent(h/n)+') · <b>Acaso uniforme:</b> média de '+(n*0.2).toFixed(1).replace('.',',')+' acertos em '+n+' testes (20%).</p><div class="bar" style="height:14px"><i style="width:'+Math.max(0,Math.min(100,h/n*100))+'%"></i></div><p class="hint">A barra mostra a taxa observada (não a probabilidade futura).</p>':'';
  const hours=[...new Set(tests.map(t=>lookActualTime(t.origin)))].sort();
- $('r22ByHour').innerHTML=hours.length?'<h3>Validação por horário de origem</h3><table><thead><tr><th>Horário</th><th>Testes</th><th>Acertos</th><th>Taxa</th><th>Referência</th></tr></thead><tbody>'+hours.map(hour=>{const rows=tests.filter(x=>lookActualTime(x.origin)===hour),hh=rows.filter(x=>x.hit).length;return '<tr><td><b>'+safe(hour)+'</b></td><td>'+rows.length+'</td><td>'+hh+'</td><td>'+r22Percent(hh/rows.length)+'</td><td>20,0%</td></tr>'}).join('')+'</tbody></table>':'<div class="mutedbox">Sem transições suficientes para validar por horário.</div>';
+ $('r22ByHour').innerHTML=hours.length?'<h3>Validação por horário de origem</h3><table><thead><tr><th>Horário</th><th>Testes</th><th>Acertos</th><th>Taxa</th><th>Referência</th></tr></thead><tbody>'+hours.map(hour=>{const rows=tests.filter(x=>lookActualTime(x.origin)===hour),hh=rows.filter(x=>x.hit).length;return '<tr><td><b>'+safe(hour==='23:20'?'23:20 → 07:20 (+1 dia)':hour)+'</b></td><td>'+rows.length+'</td><td>'+hh+'</td><td>'+r22Percent(hh/rows.length)+'</td><td>20,0%</td></tr>'}).join('')+'</tbody></table>':'<div class="mutedbox">Sem transições suficientes para validar por horário.</div>';
+ const overnight=allTests.filter(x=>x.type==='overnight'),on=overnight.length,oh=overnight.filter(x=>x.hit).length;
+ const within=allTests.filter(x=>x.type==='same'),sn=within.length,sh=within.filter(x=>x.hit).length;
+ $('r22OvernightSummary').textContent='Após o aquecimento, na janela escolhida: '+oh+' acerto(s) em '+on+' virada(s) de dia ('+(on?r22Percent(oh/on):'sem amostra')+'). No mesmo dia: '+sh+' em '+sn+' ('+(sn?r22Percent(sh/sn):'sem amostra')+'). Referência uniforme: 20,0%. Apenas 23h20 → 07h20 da data imediatamente seguinte; não são incluídas datas faltantes.';
+ $('r22OvernightDetails').innerHTML=on?'<table><thead><tr><th>Origem às 23h20</th><th>5 grupos escolhidos antes</th><th>07h20 do dia seguinte</th><th>1º prêmio</th><th>Grupo</th><th>Acerto?</th></tr></thead><tbody>'+overnight.slice().reverse().slice(0,30).map(x=>'<tr><td>'+safe(ltDateTime(x.origin))+'</td><td>'+x.picks.map(y=>'G'+pad(y.g)).join(' · ')+'</td><td>'+safe(ltDateTime(x.next))+'</td><td>'+safe(ltPad(x.next.p[0]))+'</td><td>G'+pad(x.actual)+'</td><td>'+(x.hit?'<span class="tag">Sim</span>':'Não')+'</td></tr>').join('')+'</tbody></table>':'<div class="mutedbox">Nenhuma virada de dia completa nesta janela após o aquecimento. É preciso ter 23h20 e 07h20 de datas consecutivas no histórico.</div>';
  const reverse=tests.slice().reverse();
- $('r22Checks').innerHTML=n?'<table><thead><tr><th>Origem</th><th>5 grupos selecionados antes</th><th>Extração seguinte</th><th>1º prêmio</th><th>Grupo</th><th>Acertou?</th></tr></thead><tbody>'+reverse.slice(0,150).map(x=>'<tr><td>'+safe(ltDateTime(x.origin))+'</td><td>'+x.picks.map(y=>'G'+pad(y.g)).join(' · ')+'</td><td>'+safe(ltDateTime(x.next))+'</td><td>'+safe(ltPad(x.next.p[0]))+'</td><td>G'+pad(x.actual)+'</td><td>'+(x.hit?'<span class="tag">Sim</span>':'Não')+'</td></tr>').join('')+'</tbody></table>':'<div class="mutedbox">Ainda não há testes após o aquecimento. Aguarde mais resultados ou use 15 transições no filtro.</div>';
- r22Csv=tests.map(x=>[x.origin.date,lookActualTime(x.origin),x.origin.p.map(ltPad).join(' '),x.picks.map(y=>'G'+pad(y.g)).join(' '),x.next.date,lookActualTime(x.next),ltPad(x.next.p[0]),'G'+pad(x.actual),x.hit?'SIM':'NAO']);
+ $('r22Checks').innerHTML=n?'<table><thead><tr><th>Origem</th><th>Tipo</th><th>5 grupos selecionados antes</th><th>Extração seguinte</th><th>1º prêmio</th><th>Grupo</th><th>Acertou?</th></tr></thead><tbody>'+reverse.slice(0,150).map(x=>'<tr><td>'+safe(ltDateTime(x.origin))+'</td><td>'+(x.type==='overnight'?'Virada +1 dia':'Mesmo dia')+'</td><td>'+x.picks.map(y=>'G'+pad(y.g)).join(' · ')+'</td><td>'+safe(ltDateTime(x.next))+'</td><td>'+safe(ltPad(x.next.p[0]))+'</td><td>G'+pad(x.actual)+'</td><td>'+(x.hit?'<span class="tag">Sim</span>':'Não')+'</td></tr>').join('')+'</tbody></table>':'<div class="mutedbox">Ainda não há testes após o aquecimento. Aguarde mais resultados ou use 15 transições no filtro.</div>';
+ r22Csv=tests.map(x=>[x.type==='overnight'?'VIRADA_23H20_07H20':'MESMO_DIA',x.origin.date,lookActualTime(x.origin),x.origin.p.map(ltPad).join(' '),x.picks.map(y=>'G'+pad(y.g)).join(' '),x.next.date,lookActualTime(x.next),ltPad(x.next.p[0]),'G'+pad(x.actual),x.hit?'SIM':'NAO']);
 }
-['r22Period','r22Warm'].forEach(id=>$(id).onchange=renderLookRadar);
+['r22Period','r22Warm','r22Kind'].forEach(id=>$(id).onchange=renderLookRadar);
 $('r22Refresh').onclick=()=>{renderLookRadar()};
 $('r22Export').onclick=()=>{
- const headers=['origem_data','origem_hora','origem_premios_1_a_5','cinco_grupos_escolhidos_antes','resultado_data','resultado_hora','milhar_primeiro','grupo_primeiro','acertou'];
+ const headers=['tipo_transicao','origem_data','origem_hora','origem_premios_1_a_5','cinco_grupos_escolhidos_antes','resultado_data','resultado_hora','milhar_primeiro','grupo_primeiro','acertou'];
  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
  const csv='\uFEFF'+headers.join(';')+'\r\n'+r22Csv.map(r=>r.map(q).join(';')).join('\r\n');
  const u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=u;a.download='teste22-radar-validacao-look.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);

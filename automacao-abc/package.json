@@ -1,0 +1,13 @@
+
+{
+  "name": "o-bicho-certo-automacao-abc",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monitoramento prospectivo dos radares A, B e C",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node worker.js"
+  }
+}

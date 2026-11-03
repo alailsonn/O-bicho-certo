@@ -188,6 +188,22 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 #visual .visual-art img{object-position:center center}
 @media(max-width:820px){.quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}nav{position:static}nav .tab{min-width:130px}header .focus-pill{display:none}}
 @media(max-width:540px){.fed-inputs{grid-template-columns:repeat(2,minmax(0,1fr))}.section-lead{padding:18px}.quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}nav .tab{flex:1 1 44%;font-size:12px}nav .tab:last-child{flex:1 1 100%}}
+
+/* Três radares em paralelo: placar PROSPECTIVO, separado dos backtests. */
+.live-hero{border-color:#208f79;background:linear-gradient(115deg,#11263a,#10263a 66%,#11372e)}
+.live-hero h2{margin:0 0 8px}.live-hero .hint{margin-top:10px}
+.live-forecast-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0}
+.live-forecast{border:1px solid #34526a;border-radius:13px;padding:15px;background:linear-gradient(140deg,#102638,#132d3f);min-width:0}
+.live-forecast:nth-child(1){border-color:#2bc68e}.live-forecast:nth-child(2){border-color:#44a5ee}.live-forecast:nth-child(3){border-color:#d9a366}
+.live-forecast h3{margin:0 0 6px;font-size:17px}.live-forecast p{font-size:12px;color:#b2c9dc;margin:4px 0 9px}
+.live-picks{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.live-pick{border-radius:8px;padding:6px 7px;border:1px solid #37566e;background:#102234;font-weight:700;font-size:13px}
+.live-tag{display:inline-block;border-radius:50px;border:1px solid #467a74;background:#0e3931;color:#88f2c8;padding:4px 10px;font-size:12px}
+.live-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin:15px 0}
+.live-summary .mini-stat{min-width:0}.live-summary strong{font-variant-numeric:tabular-nums}
+.live-status{padding:12px;border-radius:10px;background:#0d2434;border:1px solid #275064;line-height:1.6;font-size:13px}
+.live-status strong{color:#91f7c8}.live-muted{color:#a9c3d6;font-size:12px}
+.live-table-wrap{overflow-x:auto}.live-table-wrap table{min-width:670px}
+@media(max-width:780px){.live-forecast-grid{grid-template-columns:1fr}.live-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style></head><body><header><div class="brand"><div class="logo">🐾</div><div><h1>O BICHO <span style="color:#2ff5a2">CERTO</span></h1><p>Radar estatístico da LOOK Goiás · Painel 3D</p></div><div class="focus-pill">FOCO EXCLUSIVO · LOOK GOIÁS</div></div></header><main><div class="notice">📊 <strong>Estatística, não previsão:</strong> os resultados anteriores não garantem acertos futuros. <b>5 grupos entre 25 = 20%</b> de cobertura teórica, em sorteios equiprováveis.</div><nav aria-label="Áreas do O Bicho Certo">
 <button class="tab active" data-tab="visual">🐾 Painel 3D</button>
 <button class="tab" data-tab="radar">🎯 Radar 22</button>
@@ -273,8 +289,8 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 <div class="actions" style="margin-top:12px"><button class="primary" id="lookAdd">Salvar resultado LOOK</button><button id="lookExport">Exportar LOOK CSV</button><button id="lookReset">Limpar resultados adicionados</button></div><p class="hint" id="lookMessage"></p>
 <h3>Importar vários dias por CSV</h3><p class="hint">Formato: <b>data,horario,p1,p2,p3,p4,p5</b>, uma linha por horário. Exemplo: 2026-10-02,07:00,1234,2345,3456,4567,5678. Aceita também p6 a p10, mas a análise usa apenas os cinco primeiros. Importação substitui a mesma data e horário, sem duplicar.</p><input accept=".csv,text/csv" id="lookCsv" type="file"/><p class="hint">A importação é local. Aceita horários reais como 07:20 e 19:20. Confira as milhares antes de usar os dados.</p>
 </div></section><section id="laboratorio" class="hidden">
-<div class="section-lead"><span class="eyebrow">PESQUISA · NÃO É PREVISÃO</span><h2>Laboratório de análises</h2><p>Comparação dos Testes 24 e 24.1 com o Radar 22 e estudo independente da Federal × LOOK. Nenhuma regra é promovida automaticamente.</p></div>
-<div class="lab-nav"><button class="lab-link active" data-pane="lookdyn" id="labT24">🧩 Teste 24 / 24.1</button><button class="lab-link" data-pane="labRadarAudit" id="labR221">🧪 Radar 22.1 · Auditoria</button><button class="lab-link" data-pane="fedlook" id="labFed">🇧🇷 Federal × LOOK</button></div><section  id="lookdyn">
+<div class="section-lead"><span class="eyebrow">PESQUISA · NÃO É PREVISÃO</span><h2>Laboratório de análises</h2><p>Testes 24/24.1, auditoria 22.1, acompanhamento prospectivo dos radares A/B/C e estudo Federal × LOOK. Nenhuma regra é promovida automaticamente.</p></div>
+<div class="lab-nav"><button class="lab-link active" data-pane="lookdyn" id="labT24">🧩 Teste 24 / 24.1</button><button class="lab-link" data-pane="labRadarAudit" id="labR221">🧪 Radar 22.1 · Auditoria</button><button class="lab-link" data-pane="labRadarLive" id="labLive">📡 3 Radares · Próximas 100</button><button class="lab-link" data-pane="fedlook" id="labFed">🇧🇷 Federal × LOOK</button></div><section  id="lookdyn">
 <div class="panel" style="border-color:#30896c">
 <h2>🧩 Teste 24 — Padrões Dinâmicos | LOOK Goiás</h2>
 <p class="muted">Estuda se grupos vistos nas posições anteriores <b>sobem para o 1º prêmio</b> da extração seguinte. Combina sinais de subida do 2º, presença do 3º ao 5º, dobradas e persistência. Compara <b>cinco grupos selecionados antes</b> de cada sorteio com os cinco grupos do Teste 22, sem modificar o Radar 22.</p>
@@ -361,6 +377,7 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 <p class="hint">A divisão cronológica mostra se uma regra escolhida pelo desempenho antigo também teria funcionado no trecho mais recente. Como todos esses sorteios já são conhecidos hoje, <b>não equivale a uma comprovação prospectiva</b>. O teste mais forte será acompanhar resultados novos sem reajustar a regra.</p>
 <div id="r221Alerts" class="mutedbox"></div>
 </div>
+</section>
 <section class="hidden" id="fedlook">
 <div class="panel" style="border-color:#39785d">
 <h2>🔍 Teste 17 — Federal × LOOK Goiás | Algarismos ausentes</h2>
@@ -399,7 +416,40 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 <div class="panel"><h2>📊 Comparação com coincidências esperadas por acaso</h2><div id="flStats"></div></div>
 <div class="panel"><h2>📋 Conferência extração por extração</h2><div class="scroll" id="flChecks"></div></div>
 <div class="panel"><p class="hint">*Referência matemática sob hipótese simplificada de algarismos uniformes e sorteios independentes: para <i>m</i> dígitos ausentes, a chance de ao menos um aparecer numa milhar é 1 − (1 − m/10)⁴. Em <i>n</i> milhares, a chance de aparecer ao menos uma vez é 1 − (1 − m/10)⁽⁴ⁿ⁾. Coincidências frequentes não demonstram que a Federal influencia a LOOK. O teste é retrospectivo, pode ter amostra pequena e não indica apostas.</p></div>
-</section></section><section id="config" class="hidden"><div class="section-lead"><span class="eyebrow">CONFIGURAÇÕES</span><h2>LOOK Goiás · Fontes e dados</h2><p>O coletor da LOOK permanece independente. Atualização da página a cada 15 minutos; a coleta automática depende da rotina configurada no GitHub.</p></div>
+</section>
+<section id="labRadarLive" class="hidden">
+ <div class="panel live-hero">
+  <h2>📡 Três radares em paralelo — 100 próximas transições</h2>
+  <p>Teste <b>prospectivo</b> com regras congeladas: <b>A</b> = Radar 22 original, <b>B</b> = sem histórico por horário, <b>C</b> = sem chamada ±7. Cada versão registra <b>exatamente 5 grupos antes da extração</b>. Os casos passados da auditoria <b>não entram</b> neste placar.</p>
+  <div class="live-summary">
+   <div class="mini-stat"><span>Previsões conferidas</span><strong id="liveCount">0 / 100</strong></div>
+   <div class="mini-stat"><span>Radar A · original</span><strong id="liveA">—</strong></div>
+   <div class="mini-stat"><span>Radar B · sem horário</span><strong id="liveB">—</strong></div>
+   <div class="mini-stat"><span>Radar C · sem ±7</span><strong id="liveC">—</strong></div>
+  </div>
+  <div id="liveStatus" class="live-status" aria-live="polite">Aguardando carregamento dos resultados.</div>
+  <p class="hint">A taxa teórica de referência é <b>20% por radar</b> (5 grupos em 25). Diferenças observadas só serão interpretadas após novos resultados; a amostra de 100 ainda pode apresentar oscilações ao acaso. Este acompanhamento não altera os pesos do Radar 22.</p>
+ </div>
+ <div class="panel">
+  <h2>🎯 Próxima seleção registrada antes do sorteio</h2>
+  <p class="muted" id="liveOrigin">Aguardando dados...</p>
+  <div id="liveCards" class="live-forecast-grid"></div>
+  <div class="actions">
+   <button id="liveRefresh" class="primary" type="button">↻ Conferir novos resultados</button>
+   <button id="liveExport" type="button">Exportar acompanhamento CSV</button>
+   <button id="liveBackup" type="button">Salvar backup JSON</button>
+   <label for="liveRestore" style="display:inline-flex;align-items:center;gap:8px;border:1px solid #365672;padding:9px 12px;border-radius:9px;cursor:pointer">Restaurar backup <input type="file" id="liveRestore" accept=".json,application/json" style="display:none"></label>
+  </div>
+  <p class="hint">As seleções são gravadas no armazenamento <b>deste navegador</b> quando o site recebe o resultado anterior e ainda há tempo para a próxima extração. Para não perder registros, mantenha o site aberto e a coleta ativa; com a página fechada não há captura automática garantida. Faça backups para mudar de aparelho. Um sorteio sem seleção registrada antes do horário <b>não será contabilizado</b>.</p>
+ </div>
+ <div class="panel">
+  <h2>📋 Conferência das extrações novas</h2>
+  <p class="muted">Os três radares competem no <b>mesmo conjunto de extrações</b>. Uma previsão é registrada uma vez e não é reescrita após a publicação do próximo 1º prêmio. Lacunas e dados alterados são sinalizados em vez de virarem acertos retroativos.</p>
+  <div id="liveResults" class="live-table-wrap"></div>
+  <p class="hint" id="liveDetails">Este placar começa em zero no navegador em que for ativado. Os 204 testes históricos pertencem à auditoria retrospectiva, e não contam aqui.</p>
+ </div>
+</section>
+</section><section id="config" class="hidden"><div class="section-lead"><span class="eyebrow">CONFIGURAÇÕES</span><h2>LOOK Goiás · Fontes e dados</h2><p>O coletor da LOOK permanece independente. Atualização da página a cada 15 minutos; a coleta automática depende da rotina configurada no GitHub.</p></div>
 <div class="two"><article class="panel"><h2>📂 Base LOOK Goiás</h2><p>O histórico é lido de <code>data/look/results.json</code> e pode ser complementado por dados locais ou CSV.</p><div class="settings-actions"><button class="primary" id="configRefresh">↻ Atualizar histórico LOOK</button><button id="configOpenImport">Cadastrar / importar LOOK</button></div><p class="hint">O botão de atualização consulta o JSON publicado; não executa o coletor do servidor.</p></article>
 <article class="panel"><h2>⚖️ Uso responsável</h2><p>O Radar 22 é o modelo de referência porque apresentou desempenho ligeiramente superior ao Teste 24 no histórico comparado. <b>Nenhum modelo demonstrou superar o acaso.</b></p><p>Escolher cinco entre 25 grupos representa 20% de cobertura teórica sob equiprobabilidade. As pontuações são heurísticas, não chances individuais.</p></article></div>
 <article class="panel"><h2>🇧🇷 Cadastrar Federal para o laboratório</h2><p>A Federal é mantida somente para testar hipóteses de algarismos ausentes contra a LOOK. Não altera o Radar 22.</p><div class="row"><label>Data da Federal <input type="date" id="configFedDate" value="2026-11-01"></label></div>
@@ -473,7 +523,7 @@ function lookActualTime(r){const raw=String((r&&r.horario_real)||((r&&r.time)||'
 function lookSlot(r){let t=lookActualTime(r);return t==='19:20'?'18:00':(/^\d{2}:20$/.test(t)?t.slice(0,2)+':00':t)}
 function lookAll(){let m=new Map();[lookSeed,lookPublic,lookSaved()].forEach(src=>src.forEach(r=>m.set(r.date+'|'+lookActualTime(r),r)));return [...m.values()].sort((a,b)=>a.date.localeCompare(b.date)||lookActualTime(a).localeCompare(lookActualTime(b)))}
 function lookValid(r){return r&&/^\d{4}-\d{2}-\d{2}$/.test(r.date)&&/^(07|09|11|14|16|18|19|21|23):(00|20)$/.test(String(r.time))&&Array.isArray(r.p)&&r.p.length>=5&&r.p.slice(0,5).every(n=>/^\d{1,4}$/.test(String(n)))}
-function lookSaveBatch(a){let m=new Map(lookSaved().map(r=>[r.date+'|'+lookActualTime(r),r]));a.forEach(r=>m.set(r.date+'|'+lookActualTime(r),r));try{localStorage.setItem(lookKey,JSON.stringify([...m.values()]));renderLook();renderLookRadar();if(labIsVisible())renderLabCurrent();renderVisual();renderHistorySummary();return true}catch(e){$('lookMessage').textContent='Erro ao salvar no navegador.';return false}}
+function lookSaveBatch(a){let m=new Map(lookSaved().map(r=>[r.date+'|'+lookActualTime(r),r]));a.forEach(r=>m.set(r.date+'|'+lookActualTime(r),r));try{localStorage.setItem(lookKey,JSON.stringify([...m.values()]));if(typeof liveUpdate==='function')liveUpdate();renderLook();renderLookRadar();if(labIsVisible())renderLabCurrent();renderVisual();renderHistorySummary();return true}catch(e){$('lookMessage').textContent='Erro ao salvar no navegador.';return false}}
 function renderLook(){let all=lookAll(),a=all.filter(r=>r.date>=$('lookStart').value&&r.date<=$('lookEnd').value&&($('lookFilter').value==='all'||lookSlot(r)===$('lookFilter').value||lookActualTime(r)===$('lookFilter').value));
  let counts={};a.forEach(r=>{let g=group(r.p[0]);counts[g]=(counts[g]||0)+1});let rank=Object.entries(counts).sort((x,y)=>y[1]-x[1]||Number(x[0])-Number(y[0]));
  $('lookN').textContent=a.length;$('lookDays').textContent=new Set(a.map(r=>r.date)).size;$('lookHeads').textContent=a.length;$('lookLeader').textContent=rank.length?'G'+pad(rank[0][0]):'—';
@@ -507,6 +557,7 @@ async function loadPublicLookHistory(){
   // Cada horário real possui sua própria chave; não descartar 19:20.
   const keys=new Set();
   lookPublic=valid.filter(r=>{const key=r.date+'|'+lookActualTime(r);if(keys.has(key))return false;keys.add(key);return true});
+  if(typeof liveUpdate==='function')liveUpdate();
   renderLook();renderLookRadar();if(labIsVisible())renderLabCurrent();renderVisual();renderHistorySummary();
   $('lookMessage').textContent=lookPublic.length+' extrações LOOK carregadas do JSON publicado ('+(data.length-lookPublic.length)+' inválidas ou duplicadas).';
   renderVisual();renderHistorySummary();
@@ -1235,11 +1286,145 @@ $('r221Export').onclick=()=>{
  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='radar22-1-auditoria-regras.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 
+
+// Monitor prospectivo A/B/C: nenhuma avaliação passada pode entrar no placar de 100.
+// Sem servidor: o armazenamento é local e não substitui monitoramento contínuo no backend.
+const liveKey='obicho-certo-radar-a-b-c-100-v1';
+const liveModelDefs=[
+ {id:'A',label:'Radar A · Original',desc:'Pesos fixos do Radar 22, sem alterações',omit:null},
+ {id:'B',label:'Radar B · Sem histórico por horário',desc:'Retirada somente do peso por horário',omit:'horario'},
+ {id:'C',label:'Radar C · Sem chamada ±7',desc:'Retirada somente da chamada ±7',omit:'sete'}
+];
+let liveWarning='';
+function liveRead(){
+ try{
+  const v=JSON.parse(localStorage.getItem(liveKey)||'null');
+  if(v&&v.version===1&&Array.isArray(v.records))return v;
+ }catch(e){liveWarning='O navegador não permitiu ler o armazenamento local.'}
+ return {version:1,limit:100,records:[]};
+}
+function liveWrite(v){
+ try{localStorage.setItem(liveKey,JSON.stringify(v));return true}
+ catch(e){liveWarning='Não foi possível salvar o acompanhamento neste navegador. Confira as permissões ou o espaço de armazenamento.';return false}
+}
+function liveDrawId(r){return r.date+'|'+lookActualTime(r)+'|'+r.p.slice(0,5).map(ltPad).join('-')}
+function liveAllRows(){return lookAll().filter(lookValid).sort((a,b)=>a.date.localeCompare(b.date)||lookActualTime(a).localeCompare(lookActualTime(b)))}
+function liveFirstPossibleNext(r){
+ const time=lookActualTime(r);
+ if(time==='23:20')return {date:r22Tomorrow(r.date),time:'07:20'};
+ const options=r22PlannedNext[time]||[];
+ if(!options.length)return null;
+ return {date:r.date,time:options.slice().sort()[0]};
+}
+function liveCanLock(r){
+ const next=liveFirstPossibleNext(r);
+ if(!next)return {ok:false,msg:'O próximo horário ainda não pode ser determinado.'};
+ // A LOOK Goiás segue o fuso de Brasília, UTC−03:00, em 2026.
+ const deadline=new Date(next.date+'T'+next.time+':00-03:00').getTime();
+ if(!Number.isFinite(deadline))return {ok:false,msg:'Horário da próxima extração inválido.'};
+ if(Date.now()>=deadline)return {ok:false,msg:'O horário mais cedo da próxima extração já passou. Não é permitido registrar uma escolha com atraso.'};
+ return {ok:true,next};
+}
+function liveComputePicks(all){
+ const origin=all.at(-1),transitions=[];
+ for(let i=0;i<all.length-1;i++)if(r22PairType(all[i],all[i+1]))transitions.push({origin:all[i],next:all[i+1],g:group(all[i+1].p[0])});
+ return {
+  A:r22Score(origin,all,transitions).slice(0,5).map(x=>x.g),
+  B:r221Score(origin,all,transitions,'horario').slice(0,5).map(x=>x.g),
+  C:r221Score(origin,all,transitions,'sete').slice(0,5).map(x=>x.g)
+ };
+}
+function liveUpdate(){
+ const data=liveRead(),all=liveAllRows();
+ if(!all.length){renderLive();return}
+ const saved=data.records;let modified=false;
+ const settled=()=>saved.filter(x=>x.status==='done').length;
+ // Conferir apenas entradas que já estavam gravadas em execução anterior.
+ for(const rec of saved){
+  if(rec.status!=='pending')continue;
+  const i=all.findIndex(x=>liveDrawId(x)===rec.originId);
+  if(i<0){
+   // Se a origem foi corrigida, não aproveitar o resultado para outra origem.
+   if(all.some(x=>x.date>rec.originDate||(x.date===rec.originDate&&lookActualTime(x)>=rec.originTime))){rec.status='invalid';rec.note='Registro de origem alterado ou removido';modified=true}
+   continue;
+  }
+  if(i>=all.length-1)continue;
+  const target=all[i+1],type=r22PairType(all[i],target);
+  if(!type){rec.status='invalid';rec.note='Próxima extração não consecutiva ou lacuna no histórico';modified=true;continue}
+  const g=group(target.p[0]);
+  rec.status='done';rec.type=type;rec.targetId=liveDrawId(target);rec.targetDate=target.date;rec.targetTime=lookActualTime(target);
+  rec.prize=ltPad(target.p[0]);rec.actual=g;rec.hits={};
+  for(const key of ['A','B','C'])rec.hits[key]=rec.picks[key].includes(g);
+  rec.checkedAt=new Date().toISOString();modified=true;
+ }
+ // A primeira seleção é pré-registrada, nunca reconstruída a partir do sorteio já conhecido.
+ // No máximo 100 casos CONCLUÍDOS; previsão pendente não ocupa indevidamente um caso.
+ if(settled()<data.limit&&!saved.some(x=>x.status==='pending')&&all.length>=26){
+  const origin=all.at(-1),originId=liveDrawId(origin),can=liveCanLock(origin);
+  if(can.ok&&!saved.some(x=>x.originId===originId)){
+   const picks=liveComputePicks(all);
+   const record={status:'pending',originId,originDate:origin.date,originTime:lookActualTime(origin),originPrize:ltPad(origin.p[0]),
+    lockedAt:new Date().toISOString(),earliestDate:can.next.date,earliestTime:can.next.time,picks};
+   // Só alterar memória depois de salvar: se o armazenamento falhar, não fingir registro.
+   const candidate={...data,records:[...saved,record]};
+   if(liveWrite(candidate)){renderLive();return}
+  }
+ }
+ if(modified)liveWrite(data);
+ renderLive();
+}
+function liveDownload(name,text,contentType){
+ const u=URL.createObjectURL(new Blob([text],{type:contentType})),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);
+}
+function renderLive(){
+ const data=liveRead(),rows=data.records,done=rows.filter(r=>r.status==='done'),pending=rows.find(r=>r.status==='pending');
+ const n=done.length;
+ $('liveCount').textContent=n+' / '+data.limit;
+ for(const m of liveModelDefs){const h=done.filter(r=>r.hits&&r.hits[m.id]).length;
+  $('live'+m.id).textContent=n?h+'/'+n+' · '+r22Percent(h/n):'0 / 0';
+ }
+ const invalid=rows.filter(r=>r.status==='invalid').length;
+ let status=n>=data.limit?'<b>✅ Acompanhamento concluído.</b> As regras A, B e C permaneceram congeladas durante '+data.limit+' conferências.':'<b>📡 Acompanhamento ativo</b> · '+(data.limit-n)+' avaliação(ões) faltando.';
+ if(pending){
+  status+=' Seleção registrada em <b>'+safe(pending.lockedAt.replace('T',' ').slice(0,16))+' UTC</b> após '+safe(pending.originDate+' '+pending.originTime)+', antes do próximo resultado.';
+ }else if(n<data.limit){
+  const all=liveAllRows(),last=all.at(-1),can=last?liveCanLock(last):null;
+  status+=' <b>Nenhuma seleção pendente.</b> '+(can&&!can.ok?safe(can.msg):'Aguardando uma extração de origem ainda não cadastrada ou novos dados.');
+ }
+ if(invalid)status+=' <b>⚠ '+invalid+' registro(s) desconsiderado(s)</b> por lacuna ou correção de dados.';
+ if(liveWarning)status+='<br><b>⚠ '+safe(liveWarning)+'</b>';
+ $('liveStatus').innerHTML=status;
+ $('liveOrigin').textContent=pending?'Origem: '+pending.originDate+' '+pending.originTime+' · 1º prêmio '+pending.originPrize+'. Próxima extração: '+pending.earliestDate+' '+pending.earliestTime+' (horário mais cedo possível; pode haver horário especial).':'Aguardando próxima seleção pré-registrada. Nenhuma seleção retroativa é aceita.';
+ $('liveCards').innerHTML=pending?liveModelDefs.map(m=>'<article class="live-forecast"><h3>'+safe(m.label)+'</h3><p>'+safe(m.desc)+'</p><div class="live-picks">'+pending.picks[m.id].map(g=>'<span class="live-pick" title="'+safe(animal(g))+'">G'+pad(g)+' · '+safe(animal(g))+'</span>').join('')+'</div><span class="live-tag">🔒 Registrado antes da extração</span></article>').join(''):
+ '<div class="mutedbox" style="grid-column:1/-1">Nenhum grupo pode ser registrado agora. As escolhas só aparecem aqui após a leitura de uma extração de origem, antes do próximo horário.</div>';
+ $('liveResults').innerHTML=done.length?'<table><thead><tr><th>Extração conferida</th><th>1º prêmio</th><th>Grupo</th><th>Radar A</th><th>Radar B</th><th>Radar C</th><th>Origem registrada</th></tr></thead><tbody>'+done.slice(-50).reverse().map(r=>'<tr><td>'+safe(r.targetDate)+' '+safe(r.targetTime)+'</td><td>'+safe(r.prize)+'</td><td>G'+pad(r.actual)+' — '+safe(animal(r.actual))+'</td>'+liveModelDefs.map(m=>'<td>'+(r.hits[m.id]?'<span style="color:#54e6a4">✅ Sim</span>':'Não')+'</td>').join('')+'<td>'+safe(r.originDate)+' '+safe(r.originTime)+'</td></tr>').join('')+'</tbody></table>':'<div class="mutedbox">Nenhuma avaliação prospectiva concluída. O placar começa em 0/100; os 204 casos anteriores são apenas referência retrospectiva.</div>';
+ $('liveDetails').textContent='Conferências: '+n+' de '+data.limit+'; seleções pendentes: '+(pending?1:0)+'; registros desconsiderados: '+invalid+'. São avaliadas apenas transições cronologicamente consecutivas previstas pela LOOK. Dados salvos neste navegador; exporte um backup para preservar o acompanhamento.';
+}
+$('liveRefresh').onclick=async()=>{const b=$('liveRefresh');b.disabled=true;b.textContent='Conferindo...';try{await loadPublicLookHistory();liveUpdate()}finally{b.disabled=false;b.textContent='↻ Conferir novos resultados'}};
+$('liveExport').onclick=()=>{
+ const rows=liveRead().records;
+ const head=['estado','data_origem','hora_origem','data_registro_utc','proxima_data_minima','proxima_hora_minima','data_sorteio','hora_sorteio','milhar_1_premio','grupo_real','radar_a_5_grupos','radar_a_acertou','radar_b_5_grupos','radar_b_acertou','radar_c_5_grupos','radar_c_acertou','observacao'];
+ const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+ const entries=rows.map(r=>[r.status,r.originDate,r.originTime,r.lockedAt,r.earliestDate,r.earliestTime,r.targetDate||'',r.targetTime||'',r.prize||'',r.actual?'G'+pad(r.actual):'',...['A','B','C'].flatMap(k=>[(r.picks[k]||[]).map(g=>'G'+pad(g)).join(' '),r.status==='done'?(r.hits[k]?'SIM':'NAO'):'PENDENTE']),r.note||'']);
+ liveDownload('o-bicho-certo-radares-abc-100.csv','\uFEFF'+head.join(';')+'\r\n'+entries.map(x=>x.map(q).join(';')).join('\r\n'),'text/csv;charset=utf-8');
+};
+$('liveBackup').onclick=()=>liveDownload('o-bicho-certo-radares-abc-100-backup.json',JSON.stringify(liveRead(),null,2),'application/json');
+$('liveRestore').onchange=async ev=>{
+ const f=ev.target.files[0];if(!f)return;
+ try{
+  const parsed=JSON.parse(await f.text());
+  if(!parsed||parsed.version!==1||parsed.limit!==100||!Array.isArray(parsed.records)||parsed.records.some(r=>!['pending','done','invalid'].includes(r.status)||!r.picks||!['A','B','C'].every(k=>Array.isArray(r.picks[k])&&r.picks[k].length===5&&r.picks[k].every(g=>Number.isInteger(g)&&g>=1&&g<=25))))throw new Error('Arquivo incompatível');
+  if(!confirm('Restaurar este acompanhamento vai substituir os registros locais deste navegador. Confirma?'))return;
+  if(liveWrite(parsed))liveUpdate();
+ }catch(e){liveWarning='Falha ao restaurar o backup: '+e.message;renderLive()}
+ finally{ev.target.value=''}
+};
+
 function labIsVisible(){return !$('laboratorio').classList.contains('hidden')}
-function renderLabCurrent(){if($('labR221').classList.contains('active'))renderR221();else if($('labFed').classList.contains('active'))renderFederalLook();else renderLookDyn()}
+function renderLabCurrent(){if($('labLive').classList.contains('active'))renderLive();else if($('labR221').classList.contains('active'))renderR221();else if($('labFed').classList.contains('active'))renderFederalLook();else renderLookDyn()}
 function setLabPane(id){
  document.querySelectorAll('#laboratorio .lab-link').forEach(x=>x.classList.toggle('active',x.dataset.pane===id));
- ['lookdyn','labRadarAudit','fedlook'].forEach(x=>$(x).classList.toggle('hidden',x!==id));
+ ['lookdyn','labRadarAudit','labRadarLive','fedlook'].forEach(x=>$(x).classList.toggle('hidden',x!==id));
  renderLabCurrent();
 }
 document.querySelectorAll('#laboratorio .lab-link').forEach(x=>x.addEventListener('click',()=>setLabPane(x.dataset.pane)));
@@ -1268,5 +1453,5 @@ $('configFedSave').onclick=()=>{
 $('configFedExport').onclick=()=>{
  const a=document.createElement('a'),u=URL.createObjectURL(new Blob([JSON.stringify(federalRows(),null,2)],{type:'application/json'}));a.href=u;a.download='federais-look-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)
 };
-renderLook();renderLookRadar();renderVisual();renderHistorySummary();
+renderLook();renderLookRadar();renderVisual();renderHistorySummary();renderLive();
 </script></body></html>

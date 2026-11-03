@@ -16,12 +16,17 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
 .t24-checks input{width:auto;accent-color:var(--green);margin:0;flex-shrink:0}
 .t24-good{color:#6ee7b7;font-weight:700}.t24-caution{color:#f3c76b}
 @media(max-width:760px){.t24-checks{grid-template-columns:1fr}}
+
+.t241-note{border-left:3px solid var(--gold);padding:10px 12px;background:#2d291e;border-radius:8px;color:#ffe9b8;font-size:12px}
+.t241-up{color:#80ebaa;font-weight:700}.t241-down{color:#ffaaaa;font-weight:700}
+.t241-table td,.t241-table th{white-space:nowrap}.t241-table td:first-child,.t241-table th:first-child{white-space:normal;min-width:175px}
+.t241-divider{margin:12px 0;border:0;border-top:1px solid var(--line)}
 </style></head>
 <body>
 <header><div class="brand"><div class="logo">🐾</div><div><h1>O BICHO CERTO</h1><p>Análise estatística • Loteria dos Sonhos / LOTECE</p></div></div></header>
 <main>
 <div class="notice"><b>Estatística, não previsão:</b> frequências e atrasos descrevem resultados passados. Cada extração é independente; um grupo repetido ou atrasado não ganha maior probabilidade no próximo sorteio. Este painel é independente e não recebe apostas.</div>
-<nav><button class="tab active" data-tab="dashboard">Painel</button><button class="tab" data-tab="primeiro">🎯 1º Prêmio</button><button class="tab" data-tab="transicoes">🔁 Cabeça entre horários</button><button class="tab" data-tab="federal">🇧🇷 Federal × Sonhos</button><button class="tab" data-tab="chama7">🔥 Chama dos 7</button><button class="tab" data-tab="look">🔎 LOOK Goiás</button><button class="tab" data-tab="looktrail">🧭 Rastro dos ausentes</button><button class="tab" data-tab="lookgroups">🐾 Teste 20 — Grupos</button><button class="tab" data-tab="lookhours">🕒 Teste 21 — Horários</button><button class="tab" data-tab="lookradar">🎯 Teste 22 — Radar</button><button class="tab" data-tab="lookdyn">🧩 Teste 24 — Padrões Dinâmicos</button><button class="tab" data-tab="fedlook">🔍 Federal × LOOK</button><button class="tab" data-tab="pedras">🔬 Ausentes e dobrados</button><button class="tab" data-tab="base">Cadastrar / importar</button><button class="tab" data-tab="ajuda">Como usar</button></nav>
+<nav><button class="tab active" data-tab="dashboard">Painel</button><button class="tab" data-tab="primeiro">🎯 1º Prêmio</button><button class="tab" data-tab="transicoes">🔁 Cabeça entre horários</button><button class="tab" data-tab="federal">🇧🇷 Federal × Sonhos</button><button class="tab" data-tab="chama7">🔥 Chama dos 7</button><button class="tab" data-tab="look">🔎 LOOK Goiás</button><button class="tab" data-tab="looktrail">🧭 Rastro dos ausentes</button><button class="tab" data-tab="lookgroups">🐾 Teste 20 — Grupos</button><button class="tab" data-tab="lookhours">🕒 Teste 21 — Horários</button><button class="tab" data-tab="lookradar">🎯 Teste 22 — Radar</button><button class="tab" data-tab="lookdyn">🧩 Teste 24 / 24.1 — Padrões</button><button class="tab" data-tab="fedlook">🔍 Federal × LOOK</button><button class="tab" data-tab="pedras">🔬 Ausentes e dobrados</button><button class="tab" data-tab="base">Cadastrar / importar</button><button class="tab" data-tab="ajuda">Como usar</button></nav>
 
 <section id="dashboard">
 <div class="panel" style="border-color:#39785d">
@@ -427,6 +432,22 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button{border:1px sol
   <p id="t24CompareText" class="muted">Aguardando avaliação.</p>
   <div class="scroll" id="t24Compare"></div>
   <p class="hint">Mesmo conjunto de transições, mesmo aquecimento e mesmos resultados; cada modelo recebe somente o histórico disponível até a extração de origem. Uma diferença positiva na amostra não é evidência suficiente de ganho futuro.</p>
+ </div>
+ <div class="panel" style="border-color:#567caa" id="t241Panel">
+  <h2>🧪 Teste 24.1 — Influência real de cada regra</h2>
+  <p class="muted">Experimento de <b>retirada de uma regra por vez</b> (ablação). Para cada extração do histórico, o sistema compara os mesmos <b>cinco grupos</b> do Teste 24 com uma versão idêntica em que <b>somente uma regra ativa é desligada</b>. Todas as escolhas são calculadas antes do resultado seguinte.</p>
+  <div class="grid" style="margin:12px 0">
+   <div class="card metric"><small>Casos comparados</small><strong id="t241N">—</strong><span class="small">mesmas transições do T24</span></div>
+   <div class="card metric"><small>T24 com regras ativas</small><strong id="t241Base">—</strong><span class="small">cinco grupos, referência 20%</span></div>
+   <div class="card metric"><small>Regras avaliadas</small><strong id="t241Rules">—</strong><span class="small">uma retirada por comparação</span></div>
+   <div class="card metric"><small>Último bloco do histórico</small><strong id="t241Recent">—</strong><span class="small">30% das avaliações mais recentes</span></div>
+  </div>
+  <p id="t241Intro" class="hint">Aguardando histórico.</p>
+  <p class="hint">📱 No celular, deslize a tabela para o lado para conferir as últimas colunas.</p>
+  <div class="scroll" id="t241Table"></div>
+  <p class="hint"><b>Ganhou</b> = a versão sem a regra acertou e a original errou; <b>perdeu</b> = a original acertou e a versão sem a regra errou. O saldo equivale à diferença total de acertos. <b>Mudou seleção</b> = pelo menos um dos cinco grupos ficou diferente; trocar apenas a ordem não conta.</p>
+  <div class="t241-note"><b>Cuidado com a interpretação:</b> efeitos positivos ou negativos neste histórico não comprovam vantagem futura. Os últimos 30% são um recorte cronológico mais recente, <b>não um teste independente</b> se os resultados forem usados para decidir quais regras manter. Não ajustamos pesos automaticamente nem alteramos o Teste 22.</div>
+  <div class="actions" style="margin-top:12px"><button id="t241Export">Exportar comparação regra por regra (CSV)</button></div>
  </div>
  <div class="panel">
   <h2>🔬 Padrões observados, separados por regra</h2>
@@ -1493,9 +1514,15 @@ function t24Run(){
   const origin=all[i],next=all[i+1],type=r22PairType(origin,next);
   if(!type){skipped++;continue}
   const seen=all.slice(0,i+1),scores=t24Score(origin,seen,opts),picks=t24Enabled(opts)?scores.slice(0,5):[];
+  // Teste 24.1: variantes com UMA regra retirada, sempre calculadas sem olhar o próximo resultado.
+  const ablations={};
+  Object.keys(opts).filter(key=>opts[key]).forEach(key=>{
+   const variant={...opts,[key]:false};
+   ablations[key]=t24Enabled(variant)?t24Score(origin,seen,variant).slice(0,5).map(x=>x.g):null;
+  });
   const old=r22Score(origin,seen,transitions).slice(0,5);
   const actual=group(next.p[0]),signals=t24Signals(origin,seen);
-  if(valid>=warm&&origin.date>=cutoff){checks.push({origin,next,type,actual,picks,old,signals,hit:picks.some(x=>x.g===actual),oldHit:old.some(x=>x.g===actual)})}
+  if(valid>=warm&&origin.date>=cutoff){checks.push({origin,next,type,actual,picks,old,signals,ablations,hit:picks.some(x=>x.g===actual),oldHit:old.some(x=>x.g===actual)})}
   else if(origin.date>=cutoff)pre++;
   transitions.push({origin,next,g:actual});valid++;
  }
@@ -1506,6 +1533,68 @@ function t24Run(){
 function t24Pct(n,d){return d?(100*n/d).toFixed(1).replace('.',',')+'%':'—'}
 function t24Group(g){return 'G'+pad(g)+' — '+safe(animal(g))}
 function t24Val(signals,actual){const arr=signals||[];return arr.length?{count:arr.length,hit:arr.includes(actual)?1:0}:null}
+
+// TESTE 24.1 — retirada individual de cada regra ativa, comparações pareadas.
+const t241Names={
+ second:'Subida do 2º → 1º',
+ others:'Grupos do 3º ao 5º',
+ doubles:'Grupos dobrados',
+ persist:'Presença nas últimas 4',
+ recent:'Frequência recente no 1º'
+};
+let t241CsvRows=[];
+function t241Signed(n,d){if(!d)return '—';const v=100*n/d;return (v>0?'+':'')+v.toFixed(1).replace('.',',')+' p.p.'}
+function t241Stats(tests,key){
+ const valid=tests.filter(t=>Array.isArray(t.ablations[key])&&t.ablations[key].length===5);
+ let base=0,ablate=0,gained=0,lost=0,changed=0;
+ valid.forEach(t=>{
+  const b=!!t.hit,a=t.ablations[key].includes(t.actual);
+  base+=Number(b);ablate+=Number(a);
+  if(a&&!b)gained++;if(b&&!a)lost++;
+  if(!t.ablations[key].every(g=>t.picks.some(p=>p.g===g)))changed++;
+ });
+ return {n:valid.length,base,ablate,gained,lost,changed};
+}
+function t241Render(d){
+ const tests=d.tests,n=tests.length,baseHits=tests.filter(t=>t.hit).length;
+ const keys=Object.keys(d.opts).filter(k=>d.opts[k]);
+ // Primeiro bloco cronológico: 70%; segundo bloco: 30% (apenas acompanhamento, sem otimização).
+ const cut=Math.floor(n*0.7);
+ const recent=tests.slice(cut);
+ $('t241N').textContent=String(n);
+ $('t241Base').textContent=t24Enabled(d.opts)&&n?baseHits+' / '+n+' ('+t24Pct(baseHits,n)+')':'—';
+ $('t241Rules').textContent=String(keys.length);
+ $('t241Recent').textContent=n?recent.length+' casos':'—';
+ $('t241Intro').textContent=n?'Período: '+(d.cutoff==='0000-00-00'?'todo o histórico':d.cutoff+' a '+d.latest)+'; '+d.kind+'; aquecimento: '+d.warm+'. O bloco recente reúne as últimas '+recent.length+' de '+n+' avaliações, sem reajustar os pesos.':'Ainda não existem avaliações após o aquecimento com estes filtros.';
+ t241CsvRows=[];
+ if(!keys.length){$('t241Table').innerHTML='<div class="mutedbox">Ative pelo menos duas regras no Teste 24 para comparar o efeito de retirar uma delas mantendo cinco grupos escolhidos por outras regras.</div>';return}
+ if(!n){$('t241Table').innerHTML='<div class="mutedbox">Não há transições para comparar. Selecione outro período ou reduza o aquecimento.</div>';return}
+ const stats=keys.map(key=>({key,name:t241Names[key],all:t241Stats(tests,key),recent:t241Stats(recent,key)}));
+ $('t241Table').innerHTML='<table class="t241-table"><thead><tr><th>Regra retirada</th><th>T24 completo</th><th>Sem a regra</th><th>Diferença*</th><th>Ganhou / perdeu</th><th>Mudou seleção</th><th>Bloco recente (30%)</th></tr></thead><tbody>'+stats.map(s=>{
+  const a=s.all,r=s.recent;
+  if(!a.n)return '<tr><td><b>'+safe(s.name)+'</b></td><td colspan="6">Sem comparação: retirar esta regra deixa todas as regras desligadas.</td></tr>';
+  const delta=a.ablate-a.base;
+  const deltaClass=delta>0?'t241-up':delta<0?'t241-down':'';
+  return '<tr><td><b>'+safe(s.name)+'</b></td><td>'+a.base+'/'+a.n+' ('+t24Pct(a.base,a.n)+')</td><td>'+a.ablate+'/'+a.n+' ('+t24Pct(a.ablate,a.n)+')</td><td class="'+deltaClass+'">'+t241Signed(delta,a.n)+'</td><td>+'+a.gained+' / −'+a.lost+'</td><td>'+a.changed+'/'+a.n+'</td><td>'+(r.n?(r.ablate-r.base>0?'+':'')+(r.ablate-r.base)+' acerto(s); '+t241Signed(r.ablate-r.base,r.n):'—')+'</td></tr>';
+ }).join('')+'</tbody></table><p class="hint">*Diferença = (taxa <b>sem</b> a regra) − (taxa <b>com</b> todas as regras selecionadas). Valor positivo apenas indica que removê-la melhorou esta amostra. Nenhuma conclusão isolada é suficiente para alterar o algoritmo.</p>';
+ tests.forEach((t,index)=>{
+  const row=[t.type==='overnight'?'VIRADA_23H20_07H20':'MESMO_DIA',t.origin.date,lookActualTime(t.origin),t.next.date,lookActualTime(t.next),'G'+pad(t.actual),t.picks.map(p=>'G'+pad(p.g)).join(' '),t.hit?'SIM':'NAO',index>=cut?'ULTIMOS_30%':'PRIMEIROS_70%'];
+  keys.forEach(key=>{
+   const picks=t.ablations[key];row.push(picks?picks.map(g=>'G'+pad(g)).join(' '):'SEM_REGRA_ATIVA');row.push(picks?(picks.includes(t.actual)?'SIM':'NAO'):'N/D');
+  });
+  t241CsvRows.push(row);
+ });
+}
+$('t241Export').onclick=()=>{
+ const keys=Object.keys(t24Opts()).filter(key=>t24Opts()[key]);
+ const headers=['tipo_transicao','origem_data','origem_hora','resultado_data','resultado_hora','grupo_1_premio','cinco_grupos_originais','acerto_original','bloco_cronologico'];
+ keys.forEach(key=>{headers.push('sem_'+key+'_cinco_grupos','sem_'+key+'_acerto')});
+ const quoted=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+ const csv='\uFEFF'+headers.join(';')+'\r\n'+t241CsvRows.map(r=>r.map(quoted).join(';')).join('\r\n');
+ const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');
+ a.href=url;a.download='teste24-1-influencia-regras.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+
 function renderLookDyn(){
  const d=t24Run(),tests=d.tests,n=tests.length,h=tests.filter(x=>x.hit).length,oh=tests.filter(x=>x.oldHit).length;
  const recent=d.all.at(-1),hour=recent?lookActualTime(recent):'';
@@ -1520,6 +1609,7 @@ function renderLookDyn(){
  $('t24CompareText').textContent=(d.cutoff==='0000-00-00'?'Todo o histórico':d.cutoff+' a '+d.latest)+': '+n+' transições avaliadas com '+d.warm+' pares anteriores de aquecimento. '+(n?'As escolhas foram feitas antes do resultado seguinte.':'Aguarde mais dados ou reduza o aquecimento.')+' O Radar 22 é reavaliado nas mesmas linhas.';
  const rows=[['Teste 24 — regras selecionadas',d.current.length?h:null,n,'20,0%'],['Radar 22 original',oh,n,'20,0%']];
  $('t24Compare').innerHTML='<table><thead><tr><th>Modelo</th><th>Acertos</th><th>Taxa observada</th><th>Referência</th></tr></thead><tbody>'+rows.map(x=>'<tr><td><b>'+x[0]+'</b></td><td>'+(x[1]===null?'—':x[1]+' / '+x[2])+'</td><td>'+(x[1]===null?'—':t24Pct(x[1],x[2]))+'</td><td>'+x[3]+'</td></tr>').join('')+'</tbody></table>';
+ t241Render(d);
  const metrics=t24Names.map(([key,label])=>{
   let total=0,hits=0,expected=0,scopes=0;
   tests.forEach(t=>{const v=t24Val(t.signals[key],t.actual);if(!v)return;total++;hits+=v.hit;expected+=v.count/25;scopes+=v.count});

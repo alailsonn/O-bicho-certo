@@ -290,7 +290,7 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 <h3>Importar vários dias por CSV</h3><p class="hint">Formato: <b>data,horario,p1,p2,p3,p4,p5</b>, uma linha por horário. Exemplo: 2026-10-02,07:00,1234,2345,3456,4567,5678. Aceita também p6 a p10, mas a análise usa apenas os cinco primeiros. Importação substitui a mesma data e horário, sem duplicar.</p><input accept=".csv,text/csv" id="lookCsv" type="file"/><p class="hint">A importação é local. Aceita horários reais como 07:20 e 19:20. Confira as milhares antes de usar os dados.</p>
 </div></section><section id="laboratorio" class="hidden">
 <div class="section-lead"><span class="eyebrow">PESQUISA · NÃO É PREVISÃO</span><h2>Laboratório de análises</h2><p>Testes 24/24.1, auditoria 22.1, acompanhamento prospectivo dos radares A/B/C e estudo Federal × LOOK. Nenhuma regra é promovida automaticamente.</p></div>
-<div class="lab-nav"><button class="lab-link active" data-pane="lookdyn" id="labT24">🧩 Teste 24 / 24.1</button><button class="lab-link" data-pane="labRadarAudit" id="labR221">🧪 Radar 22.1 · Auditoria</button><button class="lab-link" data-pane="labRadarLive" id="labLive">📡 3 Radares · Próximas 100</button><button class="lab-link" data-pane="fedlook" id="labFed">🇧🇷 Federal × LOOK</button></div><section  id="lookdyn">
+<div class="lab-nav"><button class="lab-link active" data-pane="lookdyn" id="labT24">🧩 Teste 24 / 24.1</button><button class="lab-link" data-pane="labRadarAudit" id="labR221">🧪 Radar 22.1 · Auditoria</button><button class="lab-link" data-pane="labRadarLive" id="labLive">📡 3 Radares · Próximas 100</button><button class="lab-link" data-pane="labAsc25" id="labAsc25Btn">⬆️ Teste 25 · Ascensão</button><button class="lab-link" data-pane="fedlook" id="labFed">🇧🇷 Federal × LOOK</button></div><section  id="lookdyn">
 <div class="panel" style="border-color:#30896c">
 <h2>🧩 Teste 24 — Padrões Dinâmicos | LOOK Goiás</h2>
 <p class="muted">Estuda se grupos vistos nas posições anteriores <b>sobem para o 1º prêmio</b> da extração seguinte. Combina sinais de subida do 2º, presença do 3º ao 5º, dobradas e persistência. Compara <b>cinco grupos selecionados antes</b> de cada sorteio com os cinco grupos do Teste 22, sem modificar o Radar 22.</p>
@@ -416,6 +416,30 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 <div class="panel"><h2>📊 Comparação com coincidências esperadas por acaso</h2><div id="flStats"></div></div>
 <div class="panel"><h2>📋 Conferência extração por extração</h2><div class="scroll" id="flChecks"></div></div>
 <div class="panel"><p class="hint">*Referência matemática sob hipótese simplificada de algarismos uniformes e sorteios independentes: para <i>m</i> dígitos ausentes, a chance de ao menos um aparecer numa milhar é 1 − (1 − m/10)⁴. Em <i>n</i> milhares, a chance de aparecer ao menos uma vez é 1 − (1 − m/10)⁽⁴ⁿ⁾. Coincidências frequentes não demonstram que a Federal influencia a LOOK. O teste é retrospectivo, pode ter amostra pequena e não indica apostas.</p></div>
+</section>
+
+<section id="labAsc25" class="hidden">
+ <div class="panel" style="border-color:#268b70">
+  <h2>⬆️ Teste 25 — Radar de Ascensão | 2º → 1º</h2>
+  <p class="muted">Analisa se o <b>grupo do 2º prêmio</b> aparece no <b>1º prêmio</b> em um horário <b>posterior do mesmo dia</b>. Dados retrospectivos, sem alterar o Radar 22. Uma ocorrência em duas origens é contada como duas oportunidades, não como duas chegadas distintas.</p>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px">
+   <label>Janela de avaliação<select id="asc25Horizon"><option value="day">Até o fim do dia</option><option value="1">Próxima extração</option><option value="2">Até 2 extrações</option><option value="3">Até 3 extrações</option></select></label>
+   <label>Data inicial<input type="date" id="asc25Start"></label>
+   <label>Data final<input type="date" id="asc25End"></label>
+  </div>
+  <p><button class="primary" id="asc25Calc">↻ Recalcular Teste 25</button></p>
+  <div class="quick-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">
+   <div class="mini-stat"><span>Oportunidades válidas</span><strong id="asc25N">—</strong></div>
+   <div class="mini-stat"><span>Subidas observadas</span><strong id="asc25Hits">—</strong></div>
+   <div class="mini-stat"><span>Taxa observada</span><strong id="asc25Rate">—</strong></div>
+   <div class="mini-stat"><span>Referência teórica*</span><strong id="asc25Theory">—</strong></div>
+  </div>
+  <div class="notice" id="asc25Notice">As chances históricas não comprovam previsibilidade. *Referência hipotética para grupos independentes e equiprováveis, ajustada ao número de extrações futuras observadas por origem.</div>
+  <h3>Desempenho por dia</h3><div class="live-table-wrap" id="asc25Days"></div>
+  <h3>Desempenho por horário de origem</h3><div class="live-table-wrap" id="asc25Hours"></div>
+  <h3>Ocorrências encontradas</h3><div class="live-table-wrap" id="asc25Examples"></div>
+  <p class="live-muted">Metodologia: apenas resultados válidos com cinco milhares; horários cronológicos no mesmo dia; 23h20 nunca conta como origem para subida no mesmo dia; janelas de 1, 2 ou 3 sorteios exigem a quantidade completa de extrações seguintes. Dados locais importados também entram na análise. Não registra previsões nem reclassifica acertos antigos.</p>
+ </div>
 </section>
 <section id="labRadarLive" class="hidden">
  <div class="panel live-hero">
@@ -1421,10 +1445,57 @@ $('liveRestore').onchange=async ev=>{
 };
 
 function labIsVisible(){return !$('laboratorio').classList.contains('hidden')}
-function renderLabCurrent(){if($('labLive').classList.contains('active'))renderLive();else if($('labR221').classList.contains('active'))renderR221();else if($('labFed').classList.contains('active'))renderFederalLook();else renderLookDyn()}
+
+function renderAsc25(){
+ const horizon=$('asc25Horizon').value;
+ let all=lookAll().filter(r=>r&&Array.isArray(r.p)&&r.p.length>=5&&r.p.slice(0,5).every(v=>/^\d{1,4}$/.test(String(v)))&&/^\d{4}-\d\d-\d\d$/.test(r.date));
+ // Duplicatas idênticas no mesmo dia em horários consecutivos distintos (ex.: 18h20 e 19h20)
+ // são mantidas no histórico, mas sinalizadas e excluídas desta avaliação para não inflar os casos.
+ const grouped={};all.forEach(r=>(grouped[r.date]??=[]).push(r));
+ const dates=Object.keys(grouped).sort();
+ if(!$('asc25Start').value&&dates.length)$('asc25Start').value=dates[0];
+ if(!$('asc25End').value&&dates.length)$('asc25End').value=dates[dates.length-1];
+ const start=$('asc25Start').value,end=$('asc25End').value;
+ let events=[], omittedDuplicates=0;
+ for(const date of dates){
+  if(start&&date<start||end&&date>end)continue;
+  const same=grouped[date].sort((a,b)=>lookActualTime(a).localeCompare(lookActualTime(b)));
+  const rows=[];
+  for(const r of same){
+   const last=rows[rows.length-1];
+   if(last && lookActualTime(last)!==lookActualTime(r) && last.p.slice(0,5).map(String).join('|')===r.p.slice(0,5).map(String).join('|')){omittedDuplicates++;continue;}
+   rows.push(r);
+  }
+  for(let i=0;i<rows.length-1;i++){
+   const available=rows.length-i-1;
+   const limit=horizon==='day'?available:Number(horizon);
+   if(available<limit)continue;
+   const origin=rows[i],g2=group(origin.p[1]);
+   const later=rows.slice(i+1,i+1+limit);
+   const first=later.find(r=>group(r.p[0])===g2);
+   events.push({date,time:lookActualTime(origin),g2,originP:String(origin.p[1]).padStart(4,'0'),found:!!first,target:first?lookActualTime(first):null,targetP:first?String(first.p[0]).padStart(4,'0'):null,n:limit});
+  }
+ }
+ const hits=events.filter(x=>x.found),N=events.length;
+ const percent=(a,b)=>b?(100*a/b).toFixed(1).replace('.',',')+'%':'—';
+ const expected=events.reduce((a,x)=>a+1-Math.pow(24/25,x.n),0);
+ $('asc25N').textContent=String(N);$('asc25Hits').textContent=String(hits.length);
+ $('asc25Rate').textContent=percent(hits.length,N);$('asc25Theory').textContent=percent(expected,N);
+ $('asc25Notice').textContent=`Análise retrospectiva de ${N} oportunidades, ${hits.length} subidas. Referência teórica média de ${percent(expected,N)} supondo grupos independentes e equiprováveis. ${omittedDuplicates?'Foram excluídas '+omittedDuplicates+' duplicatas idênticas em horários distintos. ':''}Não há evidência de vantagem preditiva apenas com essa contagem.`;
+ const table=(labels,rows)=>'<table><thead><tr>'+labels.map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+rows.map(row=>'<tr>'+row.map(x=>'<td>'+safe(String(x))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+ const days=[...new Set(events.map(x=>x.date))].sort();
+ $('asc25Days').innerHTML=days.length?table(['Data','Oportunidades','Subidas','Taxa'],days.map(d=>{const es=events.filter(x=>x.date===d);return[d,es.length,es.filter(x=>x.found).length,percent(es.filter(x=>x.found).length,es.length)]})):'<div class="mutedbox">Nenhuma extração válida na seleção.</div>';
+ const hours=[...new Set(events.map(x=>x.time))].sort();
+ $('asc25Hours').innerHTML=hours.length?table(['Hora origem','Oportunidades','Subidas','Taxa'],hours.map(t=>{const es=events.filter(x=>x.time===t);return[t,es.length,es.filter(x=>x.found).length,percent(es.filter(x=>x.found).length,es.length)]})):'<div class="mutedbox">Sem oportunidades válidas.</div>';
+ $('asc25Examples').innerHTML=hits.length?table(['Data','Origem / 2º','Grupo','Chegada / 1º'],hits.slice(-100).reverse().map(x=>[x.date,x.time+' · '+x.originP,'G'+pad(x.g2),x.target+' · '+x.targetP])):'<div class="mutedbox">Nenhuma subida encontrada na janela selecionada.</div>';
+}
+$('asc25Calc').onclick=renderAsc25;
+['asc25Horizon','asc25Start','asc25End'].forEach(id=>$(id).onchange=renderAsc25);
+
+function renderLabCurrent(){if($('labAsc25Btn').classList.contains('active'))renderAsc25();else if($('labLive').classList.contains('active'))renderLive();else if($('labR221').classList.contains('active'))renderR221();else if($('labFed').classList.contains('active'))renderFederalLook();else renderLookDyn()}
 function setLabPane(id){
  document.querySelectorAll('#laboratorio .lab-link').forEach(x=>x.classList.toggle('active',x.dataset.pane===id));
- ['lookdyn','labRadarAudit','labRadarLive','fedlook'].forEach(x=>$(x).classList.toggle('hidden',x!==id));
+ ['lookdyn','labRadarAudit','labRadarLive','labAsc25','fedlook'].forEach(x=>$(x).classList.toggle('hidden',x!==id));
  renderLabCurrent();
 }
 document.querySelectorAll('#laboratorio .lab-link').forEach(x=>x.addEventListener('click',()=>setLabPane(x.dataset.pane)));

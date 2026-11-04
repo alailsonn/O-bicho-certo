@@ -290,7 +290,7 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 <h3>Importar vários dias por CSV</h3><p class="hint">Formato: <b>data,horario,p1,p2,p3,p4,p5</b>, uma linha por horário. Exemplo: 2026-10-02,07:00,1234,2345,3456,4567,5678. Aceita também p6 a p10, mas a análise usa apenas os cinco primeiros. Importação substitui a mesma data e horário, sem duplicar.</p><input accept=".csv,text/csv" id="lookCsv" type="file"/><p class="hint">A importação é local. Aceita horários reais como 07:20 e 19:20. Confira as milhares antes de usar os dados.</p>
 </div></section><section id="laboratorio" class="hidden">
 <div class="section-lead"><span class="eyebrow">PESQUISA · NÃO É PREVISÃO</span><h2>Laboratório de análises</h2><p>Testes 24/24.1, auditoria 22.1, acompanhamento prospectivo dos radares A/B/C e estudo Federal × LOOK. Nenhuma regra é promovida automaticamente.</p></div>
-<div class="lab-nav"><button class="lab-link active" data-pane="lookdyn" id="labT24">🧩 Teste 24 / 24.1</button><button class="lab-link" data-pane="labRadarAudit" id="labR221">🧪 Radar 22.1 · Auditoria</button><button class="lab-link" data-pane="labRadarLive" id="labLive">📡 3 Radares · Próximas 100</button><button class="lab-link" data-pane="labAsc25" id="labAsc25Btn">⬆️ Teste 25 · Ascensão</button><button class="lab-link" data-pane="fedlook" id="labFed">🇧🇷 Federal × LOOK</button></div><section  id="lookdyn">
+<div class="lab-nav"><button class="lab-link active" data-pane="lookdyn" id="labT24">🧩 Teste 24 / 24.1</button><button class="lab-link" data-pane="labRadarAudit" id="labR221">🧪 Radar 22.1 · Auditoria</button><button class="lab-link" data-pane="labRadarLive" id="labLive">📡 3 Radares · Próximas 100</button><button class="lab-link" data-pane="labAsc25" id="labAsc25Btn">⬆️ Teste 25 · Ascensão</button><button class="lab-link" data-pane="labAsc251" id="labAsc251Btn">🕒 Teste 25.1 · Por Horário</button><button class="lab-link" data-pane="fedlook" id="labFed">🇧🇷 Federal × LOOK</button></div><section  id="lookdyn">
 <div class="panel" style="border-color:#30896c">
 <h2>🧩 Teste 24 — Padrões Dinâmicos | LOOK Goiás</h2>
 <p class="muted">Estuda se grupos vistos nas posições anteriores <b>sobem para o 1º prêmio</b> da extração seguinte. Combina sinais de subida do 2º, presença do 3º ao 5º, dobradas e persistência. Compara <b>cinco grupos selecionados antes</b> de cada sorteio com os cinco grupos do Teste 22, sem modificar o Radar 22.</p>
@@ -439,6 +439,54 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
   <h3>Desempenho por horário de origem</h3><div class="live-table-wrap" id="asc25Hours"></div>
   <h3>Ocorrências encontradas</h3><div class="live-table-wrap" id="asc25Examples"></div>
   <p class="live-muted">Metodologia: apenas resultados válidos com cinco milhares; horários cronológicos no mesmo dia; 23h20 nunca conta como origem para subida no mesmo dia; janelas de 1, 2 ou 3 sorteios exigem a quantidade completa de extrações seguintes. Dados locais importados também entram na análise. Não registra previsões nem reclassifica acertos antigos.</p>
+ </div>
+</section>
+<section id="labAsc251" class="hidden">
+ <div class="panel" style="border-color:#45a2bd">
+  <h2>🕒 Teste 25.1 — Ascensão por Horário | 2º → 1º</h2>
+  <p class="muted">Investiga se o grupo do <b>2º prêmio</b> de cada horário aparece no <b>1º prêmio</b> em extrações posteriores do mesmo dia. A referência teórica é <b>ajustada por horário</b> e pela quantidade de extrações futuras efetivamente disponíveis — comparação retrospectiva, não previsão.</p>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px">
+   <label>Janela de observação<select id="asc251Horizon"><option value="day">Até o fim do dia</option><option value="1">Somente a próxima extração</option><option value="2">Até 2 extrações seguintes</option><option value="3">Até 3 extrações seguintes</option></select></label>
+   <label>Data inicial<input type="date" id="asc251Start"></label>
+   <label>Data final<input type="date" id="asc251End"></label>
+  </div>
+  <p><button class="primary" id="asc251Calc">↻ Recalcular Teste 25.1</button> <button id="asc251Csv">⬇ Exportar CSV de horários</button></p>
+  <div class="quick-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">
+   <div class="mini-stat"><span>Oportunidades</span><strong id="asc251N">—</strong></div>
+   <div class="mini-stat"><span>Subidas encontradas</span><strong id="asc251Hits">—</strong></div>
+   <div class="mini-stat"><span>Taxa observada</span><strong id="asc251Rate">—</strong></div>
+   <div class="mini-stat"><span>Referência teórica</span><strong id="asc251Expected">—</strong></div>
+  </div>
+  <div class="notice" id="asc251Notice">As taxas por horário serão calculadas a partir dos resultados carregados.</div>
+  <h3>Comparação por horário de origem</h3>
+  <div class="live-table-wrap" id="asc251Hours"></div>
+  <h3>Em qual extração aconteceu a subida?</h3>
+  <div class="live-table-wrap" id="asc251Steps"></div>
+  <h3>Ocorrências detalhadas</h3>
+  <div class="live-table-wrap" id="asc251Cases"></div>
+  <div class="panel" id="asc252Panel" style="margin-top:24px;border:1px solid #2d9d82;background:linear-gradient(135deg,#102638,#12372d)">
+    <h2>🔁 Teste 25.2 — Repetição no 2º → cabeça no dia seguinte</h2>
+    <p class="muted">Detecta <b>grupos que aparecem 2 ou mais vezes no 2º prêmio no mesmo dia</b>, incluindo 23h20, e verifica se chegam ao <b>1º prêmio em qualquer extração do dia seguinte</b>. Cada grupo repetido conta como uma oportunidade; não é uma previsão nem garantia de acerto.</p>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px">
+      <label>Data inicial da repetição<input type="date" id="asc252Start"></label>
+      <label>Data final da repetição<input type="date" id="asc252End"></label>
+      <label>Repetições mínimas do grupo no 2º<select id="asc252Min"><option value="2">2 ou mais vezes</option><option value="3">3 ou mais vezes</option></select></label>
+    </div>
+    <p><button class="primary" id="asc252Calc">↻ Recalcular padrão</button> <button id="asc252Csv">⬇ Exportar CSV do padrão</button></p>
+    <div class="quick-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">
+      <div class="mini-stat"><span>Grupos repetidos analisados</span><strong id="asc252N">—</strong></div>
+      <div class="mini-stat"><span>Chegaram ao 1º no dia seguinte</span><strong id="asc252Hits">—</strong></div>
+      <div class="mini-stat"><span>Taxa observada</span><strong id="asc252Rate">—</strong></div>
+      <div class="mini-stat"><span>Referência teórica</span><strong id="asc252Expected">—</strong></div>
+    </div>
+    <div class="notice" id="asc252Notice">Aguardando análise do histórico.</div>
+    <h3>Comparação: repetiu no 2º × apareceu uma só vez</h3>
+    <div class="live-table-wrap" id="asc252Comparison"></div>
+    <h3>Casos encontrados, incluindo erros</h3>
+    <div class="live-table-wrap" id="asc252Cases"></div>
+    <p class="live-muted">O cálculo usa a data calendário imediatamente seguinte, sem pular dias ausentes. Só avalia dias com resultados cadastrados no dia seguinte. As duplicatas inteiramente idênticas de uma data são removidas. Dias incompletos reduzem as chances observáveis. A referência 1 − (24/25)^n pressupõe grupos uniformes e independentes para n extrações disponíveis no dia seguinte; diferenças descritivas não provam previsibilidade. O Teste 25.2 não altera Radar 22, Teste 25 ou Teste 25.1.</p>
+  </div>
+  <p class="live-muted">Uma origem pode produzir no máximo um acerto nesta janela: vale a primeira chegada ao 1º prêmio. A extração das 23h20 não é origem no mesmo dia. Para janelas fixas de 1, 2 ou 3 extrações, só entram origens com todos os próximos horários cadastrados. Resultados de dias incompletos podem enviesar as comparações. A referência 1 − (24/25)^n pressupõe grupos independentes e uniformes; não demonstra previsibilidade.</p>
  </div>
 </section>
 <section id="labRadarLive" class="hidden">
@@ -1492,10 +1540,140 @@ function renderAsc25(){
 $('asc25Calc').onclick=renderAsc25;
 ['asc25Horizon','asc25Start','asc25End'].forEach(id=>$(id).onchange=renderAsc25);
 
-function renderLabCurrent(){if($('labAsc25Btn').classList.contains('active'))renderAsc25();else if($('labLive').classList.contains('active'))renderLive();else if($('labR221').classList.contains('active'))renderR221();else if($('labFed').classList.contains('active'))renderFederalLook();else renderLookDyn()}
+function asc251Events(){
+ const horizon=$('asc251Horizon').value;
+ const all=lookAll().filter(r=>r&&Array.isArray(r.p)&&r.p.length>=5&&r.p.slice(0,5).every(v=>/^\d{1,4}$/.test(String(v)))&&/^\d{4}-\d\d-\d\d$/.test(r.date));
+ const grouped={};all.forEach(r=>(grouped[r.date]??=[]).push(r));
+ const dates=Object.keys(grouped).sort();
+ if(!$('asc251Start').value&&dates.length)$('asc251Start').value=dates[0];
+ if(!$('asc251End').value&&dates.length)$('asc251End').value=dates[dates.length-1];
+ const start=$('asc251Start').value,end=$('asc251End').value;
+ let skipped=0,duplicate=0; const events=[];
+ for(const date of dates){
+  if(start&&date<start||end&&date>end)continue;
+  const list=grouped[date].slice().sort((a,b)=>lookActualTime(a).localeCompare(lookActualTime(b)));
+  const rows=[];
+  for(const r of list){
+   const last=rows.at(-1);
+   if(last&&lookActualTime(last)!==lookActualTime(r)&&last.p.slice(0,5).map(String).join('|')===r.p.slice(0,5).map(String).join('|')){duplicate++;continue;}
+   rows.push(r);
+  }
+  for(let i=0;i<rows.length-1;i++){
+   const available=rows.length-i-1;
+   const limit=horizon==='day'?available:Number(horizon);
+   if(available<limit){skipped++;continue;}
+   const origin=rows[i],g2=group(origin.p[1]);
+   const later=rows.slice(i+1,i+1+limit);
+   const offset=later.findIndex(r=>group(r.p[0])===g2);
+   const first=offset>=0?later[offset]:null;
+   events.push({date,time:lookActualTime(origin),g2,second:String(origin.p[1]).padStart(4,'0'),n:limit,hit:!!first,step:first?offset+1:null,arrival:first?lookActualTime(first):null,first:first?String(first.p[0]).padStart(4,'0'):null,pExpected:1-Math.pow(24/25,limit)});
+  }
+ }
+ return {events,duplicate,skipped};
+}
+let asc251LastHours=[];
+function renderAsc251(){
+ const {events,duplicate,skipped}=asc251Events();
+ const p=(v)=>Number.isFinite(v)?(100*v).toFixed(1).replace('.',',')+'%':'—';
+ const N=events.length,hits=events.filter(x=>x.hit),expected=events.reduce((sum,x)=>sum+x.pExpected,0);
+ $('asc251N').textContent=String(N);$('asc251Hits').textContent=String(hits.length);
+ $('asc251Rate').textContent=N?p(hits.length/N):'—';$('asc251Expected').textContent=N?p(expected/N):'—';
+ $('asc251Notice').textContent=`${N} oportunidades analisadas, ${hits.length} subidas; referência esperada de ${expected.toFixed(1).replace('.',',')} acertos (${N?p(expected/N):'—'}) sob independência e equiprobabilidade. ${duplicate} duplicata(s) idêntica(s) descartada(s); ${skipped} origem(ns) sem janela fixa completa. Diferenças observadas não demonstram vantagem preditiva; amostras pequenas e resultados faltantes exigem cautela.`;
+ const table=(headers,rows)=>'<table><thead><tr>'+headers.map(s=>'<th>'+safe(s)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(x=>'<td>'+safe(String(x))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+ const hours=[...new Set(events.map(x=>x.time))].sort();
+ asc251LastHours=hours.map(hour=>{
+  const es=events.filter(x=>x.time===hour),h=es.filter(x=>x.hit).length,n=es.length;
+  const ex=es.reduce((sum,x)=>sum+x.pExpected,0);
+  return {hour,n,h,observed:h/n,expected:ex/n,delta:(h-ex)/n};
+ });
+ $('asc251Hours').innerHTML=hours.length?table(['Horário do 2º','Origens','Subidas','Observado','Esperado','Diferença (p.p.)'],asc251LastHours.map(x=>[x.hour,x.n,x.h,p(x.observed),p(x.expected),(x.delta>=0?'+':'')+(100*x.delta).toFixed(1).replace('.',',')])):'<div class="mutedbox">Nenhuma oportunidade válida no período.</div>';
+ const steps=[...new Set(hits.map(x=>x.step))].sort((a,b)=>a-b);
+ $('asc251Steps').innerHTML=steps.length?table(['Subiu na extração nº','Ocorrências'],steps.map(n=>[n,hits.filter(x=>x.step===n).length])):'<div class="mutedbox">Nenhuma subida registrada nesta seleção.</div>';
+ $('asc251Cases').innerHTML=hits.length?table(['Data','Origem / 2º','Grupo','Chegada / 1º','Extração nº'],hits.slice(-120).reverse().map(x=>[x.date,x.time+' · '+x.second,'G'+pad(x.g2),x.arrival+' · '+x.first,x.step])):'<div class="mutedbox">Nenhuma ocorrência encontrada.</div>';
+}
+$('asc251Calc').onclick=renderAsc251;
+['asc251Horizon','asc251Start','asc251End'].forEach(id=>$(id).onchange=renderAsc251);
+$('asc251Csv').onclick=()=>{
+ renderAsc251();
+ const rows=[['Horario','Origens','Subidas','Taxa_observada','Taxa_teorica','Diferenca_pp'],...asc251LastHours.map(x=>[x.hour,x.n,x.h,(100*x.observed).toFixed(2),(100*x.expected).toFixed(2),(100*x.delta).toFixed(2)])];
+ const blob=new Blob(['\uFEFF'+rows.map(r=>r.join(';')).join('\n')],{type:'text/csv;charset=utf-8'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='teste-25-1-horarios.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+
+
+// TESTE 25.2: padrões de grupos repetidos no segundo prêmio e chegada no primeiro do dia seguinte.
+let asc252LastRows=[];
+function asc252NextDay(date){
+ const d=new Date(date+'T12:00:00Z');
+ if(Number.isNaN(d.getTime()))return null;
+ d.setUTCDate(d.getUTCDate()+1);
+ return d.toISOString().slice(0,10);
+}
+function asc252Records(){
+ const valid=lookAll().filter(r=>r&&/^\d{4}-\d\d-\d\d$/.test(r.date)&&Array.isArray(r.p)&&r.p.length>=5&&r.p.slice(0,5).every(n=>/^\d{1,4}$/.test(String(n))));
+ const byDate={};
+ for(const r of valid){(byDate[r.date]??=[]).push(r);}
+ const dates=Object.keys(byDate).sort();
+ if(!$('asc252Start').value&&dates.length)$('asc252Start').value=dates[0];
+ if(!$('asc252End').value&&dates.length)$('asc252End').value=dates[dates.length-1];
+ let duplicate=0;
+ for(const date of dates){
+  const seen=new Set();
+  byDate[date]=byDate[date].sort((a,b)=>lookActualTime(a).localeCompare(lookActualTime(b))).filter(r=>{
+   const key=r.p.slice(0,5).map(x=>String(x).padStart(4,'0')).join('|');
+   if(seen.has(key)){duplicate++;return false;}
+   seen.add(key);return true;
+  });
+ }
+ const start=$('asc252Start').value,end=$('asc252End').value,threshold=Number($('asc252Min').value);
+ const rows=[];let noNext=0;
+ for(const date of dates){
+  if((start&&date<start)||(end&&date>end))continue;
+  const next=asc252NextDay(date),nextRows=byDate[next];
+  if(!nextRows||!nextRows.length){noNext++;continue;}
+  const groupTimes=new Map();
+  for(const r of byDate[date]){
+   const g=group(r.p[1]),arr=groupTimes.get(g)||[];arr.push(lookActualTime(r));groupTimes.set(g,arr);
+  }
+  for(const [g,times] of groupTimes.entries()){
+   const firstArrival=nextRows.find(r=>group(r.p[0])===g);
+   const n=nextRows.length;
+   rows.push({date,next,group:g,times,count:times.length,n,hit:!!firstArrival,arrival:firstArrival?lookActualTime(firstArrival):'',first:firstArrival?String(firstArrival.p[0]).padStart(4,'0'):'',expected:1-Math.pow(24/25,n)});
+  }
+ }
+ return {rows,selected:rows.filter(r=>r.count>=threshold),duplicate,noNext,threshold};
+}
+function renderAsc252(){
+ const {rows,selected,duplicate,noNext,threshold}=asc252Records();
+ const pct=n=>Number.isFinite(n)?(100*n).toFixed(1).replace('.',',')+'%':'—';
+ const table=(headers,items)=>'<table><thead><tr>'+headers.map(h=>'<th>'+safe(h)+'</th>').join('')+'</tr></thead><tbody>'+items.map(row=>'<tr>'+row.map(v=>'<td>'+safe(String(v))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+ const N=selected.length,H=selected.filter(r=>r.hit).length,E=selected.reduce((s,r)=>s+r.expected,0);
+ $('asc252N').textContent=N;
+ $('asc252Hits').textContent=H;
+ $('asc252Rate').textContent=N?pct(H/N):'—';
+ $('asc252Expected').textContent=N?pct(E/N):'—';
+ $('asc252Notice').textContent=`${N} grupo(s) apareceram pelo menos ${threshold} vez(es) no 2º de um dia com resultados disponíveis no dia seguinte; ${H} chegaram ao 1º. Esperado aproximadamente ${E.toFixed(1).replace('.',',')} caso(s) sob sorteios equiprováveis (${N?pct(E/N):'—'}). ${duplicate} duplicata(s) idêntica(s) desconsiderada(s). ${noNext} dia(s) sem resultados no dia imediatamente seguinte não puderam ser conferidos. Não há garantia de acerto.`;
+ const single=rows.filter(r=>r.count===1),singleH=single.filter(r=>r.hit).length,singleE=single.reduce((s,r)=>s+r.expected,0);
+ $('asc252Comparison').innerHTML=table(['Padrão no 2º','Grupos-dia','Chegaram ao 1º seguinte','Observado','Referência'],[
+  [`Repetiu ${threshold}+ vezes`,N,H,N?pct(H/N):'—',N?pct(E/N):'—'],
+  ['Apareceu 1 vez',single.length,singleH,single.length?pct(singleH/single.length):'—',single.length?pct(singleE/single.length):'—']
+ ]);
+ asc252LastRows=selected;
+ $('asc252Cases').innerHTML=selected.length?table(['Dia de origem','Grupo','Vezes no 2º','Horários no 2º','Dia seguinte','1º prêmio chegou?','Primeira chegada'],selected.slice().reverse().map(r=>[r.date,'G'+pad(r.group),r.count,r.times.join(', '),r.next,r.hit?'SIM':'NÃO',r.hit?r.arrival+' · '+r.first:'—'])):'<div class="mutedbox">Nenhum grupo repetido com dia seguinte disponível neste filtro.</div>';
+}
+$('asc252Calc').onclick=renderAsc252;
+['asc252Start','asc252End','asc252Min'].forEach(x=>$(x).onchange=renderAsc252);
+$('asc252Csv').onclick=()=>{
+ renderAsc252();
+ const rows=[['data_origem','grupo','repeticoes_2premio','horarios_2premio','data_seguinte','qtd_sorteios_seguinte','subiu_1premio','horario_chegada','milhar_primeiro','probabilidade_teorica'],...asc252LastRows.map(r=>[r.date,'G'+pad(r.group),r.count,r.times.join('/'),r.next,r.n,r.hit?'SIM':'NAO',r.arrival,r.first,r.expected.toFixed(5)])];
+ const blob=new Blob(['\uFEFF'+rows.map(r=>r.join(';')).join('\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='teste-25-2-repeticao-segundo-dia-seguinte.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+
+function renderLabCurrent(){if($('labAsc251Btn').classList.contains('active')){renderAsc251();renderAsc252();}else if($('labAsc25Btn').classList.contains('active'))renderAsc25();else if($('labLive').classList.contains('active'))renderLive();else if($('labR221').classList.contains('active'))renderR221();else if($('labFed').classList.contains('active'))renderFederalLook();else renderLookDyn()}
 function setLabPane(id){
  document.querySelectorAll('#laboratorio .lab-link').forEach(x=>x.classList.toggle('active',x.dataset.pane===id));
- ['lookdyn','labRadarAudit','labRadarLive','labAsc25','fedlook'].forEach(x=>$(x).classList.toggle('hidden',x!==id));
+ ['lookdyn','labRadarAudit','labRadarLive','labAsc25','labAsc251','fedlook'].forEach(x=>$(x).classList.toggle('hidden',x!==id));
  renderLabCurrent();
 }
 document.querySelectorAll('#laboratorio .lab-link').forEach(x=>x.addEventListener('click',()=>setLabPane(x.dataset.pane)));

@@ -486,6 +486,27 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
     <div class="live-table-wrap" id="asc252Cases"></div>
     <p class="live-muted">O cálculo usa a data calendário imediatamente seguinte, sem pular dias ausentes. Só avalia dias com resultados cadastrados no dia seguinte. As duplicatas inteiramente idênticas de uma data são removidas. Dias incompletos reduzem as chances observáveis. A referência 1 − (24/25)^n pressupõe grupos uniformes e independentes para n extrações disponíveis no dia seguinte; diferenças descritivas não provam previsibilidade. O Teste 25.2 não altera Radar 22, Teste 25 ou Teste 25.1.</p>
   </div>
+  <div class="panel" id="asc253Panel" style="margin-top:24px;border:1px solid #4987c2;background:linear-gradient(135deg,#102638,#152b43)">
+    <h2>🧭 Teste 25.3 — Radar de Movimento do 2º → 1º</h2>
+    <p class="muted">Acompanha a trajetória do grupo do 2º prêmio até aparecer no 1º, inclusive na virada do dia. Emite <b>cinco grupos candidatos apenas para a próxima extração</b>, com uma regra fixa e verificação retrospectiva sem olhar resultados futuros. <b>Não há vantagem comprovada.</b></p>
+    <p><button class="primary" id="asc253Calc">↻ Recalcular Teste 25.3</button></p>
+    <div class="quick-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">
+      <div class="mini-stat"><span>Extrações distintas</span><strong id="asc253N">—</strong></div>
+      <div class="mini-stat"><span>Subiu na próxima (histórico)</span><strong id="asc253One">—</strong></div>
+      <div class="mini-stat"><span>Top 5 no teste recente</span><strong id="asc253Top">—</strong></div>
+      <div class="mini-stat"><span>Referência de 5 grupos</span><strong>20,0%</strong></div>
+    </div>
+    <div class="notice" id="asc253Note">Carregando resultados cadastrados.</div>
+    <h3>Grupos candidatos para a próxima extração — regra congelada</h3>
+    <div class="live-table-wrap" id="asc253Picks"></div>
+    <h3>Trajetória de chegada ao 1º prêmio — até 16 extrações seguintes</h3>
+    <div class="live-table-wrap" id="asc253Survival"></div>
+    <h3>Comparação fora do período inicial — 40% finais</h3>
+    <div class="live-table-wrap" id="asc253Backtest"></div>
+    <h3>Repetiu no 2º no dia de origem → 1º no dia seguinte</h3>
+    <div class="live-table-wrap" id="asc253Repeats"></div>
+    <p class="live-muted">O algoritmo escolhe 5 grupos por ranking fixo: +3 pelo grupo do último 2º prêmio; +1,2 por ocorrência no 2º do dia corrente; +0,35 por ocorrência nos 9 sorteios mais recentes. Essas pontuações não são probabilidades. A avaliação histórica calcula cada escolha usando somente resultados anteriores ao 1º prêmio conferido. Não registra previsão retroativa. O período recente não foi usado para reajustar os pesos. Para avaliar uma escolha futura de modo auditável, salve/exporte antes do sorteio. Horários ausentes e dias sem sequência não são tratados como transições válidas.</p>
+  </div>
   <p class="live-muted">Uma origem pode produzir no máximo um acerto nesta janela: vale a primeira chegada ao 1º prêmio. A extração das 23h20 não é origem no mesmo dia. Para janelas fixas de 1, 2 ou 3 extrações, só entram origens com todos os próximos horários cadastrados. Resultados de dias incompletos podem enviesar as comparações. A referência 1 − (24/25)^n pressupõe grupos independentes e uniformes; não demonstra previsibilidade.</p>
  </div>
 </section>
@@ -1703,4 +1724,80 @@ $('configFedExport').onclick=()=>{
  const a=document.createElement('a'),u=URL.createObjectURL(new Blob([JSON.stringify(federalRows(),null,2)],{type:'application/json'}));a.href=u;a.download='federais-look-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)
 };
 renderLook();renderLookRadar();renderVisual();renderHistorySummary();renderLive();
+</script><script>
+/* Teste 25.3 — motor independente; não modifica o Radar 22 */
+(function(){
+'use strict';
+const byId=id=>document.getElementById(id);
+const out=(id,html)=>{const el=byId(id);if(el)el.innerHTML=html};
+const pad=n=>String(n).padStart(2,'0');
+const grp=n=>{const d=Number(String(n).padStart(4,'0').slice(-2));return d===0?25:Math.ceil(d/4)};
+const nextSlots={'07:20':['09:20'],'09:20':['11:20'],'11:20':['14:20'],'14:20':['16:20'],'16:20':['18:20','19:20'],'18:20':['19:20','21:20'],'19:20':['21:20'],'21:20':['23:20']};
+const nextDate=s=>{const d=new Date(s+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+1);return d.toISOString().slice(0,10)};
+function validTransition(a,b){return a.date===b.date?(nextSlots[a.time]||[]).includes(b.time):a.time==='23:20'&&b.time==='07:20'&&b.date===nextDate(a.date)}
+function entries(){
+  let raw=typeof lookAll==='function'?lookAll():[];
+  const out=[],duplicates=new Set(),conflicts=[];
+  raw.forEach(r=>{
+    const date=String(r.date||''),time=String(typeof lookActualTime==='function'?lookActualTime(r):r.time||'');
+    if(!/^\d{4}-\d\d-\d\d$/.test(date)||!/^\d\d:20$/.test(time))return;
+    if(!Array.isArray(r.p)||r.p.length<5||r.p.slice(0,5).some(n=>!/^\d{1,4}$/.test(String(n))))return;
+    const p=r.p.slice(0,5).map(n=>String(n).padStart(4,'0'));
+    const key=date+'|'+p.join('-');
+    if(duplicates.has(key))return;
+    duplicates.add(key);out.push({date,time,p});
+  });
+  out.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  return out;
+}
+function rank(rows,i){
+  const origin=rows[i],d=origin.date,last=grp(origin.p[1]);
+  const today=new Map(),recent=new Map();
+  rows.slice(0,i+1).filter(r=>r.date===d).forEach(r=>today.set(grp(r.p[1]),(today.get(grp(r.p[1]))||0)+1));
+  rows.slice(Math.max(0,i-8),i+1).forEach(r=>recent.set(grp(r.p[1]),(recent.get(grp(r.p[1]))||0)+1));
+  return Array.from({length:25},(_,j)=>{
+    const g=j+1;
+    return {g,score:3*Number(g===last)+1.2*(today.get(g)||0)+.35*(recent.get(g)||0),day:today.get(g)||0,last:g===last};
+  }).sort((a,b)=>b.score-a.score||a.g-b.g);
+}
+function trace(rows,h){let n=0,success=0,steps=[];for(let i=0;i+h<rows.length;i++){
+  let contiguous=true;for(let k=i;k<i+h;k++)if(!validTransition(rows[k],rows[k+1])){contiguous=false;break;}
+  if(!contiguous)continue;n++;const g=grp(rows[i].p[1]);let first=-1;
+  for(let k=1;k<=h;k++)if(grp(rows[i+k].p[0])===g){first=k;break;}
+  if(first>0){success++;steps.push(first);}
+}return {n,success,expected:(1-Math.pow(24/25,h))*100,steps}}
+function pct(a,b){return b?((a/b)*100).toFixed(1)+'%':'—'};
+function rowsTable(headers,items){return '<table><thead><tr>'+headers.map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+items.map(row=>'<tr>'+row.map(cell=>'<td>'+cell+'</td>').join('')+'</tr>').join('')+'</tbody></table>'}
+function render(){
+ try{
+ const rows=entries();if(rows.length<35){out('asc253Note','Histórico insuficiente. São necessárias pelo menos 35 extrações.');return;}
+ const trace1=trace(rows,1);
+ out('asc253N',String(rows.length));out('asc253One',pct(trace1.success,trace1.n)+' ('+trace1.success+'/'+trace1.n+')');
+ const cases=[];
+ for(let i=30;i<rows.length-1;i++){
+   if(!validTransition(rows[i],rows[i+1]))continue;
+   const ranked=rank(rows,i),actual=grp(rows[i+1].p[0]);
+   cases.push({date:rows[i].date,top1:ranked[0].g,top5:ranked.slice(0,5).map(r=>r.g),actual});
+ }
+ const test=cases.slice(Math.floor(cases.length*0.6));
+ const h1=test.filter(c=>c.top1===c.actual).length,h5=test.filter(c=>c.top5.includes(c.actual)).length;
+ out('asc253Top',pct(h5,test.length)+' ('+h5+'/'+test.length+')');
+ out('asc253Note','Dados: '+rows.length+' extrações distintas. '+cases.length+' pares com pelo menos 30 extrações anteriores; teste temporal nos '+test.length+' pares finais. A seleção de cinco grupos alcançou '+pct(h5,test.length)+' no teste recente, contra referência de 20%. <b>Não há evidência de previsão confiável.</b> O painel lê também o histórico importado neste navegador; pode diferir do GitHub.');
+ const last=rows.at(-1),ranked=rank(rows,rows.length-1);
+ out('asc253Picks','<p class="muted">Origem: '+last.date+' '+last.time+' (2º prêmio '+last.p[1]+' / G'+pad(grp(last.p[1]))+'). Se essa extração já tiver ocorrido e a seguinte não estiver cadastrada, este ranking é apenas uma simulação atual, <b>não uma previsão registrada antes do sorteio</b>.</p>'+rowsTable(['Posição','Grupo','Pontuação','Repetições no 2º hoje','Último 2º'],ranked.slice(0,5).map((r,j)=>[j+1,'G'+pad(r.g),r.score.toFixed(2).replace('.',','),r.day,r.last?'Sim':'Não'])));
+ const horizons=[1,2,3,5,8,16];const sur=horizons.map(h=>{const t=trace(rows,h);return [h,t.n,t.success,pct(t.success,t.n),t.expected.toFixed(1).replace('.',',')+'%']});
+ out('asc253Survival',rowsTable(['Até N extrações seguintes','Origens válidas','Chegadas','Observado','Referência teórica'],sur));
+ out('asc253Backtest',rowsTable(['Comparação','Acertos','Tentativas','Taxa','Referência'],[['Apenas 1 grupo',h1,test.length,pct(h1,test.length),'4,0%'],['Top 5 grupos',h5,test.length,pct(h5,test.length),'20,0%']]));
+ const byDate=new Map();rows.forEach(r=>{if(!byDate.has(r.date))byDate.set(r.date,[]);byDate.get(r.date).push(r)});
+ const casesRep=[];for(const [d,day] of byDate){const next=byDate.get(nextDate(d));if(!next||next.length<7)continue;
+ const freq=new Map();day.forEach(r=>{const g=grp(r.p[1]);freq.set(g,(freq.get(g)||0)+1)});
+ for(const [g,n] of freq){if(n<2)continue;const first=next.findIndex(r=>grp(r.p[0])===g);casesRep.push({d,g,n,step:first+1});}
+ }
+ const hits=casesRep.filter(x=>x.step>0),mean=hits.length?hits.reduce((a,x)=>a+x.step,0)/hits.length:0;
+ out('asc253Repeats','<p class="muted">'+hits.length+' de '+casesRep.length+' grupos repetidos no 2º chegaram ao 1º em alguma extração disponível do dia seguinte ('+pct(hits.length,casesRep.length)+'). '+(hits.length?'Entre os acertos, a chegada ocorreu em média na '+mean.toFixed(1).replace('.',',')+'ª extração do dia seguinte.':'')+' Isso não indica certeza de subida.</p>'+rowsTable(['Data da repetição','Grupo','Vezes no 2º','Chegou no 1º do dia seguinte'],casesRep.slice(-35).reverse().map(x=>[x.d,'G'+pad(x.g),x.n,x.step?x.step+'ª extração':'Não'])));
+ }catch(e){out('asc253Note','Não foi possível calcular o Teste 25.3: '+String(e.message||e));console.error(e)}
+}
+byId('asc253Calc').addEventListener('click',render);
+render();
+})();
 </script></body></html>

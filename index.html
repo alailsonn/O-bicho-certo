@@ -230,7 +230,7 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 #ciclos th,#ciclos td{padding:10px;border-bottom:1px solid #315470;text-align:left;font-size:12px}
 #ciclos th{color:#a0c5e7}#ciclos .hint{margin-top:12px}
 @media(max-width:700px){#ciclos .cy26-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-</style><style>#cy261Panel .settings-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:end}#cy261Panel .live-table-wrap{overflow-x:auto}#cy261Panel table{width:100%;border-collapse:collapse;min-width:520px}#cy261Panel td,#cy261Panel th{text-align:left;padding:9px;border-bottom:1px solid #315470;font-size:12px}#cy261Panel th{color:#a0c5e7}</style><style>#cy262Panel .settings-actions{display:flex;gap:12px;flex-wrap:wrap}#cy262Panel .live-table-wrap{overflow-x:auto}#cy262Panel table{width:100%;border-collapse:collapse;min-width:580px}#cy262Panel td,#cy262Panel th{text-align:left;padding:9px;border-bottom:1px solid #315470;font-size:12px}#cy262Panel th{color:#a0c5e7}</style></head><body><header><div class="brand"><div class="logo">🐾</div><div><h1>O BICHO <span style="color:#2ff5a2">CERTO</span></h1><p>Radar estatístico da LOOK Goiás · Painel 3D</p></div><div class="focus-pill">FOCO EXCLUSIVO · LOOK GOIÁS</div></div></header><main><div class="notice">📊 <strong>Estatística, não previsão:</strong> os resultados anteriores não garantem acertos futuros. <b>5 grupos entre 25 = 20%</b> de cobertura teórica, em sorteios equiprováveis.</div><nav aria-label="Áreas do O Bicho Certo">
+</style><style>#cy261Panel .settings-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:end}#cy261Panel .live-table-wrap{overflow-x:auto}#cy261Panel table{width:100%;border-collapse:collapse;min-width:520px}#cy261Panel td,#cy261Panel th{text-align:left;padding:9px;border-bottom:1px solid #315470;font-size:12px}#cy261Panel th{color:#a0c5e7}</style><style>#cy262Panel .settings-actions{display:flex;gap:12px;flex-wrap:wrap}#cy262Panel .live-table-wrap{overflow-x:auto}#cy262Panel table{width:100%;border-collapse:collapse;min-width:580px}#cy262Panel td,#cy262Panel th{text-align:left;padding:9px;border-bottom:1px solid #315470;font-size:12px}#cy262Panel th{color:#a0c5e7}</style><style>#cy263Panel .settings-actions{display:flex;gap:10px;flex-wrap:wrap}#cy263Panel .live-table-wrap{overflow:auto}#cy263Panel table{width:100%;border-collapse:collapse;min-width:640px}#cy263Panel td,#cy263Panel th{text-align:left;padding:9px;border-bottom:1px solid #315470;font-size:12px}#cy263Panel th{color:#a0c5e7}</style></head><body><header><div class="brand"><div class="logo">🐾</div><div><h1>O BICHO <span style="color:#2ff5a2">CERTO</span></h1><p>Radar estatístico da LOOK Goiás · Painel 3D</p></div><div class="focus-pill">FOCO EXCLUSIVO · LOOK GOIÁS</div></div></header><main><div class="notice">📊 <strong>Estatística, não previsão:</strong> os resultados anteriores não garantem acertos futuros. <b>5 grupos entre 25 = 20%</b> de cobertura teórica, em sorteios equiprováveis.</div><nav aria-label="Áreas do O Bicho Certo">
 <button class="tab active" data-tab="visual">🐾 Painel 3D</button>
 <button class="tab" data-tab="radar">🎯 Radar 22</button>
 <button class="tab" data-tab="historico">📈 Histórico</button>
@@ -619,6 +619,15 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
   <h3>Dez grupos classificados para o próximo sorteio</h3>
   <div id="uniCards" class="uni-top"></div>
   <div id="uniTable" class="uni-table"></div>
+  <div class="uni-consenso" style="margin-top:22px;padding:16px;border:1px solid #246477;border-radius:12px;background:#0c2435">
+    <h3>🔎 Painel de Consenso — Radar 22 × Unificado × Movimento</h3>
+    <p class="uni-sub">Mostra a interseção entre as três listas na <b>mesma extração de origem</b>. Radar 22: Top 5; Unificado: Top 10; Movimento: Top 10. Os cálculos não mudam. As listas compartilham informações, portanto concordância não é prova de maior chance.</p>
+    <div id="uniConsensusInfo" class="uni-warning" aria-live="polite">Aguardando cálculo dos radares...</div>
+    <div id="uniConsensusTable" class="uni-table"></div>
+    <h3>Teste cronológico do consenso</h3>
+    <p class="uni-sub">A cada extração, usa apenas dados anteriores e compara a cobertura dos grupos presentes nas 3 listas ou em pelo menos 2. O número de grupos pode variar; a referência teórica é a média da quantidade selecionada dividida por 25. Não há alteração retroativa de pesos.</p>
+    <div id="uniConsensusBacktest" class="uni-table"></div>
+  </div>
   <p class="uni-sub">Pontuação composta é uma <b>escala de classificação</b>, não probabilidade, porcentagem de acerto nem previsão garantida. O Top 10 cobre 10 dos 25 grupos (40% em um sorteio uniforme).</p>
  </div>
  <div class="uni-panel">
@@ -679,6 +688,23 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 <h3>🔎 Dez grupos classificados pelo último histórico</h3><div class="live-table-wrap" id="cy262Latest"></div>
 <p class="hint">A classificação acima é uma <b>simulação</b> quando o horário seguinte já passou. Nenhuma seleção é gravada retroativamente. As três regras foram definidas após exploração do histórico: a avaliação retrospectiva não é uma confirmação independente de capacidade preditiva. Validar com 100 novas seleções previamente registradas.</p>
 </div>
+<div class="panel" id="cy263Panel">
+<h3>🧭 Teste 26.3 — Acompanhamento prospectivo das três estratégias</h3>
+<p class="muted">Regras congeladas: repetição do 2º, idade do ciclo e combinação. Cada estratégia escolhe dez grupos antes da extração; o mesmo registro é usado para conferir Top 1, Top 3, Top 5 e Top 10. Os dados anteriores não entram no placar. Este acompanhamento é <b>local ao navegador</b> e não garante registro quando a página está fechada.</p>
+<div class="settings-actions"><button class="primary" id="cy263Refresh">↻ Conferir resultados / registrar a tempo</button><button id="cy263Csv">Exportar CSV</button><button id="cy263Backup">Exportar backup JSON</button></div>
+<div class="notice" id="cy263Info">Aguardando conferência.</div>
+<div class="cy26-grid">
+<div class="mini-stat"><span>Conferências válidas</span><strong id="cy263N">0 / 100</strong></div>
+<div class="mini-stat"><span>Pendentes</span><strong id="cy263Pending">0</strong></div>
+<div class="mini-stat"><span>Inválidas</span><strong id="cy263Invalid">0</strong></div>
+<div class="mini-stat"><span>Referência Top 1/3/5/10</span><strong>4/12/20/40%</strong></div>
+</div>
+<h3>📊 Placar dos resultados registrados antes do horário</h3><div class="live-table-wrap" id="cy263Score"></div>
+<h3>🕒 Última seleção congelada</h3><div class="live-table-wrap" id="cy263Picks"></div>
+<h3>📑 Últimas conferências</h3><div class="live-table-wrap" id="cy263History"></div>
+<p class="hint">As escolhas não são registradas retroativamente. Alterações nos resultados de origem são invalidadas; o registro local não é prova independente do horário. Não altere as regras após conhecer resultados e faça backups periódicos.</p>
+</div>
+
 </section>
 </main><script>// VISUAL 3D: five portraits embedded from the approved concept.
 // Other animal groups use the pre-existing offline embedded portraits; no external image requests.
@@ -2101,6 +2127,19 @@ function combine(list,i){
  });
  return scores.sort((a,b)=>b.score-a.score||a.g-b.g);
 }
+function consensus(list,i,precomputed){
+  const origin=list[i],seen=list.slice(0,i+1),transitions=[];
+  for(let j=0;j<i;j++)if(pair(list[j],list[j+1]))transitions.push({origin:list[j],next:list[j+1],g:group(list[j+1].p[0])});
+  const r22=r22Score(origin,seen,transitions).slice(0,5).map(r=>r.g);
+  const mov=movement(list,i).slice(0,10).map(r=>r.g);
+  const unified=(precomputed||combine(list,i)).slice(0,10).map(r=>r.g);
+  const table=Array.from({length:25},(_,j)=>{
+    const g=j+1,a=r22.indexOf(g),b=unified.indexOf(g),c=mov.indexOf(g);
+    const votes=Number(a>=0)+Number(b>=0)+Number(c>=0);
+    return {g,votes,r22:a>=0?a+1:null,unified:b>=0?b+1:null,movement:c>=0?c+1:null};
+  });
+  return table.sort((a,b)=>b.votes-a.votes || (a.unified||99)-(b.unified||99) || a.g-b.g);
+}
 function expectedNext(last){
  const ns=slots[last.time];if(last.time==='23:20')return {date:dnext(last.date),time:'07:20',uncertain:false};
  if(!ns)return null;
@@ -2120,6 +2159,10 @@ function render(){
   el('uniInfo').innerHTML='<b>Última extração:</b> '+esc(last.date+' '+last.time)+' · <b>1º:</b> '+esc(last.p[0])+' · <b>2º:</b> '+esc(last.p[1])+' (G'+p2(group(last.p[1]))+'). <b>Próximo horário de referência:</b> '+esc(title)+(target&&target.uncertain?' (pode haver horário alternativo)':'')+'. '+esc(note);
   el('uniCards').innerHTML=lastRank.map((r,i)=>'<div class="uni-card"><small>'+(i+1)+'º classificado</small><strong>G'+p2(r.g)+' · '+esc(animal(r.g))+'</strong><small>Índice '+r.score.toFixed(1).replace('.',',')+' / 100</small></div>').join('');
   el('uniTable').innerHTML=table(['Posição','Grupo','Índice / 100','Radar 22','Auditorias','Movimento','Repetição 2º hoje'],lastRank.map((r,i)=>[i+1,'G'+p2(r.g)+' · '+esc(animal(r.g)),r.score.toFixed(1).replace('.',','),(r.parts.radar22*100).toFixed(1).replace('.',','),(r.parts.auditoria*100).toFixed(1).replace('.',','),(r.parts.movimento*100).toFixed(1).replace('.',','),r.day]));
+  const currentConsensus=consensus(list,list.length-1,rank),shared=currentConsensus.filter(r=>r.votes>=2),all3=currentConsensus.filter(r=>r.votes===3);
+  el('uniConsensusInfo').textContent='Origem: '+last.date+' '+last.time+' · Consenso em 3 modelos: '+all3.length+' grupo(s). Em pelo menos 2 modelos: '+shared.length+' grupo(s). Nenhuma lista foi modificada. '+note;
+  el('uniConsensusTable').innerHTML=table(['Grupo','Radar 22 (5)','Unificado (10)','Movimento (10)','Concordância'],shared.map(r=>['G'+p2(r.g)+' · '+esc(animal(r.g)),r.r22||'—',r.unified||'—',r.movement||'—',r.votes+'/3']));
+
   const cases=[];
   for(let i=30;i<list.length-1;i++){
    if(!pair(list[i],list[i+1]))continue;
@@ -2132,6 +2175,24 @@ function render(){
   el('uniRate').textContent=n?fmt(100*h10/n)+' ('+h10+'/'+n+')':'—';
   el('uniRate5').textContent=n?fmt(100*h5/n)+' ('+h5+'/'+n+')':'—';
   el('uniBacktest').innerHTML=table(['Grupos classificados','Acertos','Total','Taxa observada','Referência uniforme'],[['Top 1',h1,n,n?fmt(100*h1/n):'—','4,0%'],['Top 5',h5,n,n?fmt(100*h5/n):'—','20,0%'],['Top 10',h10,n,n?fmt(100*h10/n):'—','40,0%']]);
+  const totals=[{label:'Presentes nas 3 listas',minimum:3,hits:0,groups:0,nonempty:0},{label:'Presentes em pelo menos 2 listas',minimum:2,hits:0,groups:0,nonempty:0}];
+  for(const item of test){
+    // A origem desta amostra é localizada unicamente pelo alvo imediatamente seguinte.
+    // O histórico já está validado por pair() no bloco cronológico acima.
+    const targetIndex=list.findIndex(r=>r.date===item.date&&r.time===item.time);
+    if(targetIndex<1 || !pair(list[targetIndex-1],list[targetIndex]))continue;
+    const cs=consensus(list,targetIndex-1);
+    for(const row of totals){
+      const selected=cs.filter(r=>r.votes>=row.minimum).map(r=>r.g);
+      row.groups+=selected.length;
+      if(selected.length)row.nonempty++;
+      if(selected.includes(item.actual))row.hits++;
+    }
+  }
+  el('uniConsensusBacktest').innerHTML=table(['Critério','Acertos / transições','Taxa','Grupos médios','Referência teórica'],totals.map(t=>[
+    esc(t.label),t.hits+'/'+n,n?fmt(100*t.hits/n):'—',n?(t.groups/n).toFixed(2).replace('.',','):'—',n?fmt(100*t.groups/n/25):'—'
+  ]));
+
  }catch(e){el('uniInfo').textContent='Erro no Radar Unificado: '+String(e.message||e);console.error(e)}
 }
 function exportCsv(){if(!lastRank.length){render();if(!lastRank.length)return;}const csv='posicao;grupo;animal;indice;radar22;auditorias;movimento;repeticao_hoje\n'+lastRank.map((r,i)=>[i+1,'G'+p2(r.g),animal(r.g),r.score.toFixed(2),r.parts.radar22.toFixed(5),r.parts.auditoria.toFixed(5),r.parts.movimento.toFixed(5),r.day].join(';')).join('\n');const u=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=u;a.download='radar-unificado-top10.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
@@ -2396,5 +2457,103 @@ el('cy262Refresh').addEventListener('click',render);el('cy262Csv').addEventListe
 const old=window.renderRadarCiclos26;
 if(typeof old==='function')window.renderRadarCiclos26=function(){old();render()};
 window.renderRadarCiclos262=render;
+})();
+</script><script>
+/* Teste 26.3 — três regras fixas e registro prospectivo local. */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const KEY='obicho-ciclos-263-v1';
+const schedule={'07:20':['09:20'],'09:20':['11:20'],'11:20':['14:20'],'14:20':['16:20'],'16:20':['18:20','19:20'],'18:20':['19:20','21:20'],'19:20':['21:20'],'21:20':['23:20']};
+const names={repeat:'Repetição no 2º',age:'Idade do ciclo',both:'Repetição + idade'};
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function tomorrow(date){const d=new Date(date+'T12:00:00Z');if(!Number.isFinite(d.getTime()))return null;d.setUTCDate(d.getUTCDate()+1);return d.toISOString().slice(0,10)}
+function sequential(a,b){return (a.date===b.date&&(schedule[a.time]||[]).includes(b.time))||(a.time==='23:20'&&b.time==='07:20'&&b.date===tomorrow(a.date))}
+function when(date,time){return Date.parse(date+'T'+time+':00-03:00')}
+function next(row){if(row.time==='23:20')return {date:tomorrow(row.date),time:'07:20'};const times=schedule[row.time];return times?{date:row.date,time:times[0]}:null}
+function rowId(r){return r.date+'|'+r.time+'|'+r.p.join('-')}
+function all(){
+ const map=new Map();
+ for(const x of lookAll()){
+  const date=String(x.date||''),time=lookActualTime(x),p=Array.isArray(x.p)?x.p.slice(0,5).map(z=>String(z).padStart(4,'0')):[];
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!/^(07|09|11|14|16|18|19|21|23):20$/.test(time)||p.length!==5||p.some(z=>!/^[0-9]{4}$/.test(z)))continue;
+  const key=date+'|'+time,prev=map.get(key);
+  if(prev&&prev.p.join()!==p.join())throw Error('Resultados conflitantes: '+key);
+  map.set(key,{date,time,p});
+ }
+ const sorted=[...map.values()].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+ const seen=new Set();return sorted.filter(r=>{const k=r.date+'|'+r.p.join('-');if(seen.has(k))return false;seen.add(k);return true});
+}
+function cycles(rows,i){
+ const state=new Map();
+ for(let j=0;j<=i;j++){
+  if(j>0&&!sequential(rows[j-1],rows[j]))state.clear();
+  const first=group(rows[j].p[0]),second=group(rows[j].p[1]);
+  if(state.has(first)&&j>state.get(first).start)state.delete(first);
+  for(const [g,c] of state)if(j-c.start>=16)state.delete(g);
+  if(state.has(second))state.get(second).reps++;
+  else state.set(second,{start:j,reps:1});
+ }
+ return state;
+}
+function rank(state,i,rule){
+ return Array.from({length:25},(_,k)=>{
+  const g=k+1,c=state.get(g),age=c?i-c.start:0,reps=c?c.reps:0;
+  const score=!c?0:rule==='repeat'?reps:rule==='age'?age+1:2*reps+(age+1)/16;
+  return {g,score};
+ }).sort((a,b)=>b.score-a.score||a.g-b.g).slice(0,10).map(x=>x.g);
+}
+function empty(){return {version:1,limit:100,records:[]}}
+function read(){
+ const raw=localStorage.getItem(KEY);if(!raw)return empty();const s=JSON.parse(raw);
+ if(!s||s.version!==1||s.limit!==100||!Array.isArray(s.records))throw Error('Backup 26.3 incompatível, não substituído');
+ return s;
+}
+function save(s){localStorage.setItem(KEY,JSON.stringify(s))}
+function table(headers,rows){return '<table><thead><tr>'+headers.map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(row=>'<tr>'+row.map(x=>'<td>'+esc(x)+'</td>').join('')+'</tr>').join('')+'</tbody></table>'}
+function update(rows,s,now){
+ let changed=false;
+ for(const rec of s.records){
+  if(rec.status!=='pending')continue;
+  const idx=rows.findIndex(r=>rowId(r)===rec.originId);
+  if(idx<0){
+   if(rows.some(r=>r.date+r.time>=rec.originDate+rec.originTime)){rec.status='invalid';rec.reason='Origem ausente ou alterada';changed=true}
+   continue;
+  }
+  if(idx===rows.length-1)continue;
+  const target=rows[idx+1],lock=Date.parse(rec.lockedAt),actualTime=when(target.date,target.time);
+  if(!sequential(rows[idx],target)||!Number.isFinite(lock)||!Number.isFinite(actualTime)||lock>=actualTime){rec.status='invalid';rec.reason='Lacuna ou registro posterior ao sorteio';changed=true;continue}
+  if(!rec.picks||Object.keys(names).some(k=>!Array.isArray(rec.picks[k])||rec.picks[k].length!==10)){rec.status='invalid';rec.reason='Seleção incompleta';changed=true;continue}
+  const actual=group(target.p[0]);
+  rec.status='done';rec.targetId=rowId(target);rec.actual=actual;rec.target=target.date+' '+target.time;rec.checkedAt=now.toISOString();changed=true;
+ }
+ const done=s.records.filter(x=>x.status==='done').length;
+ if(done>=s.limit||s.records.some(x=>x.status==='pending')||rows.length<31)return changed;
+ const origin=rows.at(-1),planned=next(origin);if(!planned)return changed;
+ const earliest=when(planned.date,planned.time),originTime=when(origin.date,origin.time);
+ if(!Number.isFinite(earliest)||!Number.isFinite(originTime)||now.getTime()<originTime||now.getTime()>=earliest)return changed;
+ if(s.records.some(x=>x.originId===rowId(origin)))return changed;
+ const state=cycles(rows,rows.length-1),picks={};
+ for(const k of Object.keys(names))picks[k]=rank(state,rows.length-1,k);
+ s.records.push({originId:rowId(origin),originDate:origin.date,originTime:origin.time,lockedAt:now.toISOString(),deadline:planned.date+' '+planned.time,status:'pending',picks});
+ return true;
+}
+function render(){try{
+ const rows=all(),s=read(),changed=update(rows,s,new Date());if(changed)save(s);
+ const done=s.records.filter(x=>x.status==='done'),pending=s.records.filter(x=>x.status==='pending'),invalid=s.records.filter(x=>x.status==='invalid');
+ $('cy263N').textContent=done.length+' / 100';$('cy263Pending').textContent=pending.length;$('cy263Invalid').textContent=invalid.length;
+ $('cy263Info').textContent='Base: '+rows.length+' extrações distintas. '+done.length+' conferências, '+pending.length+' pendente(s), '+invalid.length+' inválida(s). '+(pending.length?'Próximo horário de referência: '+pending[0].deadline+'.':'Sem seleção pendente; não são aceitas escolhas retroativas.');
+ $('cy263Score').innerHTML=table(['Estratégia','Top 1','Top 3','Top 5','Top 10'],Object.keys(names).map(k=>[names[k],...[1,3,5,10].map(n=>{const h=done.filter(r=>r.picks[k].slice(0,n).includes(r.actual)).length;return h+'/'+done.length+(done.length?' ('+(h*100/done.length).toFixed(1).replace('.',',')+'%)':'')})]));
+ const current=pending[0]||s.records.at(-1);
+ $('cy263Picks').innerHTML=current?'<p class="hint">Origem: '+esc(current.originDate+' '+current.originTime)+' · Registro: '+esc(current.lockedAt)+' · '+esc(current.status)+'</p>'+table(['Pos.','Repetição','Idade','Combinação'],Array.from({length:10},(_,i)=>[i+1,...Object.keys(names).map(k=>'G'+String(current.picks[k][i]).padStart(2,'0'))])):'<p class="hint">Nenhuma escolha registrada ainda.</p>';
+ $('cy263History').innerHTML=table(['Origem','Status','1º real','Top 1: R/I/C','Top 5: R/I/C','Top 10: R/I/C'],[...s.records].reverse().slice(0,15).map(r=>[r.originDate+' '+r.originTime,r.status,r.actual?'G'+String(r.actual).padStart(2,'0'):'—',...[1,5,10].map(n=>r.status==='done'?Object.keys(names).map(k=>r.picks[k].slice(0,n).includes(r.actual)?'✓':'–').join(' / '):'—')]));
+ }catch(e){$('cy263Info').textContent='Teste 26.3: '+(e.message||String(e));console.error(e)} }
+function download(filename,content,type){const b=new Blob([content],{type}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(u),5000)}
+function backup(){try{download('o-bicho-certo-teste-26-3-backup.json',JSON.stringify(read(),null,2),'application/json')}catch(e){alert(e.message)}}
+function csv(){try{const s=read(),head=['origem','registro_utc','status','prazo','resultado_grupo','regra','top1','top3','top5','top10','grupos_top10'];const a=[head.join(';')];for(const r of s.records)for(const k of Object.keys(names))a.push([r.originDate+' '+r.originTime,r.lockedAt,r.status,r.deadline,r.actual||'',names[k],...[1,3,5,10].map(n=>r.status==='done'?Number(r.picks[k].slice(0,n).includes(r.actual)):''),r.picks[k].join(',')].join(';'));download('o-bicho-certo-teste-26-3.csv','\ufeff'+a.join('\n'),'text/csv;charset=utf-8')}catch(e){alert(e.message)}}
+$('cy263Refresh').addEventListener('click',render);$('cy263Backup').addEventListener('click',backup);$('cy263Csv').addEventListener('click',csv);
+const prior=window.renderRadarCiclos26;
+if(typeof prior==='function')window.renderRadarCiclos26=function(){prior();render()};
+window.renderRadarCiclos263=render;
 })();
 </script></body></html>

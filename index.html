@@ -230,7 +230,7 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 #ciclos th,#ciclos td{padding:10px;border-bottom:1px solid #315470;text-align:left;font-size:12px}
 #ciclos th{color:#a0c5e7}#ciclos .hint{margin-top:12px}
 @media(max-width:700px){#ciclos .cy26-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-</style></head><body><header><div class="brand"><div class="logo">🐾</div><div><h1>O BICHO <span style="color:#2ff5a2">CERTO</span></h1><p>Radar estatístico da LOOK Goiás · Painel 3D</p></div><div class="focus-pill">FOCO EXCLUSIVO · LOOK GOIÁS</div></div></header><main><div class="notice">📊 <strong>Estatística, não previsão:</strong> os resultados anteriores não garantem acertos futuros. <b>5 grupos entre 25 = 20%</b> de cobertura teórica, em sorteios equiprováveis.</div><nav aria-label="Áreas do O Bicho Certo">
+</style><style>#cy261Panel .settings-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:end}#cy261Panel .live-table-wrap{overflow-x:auto}#cy261Panel table{width:100%;border-collapse:collapse;min-width:520px}#cy261Panel td,#cy261Panel th{text-align:left;padding:9px;border-bottom:1px solid #315470;font-size:12px}#cy261Panel th{color:#a0c5e7}</style></head><body><header><div class="brand"><div class="logo">🐾</div><div><h1>O BICHO <span style="color:#2ff5a2">CERTO</span></h1><p>Radar estatístico da LOOK Goiás · Painel 3D</p></div><div class="focus-pill">FOCO EXCLUSIVO · LOOK GOIÁS</div></div></header><main><div class="notice">📊 <strong>Estatística, não previsão:</strong> os resultados anteriores não garantem acertos futuros. <b>5 grupos entre 25 = 20%</b> de cobertura teórica, em sorteios equiprováveis.</div><nav aria-label="Áreas do O Bicho Certo">
 <button class="tab active" data-tab="visual">🐾 Painel 3D</button>
 <button class="tab" data-tab="radar">🎯 Radar 22</button>
 <button class="tab" data-tab="historico">📈 Histórico</button>
@@ -647,6 +647,27 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
  <div class="panel"><h3>🎯 Classificação experimental para a extração seguinte</h3><p class="muted">Sinais fixos: grupo do último 2º prêmio, frequência no 2º nas últimas 12 extrações, repetição hoje e ontem. Não utiliza o resultado seguinte no cálculo.</p><div class="live-table-wrap" id="cy26Rank"></div>
  <h3>📊 Avaliação cronológica — conjunto final</h3><div class="live-table-wrap" id="cy26Test"></div><p class="hint">Testes retrospectivos sem futuro, mas a regra é experimental e os dados não confirmam vantagem estatística. Referências de Top 1, Top 3, Top 5 e Top 10: 4%, 12%, 20% e 40%.</p></div>
  <div class="panel"><h3>📋 Últimos ciclos encerrados</h3><div class="live-table-wrap" id="cy26Recent"></div><p class="hint">Cada grupo mantém no máximo um ciclo aberto: aparições repetidas no 2º ampliam o mesmo ciclo. Se houver lacuna de extração, o ciclo é interrompido e não vira erro. Ciclos ainda abertos são censurados à direita, não são falhas.</p></div>
+
+ <div class="panel" id="cy261Panel">
+  <h3>🧪 Teste 26.1 — Evolução dos ciclos e efeito da repetição</h3>
+  <p class="muted">Compara grupos após o <b>mesmo número de extrações de espera</b>. O resultado só é medido depois desse marco. Repetições posteriores ao marco não entram no sinal. Os grupos sem chegada, lacunas e o fim da base são tratados separadamente.</p>
+  <div class="settings-actions">
+   <button class="primary" id="cy261Refresh">↻ Recalcular Teste 26.1</button>
+   <label>Idade do ciclo <select id="cy261Age"><option value="2" selected>2 extrações</option><option value="4">4 extrações</option><option value="6">6 extrações</option></select></label>
+   <label>Próximo horizonte <select id="cy261Future"><option value="1">1 extração</option><option value="3" selected>3 extrações</option><option value="5">5 extrações</option></select></label>
+  </div>
+  <div class="notice" id="cy261Info">Aguardando recálculo.</div>
+  <div class="cy26-grid">
+   <div class="mini-stat"><span>Ciclos comparáveis</span><strong id="cy261Eligible">—</strong></div>
+   <div class="mini-stat"><span>Repetidos no 2º</span><strong id="cy261Repeat">—</strong></div>
+   <div class="mini-stat"><span>Uma aparição no 2º</span><strong id="cy261Single">—</strong></div>
+   <div class="mini-stat"><span>Referência teórica</span><strong id="cy261Expected">—</strong></div>
+  </div>
+  <h3>📊 Comparação controlada pela idade do ciclo</h3><div class="live-table-wrap" id="cy261Compare"></div>
+  <p class="hint">A comparação mostra associação retrospectiva, não previsão. Um grupo específico tem chance teórica de 4% em cada extração equiprovável; esperas e repetições anteriores não aumentam essa probabilidade por si só.</p>
+  <h3>🔎 Ciclos ativos: evolução observada</h3><div class="live-table-wrap" id="cy261Active"></div>
+  <p class="hint">Registros no navegador: nenhuma seleção é inserida retroativamente no placar prospectivo. O Teste 26.1 não altera a pontuação do Radar 22, do Unificado ou do Teste 26.</p>
+ </div>
 </section>
 </main><script>// VISUAL 3D: five portraits embedded from the approved concept.
 // Other animal groups use the pre-existing offline embedded portraits; no external image requests.
@@ -2190,5 +2211,99 @@ function render(){
 }
 function exportCsv(){if(!exported.length)render();const heads=['grupo','inicio_data','inicio_hora','repeticoes_no_2','estado','extrações_ate_chegada'];const lines=[heads.join(';')];for(const c of exported)lines.push([c.g,c.startDate,c.startTime,c.repetitions,c.status,c.steps||''].join(';'));const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='o-bicho-certo-teste26-ciclos.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 el('cy26Refresh').addEventListener('click',render);el('cy26Horizon').addEventListener('change',render);el('cy26Export').addEventListener('click',exportCsv);window.renderRadarCiclos26=render;
+})();
+</script><script>
+/* Teste 26.1 — comparação por marcos fixos, independente do Radar 22 */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const clean=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+const fmt=x=>(x*100).toFixed(1).replace('.',',')+'%';
+const sched={'07:20':['09:20'],'09:20':['11:20'],'11:20':['14:20'],'14:20':['16:20'],'16:20':['18:20','19:20'],'18:20':['19:20','21:20'],'19:20':['21:20'],'21:20':['23:20']};
+function nextDate(d){const x=new Date(d+'T12:00:00Z');x.setUTCDate(x.getUTCDate()+1);return x.toISOString().slice(0,10)}
+function consecutive(a,b){return a.date===b.date&&(sched[a.time]||[]).includes(b.time)||a.time==='23:20'&&b.time==='07:20'&&b.date===nextDate(a.date)}
+function load(){
+ const map=new Map();
+ for(const item of lookAll()){
+  const date=String(item.date||''),time=lookActualTime(item),p=Array.isArray(item.p)?item.p.slice(0,5).map(v=>String(v).padStart(4,'0')):[];
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!/^(07|09|11|14|16|18|19|21|23):20$/.test(time)||p.length!==5||p.some(x=>!/^\d{4}$/.test(x)))continue;
+  const key=date+'|'+time,old=map.get(key);
+  if(old&&old.p.join()!==p.join())throw Error('Resultados conflitantes: '+key);
+  map.set(key,{date,time,p});
+ }
+ const data=[...map.values()].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)),known=new Set();
+ return data.filter(r=>{const sig=r.date+'|'+r.p.join('-');if(known.has(sig))return false;known.add(sig);return true});
+}
+function drawTable(head,rows){
+ return '<table><thead><tr>'+head.map(x=>'<th>'+clean(x)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(x=>'<td>'+clean(x)+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+}
+/* Cria os ciclos estritamente em sequência. Ciclo reaberto só após chegada ou fim do horizonte. */
+function createCycles(rows,maxAge=16){
+ const open=new Map(),closed=[];
+ for(let i=0;i<rows.length;i++){
+  if(i&&!consecutive(rows[i-1],rows[i])){
+   for(const c of open.values())closed.push({...c,status:'gap',end:i-1});
+   open.clear();
+  }
+  const first=group(rows[i].p[0]),second=group(rows[i].p[1]);
+  if(open.has(first)&&i>open.get(first).start){
+   closed.push({...open.get(first),status:'hit',end:i});open.delete(first);
+  }
+  for(const [g,c] of open){
+   if(i-c.start>=maxAge){closed.push({...c,status:'nohit',end:i});open.delete(g)}
+  }
+  if(open.has(second))open.get(second).reps.push(i);
+  else open.set(second,{g:second,start:i,reps:[i]});
+ }
+ for(const c of open.values())closed.push({...c,status:'pending',end:rows.length-1});
+ return closed;
+}
+function measure(rows,cs,age,horizon){
+ const bucket={repeat:{n:0,hits:0},single:{n:0,hits:0}};
+ let rightCensored=0,tooShort=0;
+ for(const c of cs){
+  const landmark=c.start+age;
+  // Precisamos de grupo ainda ativo após a idade especificada.
+  if(landmark>c.end){tooShort++;continue}
+  if(c.status==='hit'&&c.end<=landmark){tooShort++;continue}
+  let valid=true;
+  for(let j=c.start+1;j<=landmark;j++)if(!rows[j]||!consecutive(rows[j-1],rows[j]))valid=false;
+  if(!valid)continue;
+  // Após o marco, só entram ciclos com horizonte completo observável ou chegada confirmada.
+  let hit=false,complete=true;
+  for(let j=landmark+1;j<=landmark+horizon;j++){
+   if(!rows[j]||!consecutive(rows[j-1],rows[j])){complete=false;break}
+   if(group(rows[j].p[0])===c.g){hit=true;break}
+  }
+  if(!hit&&!complete){rightCensored++;continue}
+  const key=c.reps.filter(i=>i<=landmark).length>=2?'repeat':'single';
+  bucket[key].n++;
+  if(hit)bucket[key].hits++;
+ }
+ return {...bucket,rightCensored,tooShort};
+}
+function render(){
+ try{
+ const rows=load(),age=Number($('cy261Age').value),horizon=Number($('cy261Future').value);
+ if(rows.length<40)throw Error('Amostra insuficiente para analisar os ciclos');
+ const cs=createCycles(rows),d=measure(rows,cs,age,horizon),ref=1-Math.pow(24/25,horizon);
+ const total=d.repeat.n+d.single.n;
+ $('cy261Eligible').textContent=total;
+ $('cy261Repeat').textContent=d.repeat.n;
+ $('cy261Single').textContent=d.single.n;
+ $('cy261Expected').textContent=fmt(ref);
+ const entries=[['Repetiu ≥ 2 vezes',d.repeat],['Apareceu 1 vez',d.single]];
+ $('cy261Compare').innerHTML=drawTable(['Condição no marco','Casos completos','Chegaram em até '+horizon,'Taxa observada','Diferença vs acaso'],entries.map(([name,x])=>[name,x.n,x.hits,x.n?fmt(x.hits/x.n):'—',x.n?((100*(x.hits/x.n-ref)).toFixed(1).replace('.',',')+' p.p.'):'—']));
+ const active=cs.filter(x=>x.status==='pending').sort((a,b)=>a.start-b.start);
+ $('cy261Active').innerHTML=active.length?drawTable(['Grupo','Início','Idade (extrações)','Repetições no 2º','Situação'],active.map(c=>['G'+String(c.g).padStart(2,'0')+' · '+animal(c.g),rows[c.start].date+' '+rows[c.start].time,rows.length-1-c.start,c.reps.length,c.reps.length>=2?'Repetido':'Acompanhamento'])):'<p>Nenhum ciclo aberto.</p>';
+ $('cy261Info').textContent=`Ciclos com ${age} extrações de idade, comparados nas ${horizon} seguintes: ${total} completos; ${d.rightCensored} sem horizonte completo (censurados), ${d.tooShort} encerrados antes do marco. Dados históricos não comprovam ganho de previsão.`;
+ }catch(err){$('cy261Info').textContent='Teste 26.1: '+(err.message||String(err));console.error(err)}
+}
+$('cy261Refresh').addEventListener('click',render);
+$('cy261Age').addEventListener('change',render);
+$('cy261Future').addEventListener('change',render);
+window.renderRadarCiclos261=render;
+const prior=window.renderRadarCiclos26;
+if(typeof prior==='function')window.renderRadarCiclos26=function(){prior();render()};
 })();
 </script></body></html>

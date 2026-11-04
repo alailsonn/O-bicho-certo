@@ -656,6 +656,23 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 <h3>Acertos dos cinco classificados por posição do prêmio</h3><div id="t28Prizes"></div>
 <h3>Últimas transições válidas — conferir os erros</h3><div id="t28Recent"></div>
 <p class="hint">Comparação retrospectiva, não registro antecipado. Acertos entre os cinco prêmios não equivalem a acertar o 1º. Os cinco prêmios da mesma extração não são observações independentes. Dados faltantes são excluídos e nunca preenchidos com resultados posteriores.</p>
+
+<div class="panel" style="margin-top:18px;border:1px solid #216778">
+ <h2>🧪 Teste 28.1 — Cobertura dos grupos esquecidos</h2>
+ <p class="hint">Compara o Radar 22 original (5 grupos) com uma variante congelada de <b>4 grupos originais + 1 grupo de recuperação</b>. O grupo extra é escolhido somente pela quantidade de vezes em que apareceu no 1º prêmio sem estar entre os cinco selecionados nas últimas 80 transições já conhecidas. Em caso de empate, ganha o menor número do grupo. Não usa o resultado futuro nem altera o Radar 22.</p>
+ <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0"><button class="primary" id="t281Calc">↻ Recalcular Teste 28.1</button><button id="t281Csv">Exportar comparação CSV</button><label>Aquecimento <select id="t281Warm"><option value="25" selected>25 transições</option><option value="50">50 transições</option></select></label></div>
+ <div class="hint" id="t281Info" aria-live="polite">Aguardando cálculo.</div>
+ <div class="uni-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:14px 0">
+  <div class="metric"><small>Transições avaliadas</small><strong id="t281N">—</strong></div>
+  <div class="metric"><small>Radar 22 · Top 5</small><strong id="t281Orig">—</strong></div>
+  <div class="metric"><small>Radar 22 + cobertura · Top 5</small><strong id="t281Alt">—</strong></div>
+  <div class="metric"><small>Referência teórica</small><strong>20%</strong></div>
+ </div>
+ <h3>Comparação cronológica — mesmos sorteios</h3><div id="t281Comp"></div>
+ <h3>Robustez: primeira metade × segunda metade</h3><div id="t281Halves"></div>
+ <h3>Últimas 15 classificações experimentais</h3><div id="t281Recent"></div>
+ <p class="hint">Esta alternativa foi criada após observar os erros do histórico, portanto a avaliação retrospectiva ainda pode conter viés de escolha de estratégia. Só uma comparação futura com regras congeladas pode comprovar melhora. Não usar como garantia de previsão.</p>
+</div>
 </div></section>
 <section id="migracao" class="hidden">
  <div class="section-lead"><span class="eyebrow">EXPERIMENTO · LOOK GOIÁS</span><h2>🔀 Teste 27 — Migração entre Prêmios</h2><p>Compara os cinco grupos do Radar 22, escolhidos <b>antes</b> de cada resultado, com o 1º, 2º, 3º, 4º e 5º prêmio da extração seguinte. Não altera o Radar 22, os ciclos ou o Unificado. Não há garantia de acerto.</p></div>
@@ -2696,4 +2713,74 @@ function exportCsv(){if(!evaluated.length)calc();const lines=['origem;alvo;grupo
 $('t28Calc').addEventListener('click',calc);$('t28Warm').addEventListener('change',calc);$('t28Csv').addEventListener('click',exportCsv);
 window.renderTeste28=calc;
 })();
+
+/* Teste 28.1 — regra fixa de recuperação, avaliada de forma sequencial */
+(function(){
+'use strict';
+const el=id=>document.getElementById(id);
+const fmt=(x,n)=>n?(100*x/n).toFixed(1).replace('.',',')+'%':'—';
+const G=g=>'G'+String(g).padStart(2,'0');
+const safe=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const table=(heads,data)=>'<div style="overflow-x:auto"><table style="width:100%"><thead><tr>'+heads.map(h=>'<th>'+safe(h)+'</th>').join('')+'</tr></thead><tbody>'+data.map(row=>'<tr>'+row.map(cell=>'<td>'+safe(cell)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
+let latest=[];
+function calc(){
+ try{
+  const raw=lookAll().filter(lookValid).sort((a,b)=>(a.date+lookActualTime(a)).localeCompare(b.date+lookActualTime(b)));
+  const rows=[],signatures=new Set();let dup=0;
+  for(const r of raw){
+   const sig=r.date+'|'+r.p.slice(0,5).map(z=>String(z).padStart(4,'0')).join('-');
+   if(signatures.has(sig)){dup++;continue;}
+   signatures.add(sig);rows.push(r);
+  }
+  const history=[],transitions=[],evaluations=[];
+  const warm=Number(el('t281Warm').value)||25;
+  let gaps=0;
+  for(let i=0;i<rows.length-1;i++){
+   const origin=rows[i],target=rows[i+1];
+   if(!r22PairType(origin,target)){gaps++;continue;}
+   const base=r22Score(origin,rows.slice(0,i+1),transitions).slice(0,5).map(x=>x.g);
+   // Rescue one group omitted by the original Radar 22, based on PAST errors only.
+   const recent=history.slice(-80),miss=Array(26).fill(0);
+   for(const old of recent){if(!old.base.includes(old.actual))miss[old.actual]++;}
+   const excluded=Array.from({length:25},(_,j)=>j+1).filter(g=>!base.includes(g));
+   excluded.sort((a,b)=>miss[b]-miss[a]||a-b);
+   const rescue=excluded[0];
+   const alt=[...base.slice(0,4),rescue];
+   const actual=group(target.p[0]);
+   const entry={target:target.date+' '+lookActualTime(target),base,alt,rescue,actual,nRecent:recent.length,missCount:miss[rescue]};
+   if(transitions.length>=warm)evaluations.push(entry);
+   history.push(entry);
+   transitions.push({origin,next:target,g:actual});
+  }
+  latest=evaluations;
+  const n=evaluations.length,original=evaluations.filter(x=>x.base.includes(x.actual)).length,alternative=evaluations.filter(x=>x.alt.includes(x.actual)).length;
+  const gain=evaluations.filter(x=>!x.base.includes(x.actual)&&x.alt.includes(x.actual)).length;
+  const loss=evaluations.filter(x=>x.base.includes(x.actual)&&!x.alt.includes(x.actual)).length;
+  el('t281N').textContent=String(n);
+  el('t281Orig').textContent=original+'/'+n+' ('+fmt(original,n)+')';
+  el('t281Alt').textContent=alternative+'/'+n+' ('+fmt(alternative,n)+')';
+  el('t281Info').textContent=rows.length+' extrações distintas; '+gaps+' lacunas ignoradas; '+dup+' duplicatas desconsideradas. Resgate de um grupo baseado nas últimas 80 transições anteriores; mesmos '+n+' casos para ambas as versões.';
+  el('t281Comp').innerHTML=table(['Regra','Acertos','Taxa','Cobertura teórica','Mudança'],[
+   ['Radar 22 original',original+'/'+n,fmt(original,n),'20%','—'],
+   ['4 do Radar 22 + 1 resgatado',alternative+'/'+n,fmt(alternative,n),'20%',(alternative-original>=0?'+':'')+(alternative-original)+' acertos'],
+   ['Mudanças individuais','Ganhou '+gain,'Perdeu '+loss,'Empates '+(n-gain-loss),'Saldo '+(gain-loss)]
+  ]);
+  const cut=Math.floor(n/2),halves=[evaluations.slice(0,cut),evaluations.slice(cut)];
+  el('t281Halves').innerHTML=table(['Período','Casos','Original','Alternativa','Diferença em acertos'],halves.map((sub,i)=>{const a=sub.filter(x=>x.base.includes(x.actual)).length,b=sub.filter(x=>x.alt.includes(x.actual)).length;return [i?'Segunda metade':'Primeira metade',sub.length,a+'/'+sub.length+' ('+fmt(a,sub.length)+')',b+'/'+sub.length+' ('+fmt(b,sub.length)+')',String(b-a)]}));
+  el('t281Recent').innerHTML=table(['Extração','1º real','Original','Recuperação','Alternativo','Acertou original?','Acertou alt.?'],evaluations.slice(-15).reverse().map(x=>[x.target,G(x.actual),x.base.map(G).join(', '),G(x.rescue)+' ('+x.missCount+' ausências anteriores)',x.alt.map(G).join(', '),x.base.includes(x.actual)?'SIM':'NÃO',x.alt.includes(x.actual)?'SIM':'NÃO']));
+ }catch(e){el('t281Info').textContent='Erro ao calcular Teste 28.1: '+(e.message||String(e));console.error(e)}
+}
+function exportCsv(){
+ if(!latest.length)calc();
+ const lines=['alvo;real_1;radar22_top5;recuperado;alternativo_top5;acertou_original;acertou_alternativo'];
+ for(const r of latest)lines.push([r.target,G(r.actual),r.base.map(G).join(' '),G(r.rescue),r.alt.map(G).join(' '),Number(r.base.includes(r.actual)),Number(r.alt.includes(r.actual))].join(';'));
+ const u=URL.createObjectURL(new Blob(['\uFEFF'+lines.join('\n')],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=u;a.download='o-bicho-certo-teste28-1-cobertura.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),5000);
+}
+el('t281Calc').addEventListener('click',calc);
+el('t281Warm').addEventListener('change',calc);
+el('t281Csv').addEventListener('click',exportCsv);
+const previous=window.renderTeste28;
+window.renderTeste28=function(){if(typeof previous==='function')previous();calc();};
+})();
+
 </script></body></html>

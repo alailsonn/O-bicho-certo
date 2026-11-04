@@ -230,7 +230,7 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 #ciclos th,#ciclos td{padding:10px;border-bottom:1px solid #315470;text-align:left;font-size:12px}
 #ciclos th{color:#a0c5e7}#ciclos .hint{margin-top:12px}
 @media(max-width:700px){#ciclos .cy26-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-</style><style>#cy261Panel .settings-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:end}#cy261Panel .live-table-wrap{overflow-x:auto}#cy261Panel table{width:100%;border-collapse:collapse;min-width:520px}#cy261Panel td,#cy261Panel th{text-align:left;padding:9px;border-bottom:1px solid #315470;font-size:12px}#cy261Panel th{color:#a0c5e7}</style></head><body><header><div class="brand"><div class="logo">🐾</div><div><h1>O BICHO <span style="color:#2ff5a2">CERTO</span></h1><p>Radar estatístico da LOOK Goiás · Painel 3D</p></div><div class="focus-pill">FOCO EXCLUSIVO · LOOK GOIÁS</div></div></header><main><div class="notice">📊 <strong>Estatística, não previsão:</strong> os resultados anteriores não garantem acertos futuros. <b>5 grupos entre 25 = 20%</b> de cobertura teórica, em sorteios equiprováveis.</div><nav aria-label="Áreas do O Bicho Certo">
+</style><style>#cy261Panel .settings-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:end}#cy261Panel .live-table-wrap{overflow-x:auto}#cy261Panel table{width:100%;border-collapse:collapse;min-width:520px}#cy261Panel td,#cy261Panel th{text-align:left;padding:9px;border-bottom:1px solid #315470;font-size:12px}#cy261Panel th{color:#a0c5e7}</style><style>#cy262Panel .settings-actions{display:flex;gap:12px;flex-wrap:wrap}#cy262Panel .live-table-wrap{overflow-x:auto}#cy262Panel table{width:100%;border-collapse:collapse;min-width:580px}#cy262Panel td,#cy262Panel th{text-align:left;padding:9px;border-bottom:1px solid #315470;font-size:12px}#cy262Panel th{color:#a0c5e7}</style></head><body><header><div class="brand"><div class="logo">🐾</div><div><h1>O BICHO <span style="color:#2ff5a2">CERTO</span></h1><p>Radar estatístico da LOOK Goiás · Painel 3D</p></div><div class="focus-pill">FOCO EXCLUSIVO · LOOK GOIÁS</div></div></header><main><div class="notice">📊 <strong>Estatística, não previsão:</strong> os resultados anteriores não garantem acertos futuros. <b>5 grupos entre 25 = 20%</b> de cobertura teórica, em sorteios equiprováveis.</div><nav aria-label="Áreas do O Bicho Certo">
 <button class="tab active" data-tab="visual">🐾 Painel 3D</button>
 <button class="tab" data-tab="radar">🎯 Radar 22</button>
 <button class="tab" data-tab="historico">📈 Histórico</button>
@@ -668,6 +668,17 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
   <h3>🔎 Ciclos ativos: evolução observada</h3><div class="live-table-wrap" id="cy261Active"></div>
   <p class="hint">Registros no navegador: nenhuma seleção é inserida retroativamente no placar prospectivo. O Teste 26.1 não altera a pontuação do Radar 22, do Unificado ou do Teste 26.</p>
  </div>
+
+<div class="panel" id="cy262Panel">
+<h3>🧪 Teste 26.2 — Validação cronológica dos ciclos</h3>
+<p class="muted">Três regras <b>fixas</b> para ordenar os 25 grupos: repetição no 2º, tempo de espera e combinação. Cada classificação usa somente as extrações anteriores ao resultado avaliado. Grupos sem ciclo ativo completam a lista com pontuação zero (desempate pelo grupo). Não altera os demais radares.</p>
+<div class="settings-actions"><button class="primary" id="cy262Refresh">↻ Recalcular Teste 26.2</button><button id="cy262Csv">Exportar comparação CSV</button></div>
+<div class="notice" id="cy262Info">Aguardando avaliação.</div>
+<div class="cy26-grid"><div class="mini-stat"><span>Extrações válidas na avaliação</span><strong id="cy262N">—</strong></div><div class="mini-stat"><span>Referência Top 1</span><strong>4%</strong></div><div class="mini-stat"><span>Referência Top 5</span><strong>20%</strong></div><div class="mini-stat"><span>Referência Top 10</span><strong>40%</strong></div></div>
+<h3>📊 Comparação de regras congeladas</h3><div class="live-table-wrap" id="cy262Compare"></div>
+<h3>🔎 Dez grupos classificados pelo último histórico</h3><div class="live-table-wrap" id="cy262Latest"></div>
+<p class="hint">A classificação acima é uma <b>simulação</b> quando o horário seguinte já passou. Nenhuma seleção é gravada retroativamente. As três regras foram definidas após exploração do histórico: a avaliação retrospectiva não é uma confirmação independente de capacidade preditiva. Validar com 100 novas seleções previamente registradas.</p>
+</div>
 </section>
 </main><script>// VISUAL 3D: five portraits embedded from the approved concept.
 // Other animal groups use the pre-existing offline embedded portraits; no external image requests.
@@ -2305,5 +2316,85 @@ $('cy261Future').addEventListener('change',render);
 window.renderRadarCiclos261=render;
 const prior=window.renderRadarCiclos26;
 if(typeof prior==='function')window.renderRadarCiclos26=function(){prior();render()};
+})();
+</script><script>
+/* Teste 26.2: três classificadores determinísticos, sem acesso a resultados futuros. */
+(function(){
+'use strict';
+const el=id=>document.getElementById(id);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const schedule={'07:20':['09:20'],'09:20':['11:20'],'11:20':['14:20'],'14:20':['16:20'],'16:20':['18:20','19:20'],'18:20':['19:20','21:20'],'19:20':['21:20'],'21:20':['23:20']};
+function tomorrow(d){const x=new Date(d+'T12:00:00Z');x.setUTCDate(x.getUTCDate()+1);return x.toISOString().slice(0,10)}
+function consecutive(a,b){return a.date===b.date&&(schedule[a.time]||[]).includes(b.time)||a.time==='23:20'&&b.time==='07:20'&&b.date===tomorrow(a.date)}
+function dataRows(){
+ const map=new Map();
+ for(const x of lookAll()){
+  const date=String(x.date||''),time=lookActualTime(x),p=Array.isArray(x.p)?x.p.slice(0,5).map(z=>String(z).padStart(4,'0')):[];
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||! /^(07|09|11|14|16|18|19|21|23):20$/.test(time)||p.length!==5||p.some(z=>!/^\d{4}$/.test(z)))continue;
+  const key=date+'|'+time,prev=map.get(key);
+  if(prev&&prev.p.join()!==p.join())throw Error('Divergência no histórico: '+key);
+  map.set(key,{date,time,p});
+ }
+ const sorted=[...map.values()].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)),seen=new Set();
+ return sorted.filter(x=>{const key=x.date+'|'+x.p.join('-');if(seen.has(key))return false;seen.add(key);return true});
+}
+/* Estado calculado até e incluindo a extração i. Se o grupo aparece no 1º, o ciclo anterior fecha antes de reabrir no 2º. */
+function active(rows,i){
+ const state=new Map();
+ for(let j=0;j<=i;j++){
+  if(j>0&&!consecutive(rows[j-1],rows[j]))state.clear();
+  const first=group(rows[j].p[0]),second=group(rows[j].p[1]);
+  if(state.has(first)&&j>state.get(first).start)state.delete(first);
+  for(const [g,c] of state)if(j-c.start>=16)state.delete(g);
+  if(state.has(second))state.get(second).reps++;
+  else state.set(second,{start:j,reps:1});
+ }
+ return state;
+}
+const rules=[
+ {id:'repeat',name:'Repetição no 2º'},
+ {id:'age',name:'Idade do ciclo'},
+ {id:'both',name:'Repetição + idade'}
+];
+function rank(state,i,rule){
+ return Array.from({length:25},(_,k)=>{
+  const g=k+1,c=state.get(g),age=c?i-c.start:0,reps=c?c.reps:0;
+  // Os zeros dos grupos inativos não são sinais; servem apenas para completar Top 10.
+  const score=!c?0:rule==='repeat'?reps:rule==='age'?age+1:2*reps+(age+1)/16;
+  return {g,score,reps,age,active:!!c};
+ }).sort((a,b)=>b.score-a.score||a.g-b.g);
+}
+function tdTable(headers,rows){return '<table><thead><tr>'+headers.map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(x=>'<td>'+esc(x)+'</td>').join('')+'</tr>').join('')+'</tbody></table>'}
+let cached=[];
+function render(){try{
+ const rows=dataRows();if(rows.length<40)throw Error('Menos de 40 extrações válidas');
+ const tests=[];
+ for(let i=30;i<rows.length-1;i++)if(consecutive(rows[i],rows[i+1]))tests.push(i);
+ const chosen=tests.slice(-96);
+ if(!chosen.length)throw Error('Nenhum par cronológico válido');
+ const summary={};for(const r of rules)summary[r.id]={n:0,h:{1:0,3:0,5:0,10:0}};
+ for(const i of chosen){
+  const state=active(rows,i),actual=group(rows[i+1].p[0]);
+  for(const rule of rules){
+   const list=rank(state,i,rule.id),item=summary[rule.id];item.n++;
+   for(const k of [1,3,5,10])if(list.slice(0,k).some(z=>z.g===actual))item.h[k]++;
+  }
+ }
+ const n=chosen.length;
+ el('cy262N').textContent=n;
+ cached=rules.map(rule=>{const x=summary[rule.id];return {name:rule.name,n, ...Object.fromEntries([1,3,5,10].map(k=>['top'+k,x.h[k]]))}});
+ el('cy262Compare').innerHTML=tdTable(['Regra','Top 1 (4%)','Top 3 (12%)','Top 5 (20%)','Top 10 (40%)'],cached.map(x=>[x.name,...[1,3,5,10].map(k=>x['top'+k]+'/'+n+' ('+(100*x['top'+k]/n).toFixed(1).replace('.',',')+'%)')]));
+ const state=active(rows,rows.length-1),a=rules.map(rule=>rank(state,rows.length-1,rule.id));
+ el('cy262Latest').innerHTML=tdTable(['Posição','Repetição','Idade','Combinado'],Array.from({length:10},(_,i)=>[i+1,...a.map(list=>'G'+String(list[i].g).padStart(2,'0')+' · '+animal(list[i].g))]));
+ el('cy262Info').textContent=`${n} pares válidos avaliados cronologicamente (últimos disponíveis, após pelo menos 30 extrações anteriores). Última extração: ${rows.at(-1).date} ${rows.at(-1).time}. Nenhum resultado posterior foi usado na classificação de cada teste. Referências Top 1/3/5/10: 4%/12%/20%/40%.`;
+ }catch(e){el('cy262Info').textContent='Teste 26.2: '+(e.message||String(e));console.error(e)} }
+function exportCsv(){if(!cached.length)render();if(!cached.length)return;
+ const csv=[['Regra','Pares','Top 1','Top 3','Top 5','Top 10'].join(';'),...cached.map(x=>[x.name,x.n,x.top1,x.top3,x.top5,x.top10].join(';'))].join('\n');
+ const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='o-bicho-certo-teste-26-2.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+el('cy262Refresh').addEventListener('click',render);el('cy262Csv').addEventListener('click',exportCsv);
+const old=window.renderRadarCiclos26;
+if(typeof old==='function')window.renderRadarCiclos26=function(){old();render()};
+window.renderRadarCiclos262=render;
 })();
 </script></body></html>

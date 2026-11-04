@@ -237,7 +237,7 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 <button class="tab" data-tab="laboratorio">🔬 Laboratório</button>
 <button class="tab" data-tab="unificado">🏆 Radar Unificado · Top 10</button>
 <button class="tab" data-tab="ciclos">🔄 Teste 26 · Ciclos</button>
-<button class="tab" data-tab="migracao">🔀 Teste 27 · Prêmios</button><button class="tab" data-tab="config">⚙️ Configurações</button>
+<button class="tab" data-tab="migracao">🔀 Teste 27 · Prêmios</button><button class="tab" data-tab="diagnostico">🧭 Teste 28 · Diagnóstico</button><button class="tab" data-tab="config">⚙️ Configurações</button>
 </nav><section id="visual">
 <div class="visual-top">
 <div class="visual-topline">
@@ -639,6 +639,24 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
   <p class="uni-sub">O painel atualiza ao abrir esta aba ou clicar em Recalcular. Não registra automaticamente previsões prospectivas nem altera os placares do Radar 22 e 25.4. Se o horário seguinte já tiver passado, a classificação será identificada como simulação sem registro antecipado.</p>
  </div>
 </section>
+
+<section id="diagnostico" class="hidden">
+<div class="section-lead"><span class="eyebrow">EXPERIMENTO · LOOK GOIÁS</span><h2>🧭 Teste 28 — Diagnóstico dos Erros</h2><p>Analisa os resultados que ficaram fora do Top 5 do Radar 22, por horário, grupo e posição do prêmio. Cada seleção é calculada somente com informações anteriores à extração. Não altera as regras ou pontuações de nenhum radar.</p></div>
+<div class="panel">
+<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:14px"><button class="primary" id="t28Calc">↻ Recalcular Teste 28</button><button id="t28Csv">Exportar diagnóstico CSV</button><label for="t28Warm">Aquecimento:</label><select id="t28Warm"><option value="25" selected>25 transições</option><option value="10">10 transições</option><option value="50">50 transições</option></select></div>
+<div class="hint" id="t28Info" aria-live="polite">Clique em recalcular para conferir a avaliação histórica.</div>
+<div class="uni-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin:15px 0">
+<div class="metric"><small>Transições válidas</small><strong id="t28N">—</strong></div>
+<div class="metric"><small>Top 5 no 1º</small><strong id="t28Hit">—</strong></div>
+<div class="metric"><small>Fora do Top 5 (1º)</small><strong id="t28Miss">—</strong></div>
+<div class="metric"><small>Referência teórica</small><strong>20% (Top 5)</strong></div>
+</div>
+<h3>Acertos e erros no 1º prêmio por horário de destino</h3><div id="t28Hours"></div>
+<h3>Grupos do 1º prêmio que ficaram fora do Top 5</h3><p class="hint">As frequências abaixo descrevem erros passados; não são indicadores de que um grupo esteja “devendo” aparecer.</p><div id="t28Groups"></div>
+<h3>Acertos dos cinco classificados por posição do prêmio</h3><div id="t28Prizes"></div>
+<h3>Últimas transições válidas — conferir os erros</h3><div id="t28Recent"></div>
+<p class="hint">Comparação retrospectiva, não registro antecipado. Acertos entre os cinco prêmios não equivalem a acertar o 1º. Os cinco prêmios da mesma extração não são observações independentes. Dados faltantes são excluídos e nunca preenchidos com resultados posteriores.</p>
+</div></section>
 <section id="migracao" class="hidden">
  <div class="section-lead"><span class="eyebrow">EXPERIMENTO · LOOK GOIÁS</span><h2>🔀 Teste 27 — Migração entre Prêmios</h2><p>Compara os cinco grupos do Radar 22, escolhidos <b>antes</b> de cada resultado, com o 1º, 2º, 3º, 4º e 5º prêmio da extração seguinte. Não altera o Radar 22, os ciclos ou o Unificado. Não há garantia de acerto.</p></div>
  <div class="panel">
@@ -1316,6 +1334,7 @@ function visualSelectTab(id){
  if(tab==='unificado'&&typeof window.renderRadarUnificado==='function')window.renderRadarUnificado();
  if(tab==='ciclos'&&typeof window.renderRadarCiclos26==='function')window.renderRadarCiclos26();
  if(tab==='migracao'&&typeof window.renderTeste27==='function')window.renderTeste27();
+ if(tab==='diagnostico'&&typeof window.renderTeste28==='function')window.renderTeste28();
  requestAnimationFrame(visualEnhanceGroups);window.scrollTo({top:0,behavior:'instant'});
 }
 // Ilustrações próprias embutidas no HTML; sem depender de links externos para os 25 animais.
@@ -2634,5 +2653,47 @@ el('t27Calc').addEventListener('click',calculate);
 el('t27Warm').addEventListener('change',calculate);
 el('t27Csv').addEventListener('click',exportCsv);
 window.renderTeste27=calculate;
+})();
+</script><script>
+/* Teste 28 — diagnóstico descritivo da validação cronológica do Radar 22. */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const esc=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const f=(x,n=1)=>Number(x).toFixed(n).replace('.',',');
+const pct=(x,n)=>n?f(100*x/n)+'%':'—';
+const gid=g=>'G'+String(g).padStart(2,'0');
+function tab(headers,rows){return '<div style="overflow-x:auto"><table style="width:100%"><thead><tr>'+headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(row=>'<tr>'+row.map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'}
+let evaluated=[];
+function calc(){try{
+ // Keep one record per date/time, ignore identical duplicate result reported for 18h20 and 19h20.
+ const raw=lookAll().filter(lookValid).sort((a,b)=>(a.date+lookActualTime(a)).localeCompare(b.date+lookActualTime(b)));
+ const rows=[];const used=new Set();let dup=0;
+ for(const r of raw){const key=r.date+'|'+r.p.slice(0,5).map(z=>String(z).padStart(4,'0')).join('-');if(used.has(key)){dup++;continue;}used.add(key);rows.push(r)}
+ const warm=Number($('t28Warm').value)||25;
+ const transitions=[];const tests=[];let gaps=0;
+ for(let i=0;i<rows.length-1;i++){
+  const a=rows[i],b=rows[i+1];
+  if(!r22PairType(a,b)){gaps++;continue;}
+  const picks=r22Score(a,rows.slice(0,i+1),transitions).slice(0,5).map(x=>x.g);
+  const real=b.p.slice(0,5).map(group);
+  if(transitions.length>=warm)tests.push({origin:a.date+' '+lookActualTime(a),target:b.date+' '+lookActualTime(b),time:lookActualTime(b),picks,real});
+  transitions.push({origin:a,next:b,g:real[0]});
+ }
+ evaluated=tests;const n=tests.length,hits=tests.filter(x=>x.picks.includes(x.real[0])).length;
+ $('t28N').textContent=n;$('t28Hit').textContent=hits+'/'+n+' ('+pct(hits,n)+')';$('t28Miss').textContent=(n-hits)+'/'+n+' ('+pct(n-hits,n)+')';
+ $('t28Info').textContent=rows.length+' extrações distintas, '+n+' transições avaliadas, '+gaps+' ligações excluídas por lacuna/horário, '+dup+' duplicações idênticas desconsideradas. Mesmo aquecimento e mesma regra original do Teste 27.';
+ const times=['07:20','09:20','11:20','14:20','16:20','18:20','19:20','21:20','23:20'];
+ $('t28Hours').innerHTML=tab(['Horário','Pares','Acertos Top 5 no 1º','Fora do Top 5','Taxa de acerto','Referência'],times.map(time=>{const v=tests.filter(x=>x.time===time),h=v.filter(x=>x.picks.includes(x.real[0])).length;return [time,v.length,h,v.length-h,pct(h,v.length),'20%']}));
+ const by=Array.from({length:25},(_,k)=>({g:k+1,all:0,out:0}));
+ tests.forEach(x=>{const item=by[x.real[0]-1];item.all++;if(!x.picks.includes(x.real[0]))item.out++});
+ by.sort((a,b)=>b.out-a.out||a.g-b.g);
+ $('t28Groups').innerHTML=tab(['Grupo real','Vezes no 1º','Fora do Top 5','Dentro do Top 5'],by.filter(x=>x.all>0).map(x=>[gid(x.g),x.all,x.out,x.all-x.out]));
+ $('t28Prizes').innerHTML=tab(['Prêmio','Acertos Top 5','Taxa','Referência'],Array.from({length:5},(_,p)=>{const h=tests.filter(x=>x.picks.includes(x.real[p])).length;return [(p+1)+'º',h+'/'+n,pct(h,n),'20%']}));
+ $('t28Recent').innerHTML=tab(['Extração alvo','1º real','Top 5 anterior','Acertou 1º?','2º real','Acertou 2º?'],tests.slice(-15).reverse().map(x=>[x.target,gid(x.real[0]),x.picks.map(gid).join(', '),x.picks.includes(x.real[0])?'SIM':'NÃO',gid(x.real[1]),x.picks.includes(x.real[1])?'SIM':'NÃO']));
+ }catch(e){$('t28Info').textContent='Erro ao recalcular Teste 28: '+(e.message||String(e));console.error(e)}}
+function exportCsv(){if(!evaluated.length)calc();const lines=['origem;alvo;grupo_1;grupo_2;grupo_3;grupo_4;grupo_5;real_1;real_2;real_3;real_4;real_5;acerto_top5_primeiro;acerto_top5_segundo'];for(const x of evaluated)lines.push([x.origin,x.target,...x.picks.map(gid),...x.real.map(gid),Number(x.picks.includes(x.real[0])),Number(x.picks.includes(x.real[1]))].join(';'));const u=URL.createObjectURL(new Blob(['\uFEFF'+lines.join('\n')],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=u;a.download='o-bicho-certo-teste28-diagnostico.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),5000)}
+$('t28Calc').addEventListener('click',calc);$('t28Warm').addEventListener('change',calc);$('t28Csv').addEventListener('click',exportCsv);
+window.renderTeste28=calc;
 })();
 </script></body></html>

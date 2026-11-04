@@ -507,6 +507,30 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
     <div class="live-table-wrap" id="asc253Repeats"></div>
     <p class="live-muted">O algoritmo escolhe 5 grupos por ranking fixo: +3 pelo grupo do último 2º prêmio; +1,2 por ocorrência no 2º do dia corrente; +0,35 por ocorrência nos 9 sorteios mais recentes. Essas pontuações não são probabilidades. A avaliação histórica calcula cada escolha usando somente resultados anteriores ao 1º prêmio conferido. Não registra previsão retroativa. O período recente não foi usado para reajustar os pesos. Para avaliar uma escolha futura de modo auditável, salve/exporte antes do sorteio. Horários ausentes e dias sem sequência não são tratados como transições válidas.</p>
   </div>
+  <div class="panel" id="asc254Panel" style="margin-top:24px;border:1px solid #4cae91;background:linear-gradient(135deg,#0e2b34,#102b43)">
+    <h2>📍 Teste 25.4 — Monitoramento Real de Movimento</h2>
+    <p class="muted">Acompanhamento <b>prospectivo</b> com regras do Teste 25.3 congeladas. Salva a classificação <b>antes da próxima extração</b> e confere o Top 1, Top 3 e Top 5 quando chega o resultado. Não altera Radar 22, Testes 25–25.3 ou Radar A/B/C.</p>
+    <div class="quick-grid" style="grid-template-columns:repeat(auto-fit,minmax(155px,1fr))">
+      <div class="mini-stat"><span>Conferências válidas</span><strong id="asc254Count">0 / 100</strong></div>
+      <div class="mini-stat"><span>Top 1 · acertos</span><strong id="asc254Top1">0 / 0</strong></div>
+      <div class="mini-stat"><span>Top 3 · acertos</span><strong id="asc254Top3">0 / 0</strong></div>
+      <div class="mini-stat"><span>Top 5 · acertos</span><strong id="asc254Top5">0 / 0</strong></div>
+    </div>
+    <p class="live-muted">Referências teóricas: Top 1 = 4%, Top 3 = 12%, Top 5 = 20%, se cada grupo for equiprovável. Os percentuais observados devem ser interpretados com a amostra e a incerteza.</p>
+    <div class="notice" id="asc254Status">Carregando monitoramento local...</div>
+    <h3>Seleção pré-registrada para a próxima extração</h3>
+    <div class="live-table-wrap" id="asc254Pending"><div class="mutedbox">Nenhuma seleção registrada.</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">
+      <button class="primary" id="asc254Check">↻ Conferir novos resultados / registrar a tempo</button>
+      <button class="secondary" id="asc254Export">Exportar backup JSON</button>
+      <button class="secondary" id="asc254Csv">Exportar conferências CSV</button>
+      <button class="secondary" id="asc254Restore">Restaurar backup</button>
+      <input type="file" id="asc254File" accept=".json,application/json" style="display:none">
+    </div>
+    <p class="live-muted">Os registros são mantidos apenas neste navegador. Com a página aberta, o painel verifica periodicamente novos resultados; com a página fechada não há garantia de captura. Nenhuma escolha é inserida após o horário previsto do sorteio. O botão não recupera escolhas antigas.</p>
+    <h3>Conferências registradas</h3>
+    <div class="live-table-wrap" id="asc254History"></div>
+  </div>
   <p class="live-muted">Uma origem pode produzir no máximo um acerto nesta janela: vale a primeira chegada ao 1º prêmio. A extração das 23h20 não é origem no mesmo dia. Para janelas fixas de 1, 2 ou 3 extrações, só entram origens com todos os próximos horários cadastrados. Resultados de dias incompletos podem enviesar as comparações. A referência 1 − (24/25)^n pressupõe grupos independentes e uniformes; não demonstra previsibilidade.</p>
  </div>
 </section>
@@ -1799,5 +1823,122 @@ function render(){
 }
 byId('asc253Calc').addEventListener('click',render);
 render();
+})();
+</script><script>
+/* Teste 25.4 — monitoramento prospectivo independente, sem backfill retroativo */
+(function () {
+'use strict';
+const KEY='obicho-certo-teste-25-4-v1';
+const LIMIT=100;
+const el=id=>document.getElementById(id);
+const grp=n=>{const d=Number(String(n).padStart(4,'0').slice(-2));return d===0?25:Math.ceil(d/4)};
+const p2=n=>String(n).padStart(2,'0');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const timeMs=(d,t)=>Date.parse(d+'T'+t+':00-03:00');
+const plusDay=d=>{const x=new Date(d+'T12:00:00Z');x.setUTCDate(x.getUTCDate()+1);return x.toISOString().slice(0,10)};
+const slots={'07:20':['09:20'],'09:20':['11:20'],'11:20':['14:20'],'14:20':['16:20'],'16:20':['18:20','19:20'],'18:20':['19:20','21:20'],'19:20':['21:20'],'21:20':['23:20']};
+function nextDraw(r){const n=slots[r.time];if(n)return {date:r.date,time:n[0]};if(r.time==='23:20')return {date:plusDay(r.date),time:'07:20'};return null;}
+function validPair(a,b){return a.date===b.date?(slots[a.time]||[]).includes(b.time):a.time==='23:20'&&b.time==='07:20'&&b.date===plusDay(a.date)}
+function id(r){return r.date+'|'+r.time+'|'+r.p.join('-')}
+function rows(){
+  if(typeof lookAll!=='function')return [];
+  const bySlot=new Map();
+  for(const x of lookAll()){
+    const date=String(x.date||''),time=String(typeof lookActualTime==='function'?lookActualTime(x):x.time||'');
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!/^(07|09|11|14|16|18|19|21|23):20$/.test(time)||!Array.isArray(x.p)||x.p.length<5)continue;
+    const p=x.p.slice(0,5).map(n=>String(n).padStart(4,'0'));
+    if(p.some(n=>!/^\d{4}$/.test(n)))continue;
+    const k=date+'|'+time, prior=bySlot.get(k);
+    if(prior&&prior.p.join()!==p.join())throw Error('Conflito em '+k+'; cadastro precisa ser conferido');
+    bySlot.set(k,{date,time,p});
+  }
+  const sorted=[...bySlot.values()].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  const bySignature=new Set();
+  return sorted.filter(r=>{
+    const signature=r.date+'|'+r.p.join('-');
+    if(bySignature.has(signature))return false; // ignora duplicatas idênticas do mesmo dia
+    bySignature.add(signature);return true;
+  });
+}
+// Regra congelada equivalente ao teste 25.3: último segundo, frequência diária e últimos 9 sorteios.
+function rank(list,i){
+  const origin=list[i],today=new Map(),recent=new Map(),last=grp(origin.p[1]);
+  for(let j=0;j<=i;j++)if(list[j].date===origin.date){const g=grp(list[j].p[1]);today.set(g,(today.get(g)||0)+1)}
+  for(let j=Math.max(0,i-8);j<=i;j++){const g=grp(list[j].p[1]);recent.set(g,(recent.get(g)||0)+1)}
+  return Array.from({length:25},(_,k)=>({g:k+1,score:3*Number(k+1===last)+1.2*(today.get(k+1)||0)+0.35*(recent.get(k+1)||0)})).sort((a,b)=>b.score-a.score||a.g-b.g);
+}
+function empty(){return {version:1,limit:LIMIT,records:[]}}
+function checkState(s){
+  if(!s||s.version!==1||s.limit!==LIMIT||!Array.isArray(s.records)||s.records.some(r=>!r||!['pending','done','invalid'].includes(r.status)||!Array.isArray(r.picks)||r.picks.length!==5||new Set(r.picks).size!==5||r.picks.some(g=>!Number.isInteger(g)||g<1||g>25)))throw Error('Backup de monitoramento inválido');
+  const ids=s.records.map(r=>r.originId);
+  if(new Set(ids).size!==ids.length)throw Error('Origens duplicadas no backup');
+  if(s.records.filter(r=>r.status==='done').length>LIMIT)throw Error('Limite excedido');
+  return s;
+}
+function read(){const raw=localStorage.getItem(KEY);return raw?checkState(JSON.parse(raw)):empty()}
+function store(s){localStorage.setItem(KEY,JSON.stringify(checkState(s)))}
+function evaluate(list,s,now){
+  let dirty=false,notes=[];
+  for(const rec of s.records){
+    if(rec.status!=='pending')continue;
+    const idx=list.findIndex(r=>id(r)===rec.originId);
+    if(idx<0){
+      if(list.some(r=>r.date+r.time>=rec.originDate+rec.originTime)){
+        rec.status='invalid';rec.note='Origem removida/alterada';dirty=true;
+      }
+      continue;
+    }
+    if(idx>=list.length-1)continue;
+    const origin=list[idx],target=list[idx+1],locked=Date.parse(rec.lockedAt),actualTime=timeMs(target.date,target.time);
+    if(!validPair(origin,target)||!Number.isFinite(locked)||locked>=actualTime||locked<timeMs(origin.date,origin.time)){
+      rec.status='invalid';rec.note='Lacuna ou registro fora do prazo';dirty=true;continue;
+    }
+    const actual=grp(target.p[0]);
+    rec.status='done';rec.actual=actual;rec.targetId=id(target);rec.targetDate=target.date;rec.targetTime=target.time;
+    rec.hits=[1,3,5].map(k=>rec.picks.slice(0,k).includes(actual));rec.checkedAt=now.toISOString();dirty=true;
+  }
+  const done=s.records.filter(r=>r.status==='done').length;
+  if(done>=LIMIT)return {dirty,notes:['Limite de '+LIMIT+' conferências concluído.']};
+  if(s.records.some(r=>r.status==='pending'))return {dirty,notes};
+  if(list.length<31)return {dirty,notes:['Mínimo de 31 extrações exigido para iniciar.']};
+  const last=list.at(-1),next=nextDraw(last);
+  if(!next)return {dirty,notes:['Horário de origem não reconhecido.']};
+  const start=timeMs(last.date,last.time),end=timeMs(next.date,next.time),t=now.getTime();
+  if(!Number.isFinite(start)||!Number.isFinite(end)||t<start||t>=end){
+    return {dirty,notes:['A última origem não está mais na janela de registro. Aguardando nova extração cadastrada; nenhuma previsão retroativa.']};
+  }
+  if(s.records.some(r=>r.originId===id(last)))return {dirty,notes:['Origem já registrada; não será duplicada.']};
+  const ranked=rank(list,list.length-1).slice(0,5);
+  const picks=ranked.map(r=>r.g);
+  if(new Set(picks).size!==5)throw Error('Ranking inválido');
+  s.records.push({status:'pending',originId:id(last),originDate:last.date,originTime:last.time,lockedAt:now.toISOString(),earliestDate:next.date,earliestTime:next.time,picks,scores:ranked.map(r=>r.score)});
+  return {dirty:true,notes:['Seleção registrada antes da extração prevista.']};
+}
+function draw(s,notes){
+  const completed=s.records.filter(r=>r.status==='done'),pending=s.records.find(r=>r.status==='pending');
+  const hit=n=>completed.filter(r=>r.hits[n]).length;
+  el('asc254Count').textContent=completed.length+' / '+LIMIT;
+  el('asc254Top1').textContent=hit(0)+' / '+completed.length+(completed.length?' ('+(100*hit(0)/completed.length).toFixed(1)+'%)':'');
+  el('asc254Top3').textContent=hit(1)+' / '+completed.length+(completed.length?' ('+(100*hit(1)/completed.length).toFixed(1)+'%)':'');
+  el('asc254Top5').textContent=hit(2)+' / '+completed.length+(completed.length?' ('+(100*hit(2)/completed.length).toFixed(1)+'%)':'');
+  el('asc254Status').textContent='Monitoramento local · '+completed.length+' conferência(s), '+(pending?1:0)+' pendente(s), '+s.records.filter(r=>r.status==='invalid').length+' inválida(s). '+(notes||[]).join(' ');
+  el('asc254Pending').innerHTML=pending?'<p class="muted">Origem: '+esc(pending.originDate+' '+pending.originTime)+' · Seleção bloqueada em '+esc(pending.lockedAt)+' · Próximo horário previsto: '+esc(pending.earliestDate+' '+pending.earliestTime)+'</p><table><thead><tr><th>Posição</th><th>Grupo</th><th>Pontuação</th></tr></thead><tbody>'+pending.picks.map((g,i)=>'<tr><td>'+(i+1)+'</td><td>G'+p2(g)+'</td><td>'+Number(pending.scores[i]).toFixed(2).replace('.',',')+'</td></tr>').join('')+'</tbody></table>':'<div class="mutedbox">Nenhuma seleção pré-registrada. Se o último resultado disponível for antigo, aguarde a próxima extração; não haverá retroatividade.</div>';
+  el('asc254History').innerHTML=s.records.length?'<table><thead><tr><th>Origem</th><th>Seleção Top 5</th><th>1º real</th><th>Top 1</th><th>Top 3</th><th>Top 5</th><th>Situação</th></tr></thead><tbody>'+s.records.slice().reverse().map(r=>'<tr><td>'+esc(r.originDate+' '+r.originTime)+'</td><td>'+r.picks.map(g=>'G'+p2(g)).join(', ')+'</td><td>'+(r.status==='done'?'G'+p2(r.actual):'—')+'</td>'+[0,1,2].map(i=>'<td>'+(r.status==='done'?(r.hits[i]?'SIM':'não'):'—')+'</td>').join('')+'<td>'+esc(r.status==='done'?'Conferido '+r.targetTime:r.status==='pending'?'Pendente':r.note||'Inválido')+'</td></tr>').join('')+'</tbody></table>':'<div class="mutedbox">Ainda não há seleções registradas. O contador começa em 0/100.</div>';
+}
+function refresh(){
+  if(!el('asc254Status'))return;
+  try{const s=read(),now=new Date(),result=evaluate(rows(),s,now);if(result.dirty)store(s);draw(s,result.notes)}
+  catch(e){el('asc254Status').textContent='Falha ao ler/salvar monitoramento: '+String(e.message||e)+' — não foi registrado nenhum novo teste.';console.error(e)}
+}
+function saveFile(name,txt,type){const a=document.createElement('a'),url=URL.createObjectURL(new Blob([txt],{type}));a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+el('asc254Check').addEventListener('click',refresh);
+el('asc254Export').addEventListener('click',()=>{try{saveFile('o-bicho-certo-teste-25-4-backup.json',JSON.stringify(read(),null,2),'application/json')}catch(e){alert(e.message)}});
+el('asc254Csv').addEventListener('click',()=>{try{const s=read(),lines=[['origem_data','origem_hora','registrado_em','grupos_top5','status','resultado_data','resultado_hora','grupo_real','acerto_top1','acerto_top3','acerto_top5']];for(const r of s.records)lines.push([r.originDate,r.originTime,r.lockedAt,r.picks.map(g=>'G'+p2(g)).join('/'),r.status,r.targetDate||'',r.targetTime||'',r.actual?'G'+p2(r.actual):'',r.hits?r.hits[0]:'',r.hits?r.hits[1]:'',r.hits?r.hits[2]:'']);saveFile('o-bicho-certo-teste-25-4-conferencias.csv','\uFEFF'+lines.map(l=>l.join(';')).join('\n'),'text/csv;charset=utf-8')}catch(e){alert(e.message)}});
+el('asc254Restore').addEventListener('click',()=>el('asc254File').click());
+el('asc254File').addEventListener('change',async ev=>{const file=ev.target.files[0];if(!file)return;try{const incoming=checkState(JSON.parse(await file.text())),current=read();if(current.records.length&&!confirm('Substituir registros locais? Exporte backup antes.'))return;store(incoming);refresh()}catch(e){alert('Backup não restaurado: '+e.message)}finally{ev.target.value=''}});
+// Ao abrir a página e enquanto ela permanecer aberta, confere os dados locais de minuto em minuto.
+// Não roda em segundo plano com o navegador fechado.
+refresh();setInterval(refresh,60000);
+window.test254Refresh=refresh;
 })();
 </script></body></html>

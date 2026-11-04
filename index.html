@@ -237,7 +237,7 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 <button class="tab" data-tab="laboratorio">🔬 Laboratório</button>
 <button class="tab" data-tab="unificado">🏆 Radar Unificado · Top 10</button>
 <button class="tab" data-tab="ciclos">🔄 Teste 26 · Ciclos</button>
-<button class="tab" data-tab="config">⚙️ Configurações</button>
+<button class="tab" data-tab="migracao">🔀 Teste 27 · Prêmios</button><button class="tab" data-tab="config">⚙️ Configurações</button>
 </nav><section id="visual">
 <div class="visual-top">
 <div class="visual-topline">
@@ -639,6 +639,24 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
   <p class="uni-sub">O painel atualiza ao abrir esta aba ou clicar em Recalcular. Não registra automaticamente previsões prospectivas nem altera os placares do Radar 22 e 25.4. Se o horário seguinte já tiver passado, a classificação será identificada como simulação sem registro antecipado.</p>
  </div>
 </section>
+<section id="migracao" class="hidden">
+ <div class="section-lead"><span class="eyebrow">EXPERIMENTO · LOOK GOIÁS</span><h2>🔀 Teste 27 — Migração entre Prêmios</h2><p>Compara os cinco grupos do Radar 22, escolhidos <b>antes</b> de cada resultado, com o 1º, 2º, 3º, 4º e 5º prêmio da extração seguinte. Não altera o Radar 22, os ciclos ou o Unificado. Não há garantia de acerto.</p></div>
+ <div class="panel">
+ <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:16px"><button class="primary" id="t27Calc">↻ Recalcular Teste 27</button><button id="t27Csv">Exportar avaliação CSV</button><label for="t27Warm">Aquecimento anterior: </label><select id="t27Warm"><option value="25" selected>25 transições</option><option value="10">10 transições</option><option value="50">50 transições</option></select></div>
+ <div id="t27Summary" class="hint" aria-live="polite">Clique em recalcular para avaliar o histórico.</div>
+ <div class="uni-stats" style="margin:14px 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px">
+  <div class="metric"><small>Transições avaliadas</small><h2 id="t27N">—</h2></div>
+  <div class="metric"><small>Top 5 → 1º prêmio</small><h2 id="t27First">—</h2></div>
+  <div class="metric"><small>Top 5 → 2º prêmio</small><h2 id="t27Second">—</h2></div>
+  <div class="metric"><small>Referência por prêmio</small><h2>20%</h2></div>
+ </div>
+ <h3>Acerto dos cinco grupos em cada prêmio</h3><div id="t27PrizeTable"></div>
+ <p class="hint">A referência de 20% vale para acertar um grupo específico de cada posição de prêmio com cinco grupos distintos, supondo grupos equiprováveis. Os cinco prêmios de uma mesma extração não são cinco testes independentes.</p>
+ <h3>Qual posição do Radar 22 aparece em qual prêmio?</h3><div id="t27Matrix"></div>
+ <p class="hint">Cada célula mede a posição da classificação do Radar 22 contra a posição do prêmio real. Para uma posição de grupo isolada, a referência teórica por prêmio é 4%. Selecionar retrospectivamente a melhor célula pode criar uma falsa vantagem.</p>
+ <h3>Últimas transições cronológicas válidas</h3><div id="t27Recent"></div>
+ <h3>Grupos Radar 22 — classificação atual</h3><div id="t27Current"></div><p class="hint">A classificação atual é uma simulação se o sorteio seguinte já tiver ocorrido; ela não é registrada automaticamente nem entra na avaliação passada.</p>
+ </div></section>
 <section id="ciclos" class="hidden">
  <div class="section-lead"><span class="eyebrow">EXPERIMENTO · LOOK GOIÁS</span><h2>🔄 Teste 26 — Radar de Ciclos 2º → 1º</h2><p>Rastreia o grupo do 2º prêmio até sua primeira chegada ao 1º nas próximas 16 extrações válidas; inclui repetição no 2º, ciclos abertos, ciclos censurados e uma classificação experimental testada sem resultados futuros. <b>Não altera Radar 22, Unificado ou os Testes 25.</b></p></div>
  <div class="panel">
@@ -1290,13 +1308,14 @@ $('flExport').onclick=()=>{
 function visualSelectTab(id){
  const tab=id==='lookradar'?'radar':id==='look'?'historico':id==='lookdyn'||id==='fedlook'?'laboratorio':id==='ajuda'?'config':id;
  document.querySelectorAll('nav .tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
- ['visual','radar','historico','laboratorio','unificado','ciclos','config'].forEach(k=>$(k==='radar'?'lookradar':k==='historico'?'look':k).classList.toggle('hidden',k!==tab));
+ ['visual','radar','historico','laboratorio','unificado','ciclos','migracao','config'].forEach(k=>$(k==='radar'?'lookradar':k==='historico'?'look':k).classList.toggle('hidden',k!==tab));
  if(tab==='laboratorio'){if(id==='fedlook')setLabPane('fedlook');else if(id==='lookdyn')setLabPane('lookdyn');else renderLabCurrent();}
  if(tab==='visual')renderVisual();
  if(tab==='historico'){renderLook();renderHistorySummary();}
  if(tab==='radar')renderLookRadar();
  if(tab==='unificado'&&typeof window.renderRadarUnificado==='function')window.renderRadarUnificado();
  if(tab==='ciclos'&&typeof window.renderRadarCiclos26==='function')window.renderRadarCiclos26();
+ if(tab==='migracao'&&typeof window.renderTeste27==='function')window.renderTeste27();
  requestAnimationFrame(visualEnhanceGroups);window.scrollTo({top:0,behavior:'instant'});
 }
 // Ilustrações próprias embutidas no HTML; sem depender de links externos para os 25 animais.
@@ -2555,5 +2574,65 @@ $('cy263Refresh').addEventListener('click',render);$('cy263Backup').addEventList
 const prior=window.renderRadarCiclos26;
 if(typeof prior==='function')window.renderRadarCiclos26=function(){prior();render()};
 window.renderRadarCiclos263=render;
+})();
+</script><script>
+/* Teste 27 — motor de análise de posições, sem alteração das pontuações anteriores. */
+(function(){
+'use strict';
+const el=id=>document.getElementById(id);
+const fmt=(n,d=1)=>Number(n).toFixed(d).replace('.',',');
+const pct=(hits,n)=>n?fmt(100*hits/n)+'%':'—';
+const gid=g=>'G'+String(g).padStart(2,'0');
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const table=(heads,body)=>'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr>'+heads.map(h=>'<th style="text-align:left;padding:9px;border-bottom:1px solid #386078">'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+body.map(row=>'<tr>'+row.map(col=>'<td style="padding:9px;border-bottom:1px solid #25435b">'+col+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
+let last=[];
+function calculate(){
+ const rows=lookAll().filter(lookValid).sort((a,b)=>a.date.localeCompare(b.date)||lookActualTime(a).localeCompare(lookActualTime(b)));
+ const warm=Number(el('t27Warm').value)||25;
+ const prior=[]; const tests=[];let gaps=0;
+ for(let i=0;i+1<rows.length;i++){
+   const origin=rows[i],target=rows[i+1];
+   if(!r22PairType(origin,target)){gaps++;continue;}
+   const selected=r22Score(origin,rows.slice(0,i+1),prior).slice(0,5).map(x=>x.g);
+   const actual=target.p.slice(0,5).map(group);
+   if(prior.length>=warm){
+     tests.push({origin:origin.date+' '+lookActualTime(origin),target:target.date+' '+lookActualTime(target),picks:selected,actual});
+   }
+   prior.push({origin,next:target,g:actual[0]});
+ }
+ last=tests;
+ const n=tests.length;
+ const rankHits=Array.from({length:5},()=>Array(5).fill(0));
+ const prizeHits=Array(5).fill(0);
+ for(const t of tests){for(let p=0;p<5;p++){
+   if(t.picks.includes(t.actual[p]))prizeHits[p]++;
+   for(let r=0;r<5;r++)if(t.picks[r]===t.actual[p])rankHits[r][p]++;
+ }}
+ el('t27N').textContent=n;
+ el('t27First').textContent=n?prizeHits[0]+'/'+n+' ('+pct(prizeHits[0],n)+')':'—';
+ el('t27Second').textContent=n?prizeHits[1]+'/'+n+' ('+pct(prizeHits[1],n)+')':'—';
+ el('t27Summary').textContent=n+' transições cronológicas válidas após '+warm+' transições de aquecimento; '+gaps+' ligações com lacuna/horário incompatível foram excluídas. Comparação feita somente com informação anterior ao resultado. Base total: '+rows.length+' extrações.';
+ el('t27PrizeTable').innerHTML=table(['Posição do prêmio','Acertos Top 5','Taxa','Referência'],prizeHits.map((v,p)=>[String(p+1)+'º',v+'/'+n,pct(v,n),'20%']));
+ el('t27Matrix').innerHTML=table(['Posição no Radar 22','1º prêmio','2º prêmio','3º prêmio','4º prêmio','5º prêmio'],rankHits.map((v,r)=>[(r+1)+'ª',...v.map(x=>x+'/'+n+' ('+pct(x,n)+')')]));
+ el('t27Recent').innerHTML=table(['Extração alvo','1º real','2º real','Top 5 acertou 1º?','Top 5 acertou 2º?','Posição que acertou 2º'],tests.slice(-12).reverse().map(t=>[
+   esc(t.target),gid(t.actual[0]),gid(t.actual[1]),t.picks.includes(t.actual[0])?'Sim':'Não',t.picks.includes(t.actual[1])?'Sim':'Não',(t.picks.indexOf(t.actual[1])+1||'—')
+ ]));
+ if(rows.length){
+   const cur=r22Score(rows.at(-1),rows,prior).slice(0,5);
+   el('t27Current').innerHTML='<p>Origem '+esc(rows.at(-1).date+' '+lookActualTime(rows.at(-1)))+' — cinco grupos classificados com o histórico atual:</p>'+table(['Posição','Grupo','Pontuação'],cur.map((x,i)=>[i+1,gid(x.g),fmt(x.score,2)]));
+ }else el('t27Current').textContent='Nenhum resultado cadastrado.';
+}
+function exportCsv(){
+ if(!last.length)calculate();
+ const header=['origem','alvo','posicao_radar','grupo_escolhido','premio_real','grupo_real','acertou'];
+ const rows=[header.join(';')];
+ for(const t of last)for(let p=0;p<5;p++)for(let r=0;r<5;r++)rows.push([t.origin,t.target,r+1,gid(t.picks[r]),p+1,gid(t.actual[p]),Number(t.picks[r]===t.actual[p])].join(';'));
+ const url=URL.createObjectURL(new Blob(['\ufeff'+rows.join('\n')],{type:'text/csv;charset=utf-8'}));
+ const a=document.createElement('a');a.href=url;a.download='o-bicho-certo-teste-27-migracao.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+el('t27Calc').addEventListener('click',calculate);
+el('t27Warm').addEventListener('change',calculate);
+el('t27Csv').addEventListener('click',exportCsv);
+window.renderTeste27=calculate;
 })();
 </script></body></html>

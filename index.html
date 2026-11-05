@@ -712,6 +712,31 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
   <h3>Comparação por posição de prêmio (histórico completo avaliado)</h3><div id="t271ByPrize"></div>
   <p class="hint">Referência de 20% para qualquer prêmio individual, supondo sorteios equiprováveis. Para uma coincidência em pelo menos uma das quatro posições do 2º ao 5º, a referência aproximada sob independência seria 59,0%; a dependência entre prêmios pode alterar essa referência. Contagens por prêmio podem repetir o mesmo grupo na mesma extração. Não comprovam capacidade preditiva.</p>
  </div>
+
+ <div class="panel" id="t272Panel" style="margin-top:18px">
+  <h3>🔎 Teste 27.2 — Detector de Migração (Radar 22)</h3>
+  <p class="hint">Acompanha a coincidência dos cinco grupos do Radar 22 com cada prêmio nas últimas 8, 16 e 32 transições cronológicas, usando sempre as escolhas calculadas antes de cada resultado. Detecta diferenças descritivas entre janelas, <b>não prevê o prêmio seguinte</b> e não altera os modelos.</p>
+  <div class="settings-actions" style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin:12px 0">
+   <button class="primary" id="t272Refresh">↻ Recalcular detector</button>
+   <button id="t272Csv">Exportar detector CSV</button>
+   <label>Aquecimento <select id="t272Warm"><option value="10">10 transições</option><option value="25" selected>25 transições</option><option value="50">50 transições</option></select></label>
+  </div>
+  <div id="t272Info" class="hint" aria-live="polite">Aguardando avaliação cronológica.</div>
+  <div class="uni-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin:14px 0">
+    <div class="metric"><small>Pares válidos avaliados</small><strong id="t272N">—</strong></div>
+    <div class="metric"><small>1º prêmio · últimas 8</small><strong id="t272First">—</strong></div>
+    <div class="metric"><small>2º prêmio · últimas 8</small><strong id="t272Second">—</strong></div>
+    <div class="metric"><small>Diferença 2º − 1º · últimas 8</small><strong id="t272Diff">—</strong></div>
+  </div>
+  <h3>Taxa por janela — mesmo Radar 22, mesmos sorteios</h3>
+  <div id="t272Windows" style="overflow-x:auto"></div>
+  <h3>Comparação com a janela imediatamente anterior</h3>
+  <div id="t272Previous" style="overflow-x:auto"></div>
+  <h3>De onde vieram as coincidências no 2º prêmio?</h3>
+  <div id="t272Groups" style="overflow-x:auto"></div>
+  <div id="t272Verdict" class="notice" style="margin-top:12px" aria-live="polite"></div>
+  <p class="hint">Referência teórica de cada prêmio isolado: 20%, supondo grupos equiprováveis. A diferença 2º − 1º é descritiva e pode oscilar mesmo sem mudança real. As janelas 8/16/32 se sobrepõem; não são três testes independentes. A avaliação é retrospectiva e não se soma aos placares prospectivos.</p>
+ </div>
 </section>
 <section id="ciclos" class="hidden">
  <div class="section-lead"><span class="eyebrow">EXPERIMENTO · LOOK GOIÁS</span><h2>🔄 Teste 26 — Radar de Ciclos 2º → 1º</h2><p>Rastreia o grupo do 2º prêmio até sua primeira chegada ao 1º nas próximas 16 extrações válidas; inclui repetição no 2º, ciclos abertos, ciclos censurados e uma classificação experimental testada sem resultados futuros. <b>Não altera Radar 22, Unificado ou os Testes 25.</b></p></div>
@@ -2867,6 +2892,65 @@ window.renderTeste28=function(){if(typeof previous==='function')previous();calc(
  el('t271Csv').addEventListener('click',csv);
  const previous=window.renderTeste27;
  window.renderTeste27=function(){if(typeof previous==='function')previous();compute();};
+})();
+</script>
+
+<script>
+/* Teste 27.2 — Monitor de migração. Não altera Radar 22 nem avaliações anteriores. */
+(function(){
+ 'use strict';
+ const el=id=>document.getElementById(id);
+ const pct=(x,n)=>n?(100*x/n).toFixed(1).replace('.',',')+'%':'—';
+ const signed=x=>(x>0?'+':'')+x.toFixed(1).replace('.',',')+' p.p.';
+ const G=n=>'G'+String(n).padStart(2,'0');
+ const escapeHtml=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const table=(headers,rows)=>'<table><thead><tr>'+headers.map(x=>'<th>'+escapeHtml(x)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(x=>'<td>'+escapeHtml(x)+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+ let tests=[];
+ function count(rows){const n=rows.length;const h=Array.from({length:5},(_,j)=>rows.filter(x=>x.hits[j]).length);return {n,h,diff:n?(100*(h[1]-h[0])/n):0};}
+ function evaluate(){
+   const raw=lookAll().filter(lookValid).sort((a,b)=>(a.date+lookActualTime(a)).localeCompare(b.date+lookActualTime(b)));
+   const rows=[],identical=new Set();let duplicate=0;
+   // Deduplicação idêntica por data e pelos cinco prêmios (18h20/19h20 espelhados).
+   for(const r of raw){const signature=r.date+'|'+r.p.slice(0,5).map(x=>String(x).padStart(4,'0')).join('/');if(identical.has(signature)){duplicate++;continue;}identical.add(signature);rows.push(r);}
+   const warm=Number(el('t272Warm').value),known=[],out=[];let breaks=0;
+   for(let i=0;i<rows.length-1;i++){
+     const origin=rows[i],next=rows[i+1];
+     if(!r22PairType(origin,next)){breaks++;continue;}
+     const picks=r22Score(origin,rows.slice(0,i+1),known).slice(0,5).map(x=>x.g);
+     const actual=next.p.slice(0,5).map(group);
+     if(known.length>=warm){out.push({date:next.date,time:lookActualTime(next),picks,actual,hits:actual.map(x=>picks.includes(x)),secondPosition:picks.indexOf(actual[1])+1});}
+     known.push({origin,next,g:actual[0]});
+   }
+   tests=out;
+   const total=count(tests),latest=tests.at(-1);
+   el('t272N').textContent=total.n;
+   const last8=count(tests.slice(-8));
+   el('t272First').textContent=last8.h[0]+'/'+last8.n+' ('+pct(last8.h[0],last8.n)+')';
+   el('t272Second').textContent=last8.h[1]+'/'+last8.n+' ('+pct(last8.h[1],last8.n)+')';
+   el('t272Diff').textContent=last8.n?signed(last8.diff):'—';
+   el('t272Info').textContent='Base: '+rows.length+' extrações distintas, '+total.n+' transições avaliadas depois de '+warm+' de aquecimento. '+duplicate+' duplicata(s) idêntica(s), '+breaks+' ligação(ões) cronológicas excluídas. Última avaliação: '+(latest?latest.date+' '+latest.time:'nenhuma')+'.';
+   el('t272Windows').innerHTML=table(['Últimas','Pares disponíveis','Top 5 → 1º','Top 5 → 2º','Top 5 → 3º','Top 5 → 4º','Top 5 → 5º','2º − 1º'],[8,16,32].map(w=>{
+     const x=count(tests.slice(-w));return [w,x.n,x.h.map((v,j)=>v+'/'+x.n+' ('+pct(v,x.n)+')')[0],x.h.map(v=>v+'/'+x.n+' ('+pct(v,x.n)+')')[1],...x.h.slice(2).map(v=>v+'/'+x.n+' ('+pct(v,x.n)+')'),x.n?signed(x.diff):'—'];
+   }));
+   el('t272Previous').innerHTML=table(['Janela','Pares recentes','2º recente','Pares anteriores','2º anterior','Mudança da taxa do 2º'],[8,16,32].map(w=>{
+     const newer=count(tests.slice(-w));const previous=count(tests.slice(-2*w,-w));return [w,newer.n,pct(newer.h[1],newer.n),previous.n,pct(previous.h[1],previous.n),previous.n&&newer.n?signed(100*(newer.h[1]/newer.n-previous.h[1]/previous.n)):'Amostra insuficiente'];
+   }));
+   const recent=tests.slice(-32),pos=Array(5).fill(0),examples=[];
+   for(const x of recent){if(!x.hits[1])continue;pos[x.secondPosition-1]++;examples.push([x.date,x.time,G(x.actual[1]),x.secondPosition+'º no Radar 22']);}
+   el('t272Groups').innerHTML='<p class="hint">Posição do grupo coincidente no Radar 22 nas últimas '+recent.length+' avaliações:</p>'+table(['Posição no ranking','Coincidências no 2º'],pos.map((n,i)=>[(i+1)+'º',n]))+'<h4>Últimas coincidências no 2º prêmio</h4>'+table(['Data','Horário','Grupo no 2º','Posição no Radar 22'],examples.slice(-10).reverse());
+   let text='Sem dados suficientes para avaliar a janela de 8 extrações.';
+   if(last8.n===8){
+     text='Últimas 8: '+last8.h[0]+' coincidência(s) no 1º e '+last8.h[1]+' no 2º. Diferença observada: '+signed(last8.diff)+'. ';
+     text+='O histórico, por si só, não demonstra mudança de probabilidade nem justifica alterar os pesos do Radar 22.';
+   }
+   el('t272Verdict').textContent=text;
+ }
+ function exportCsv(){if(!tests.length)evaluate();const lines=[['data','hora','radar22','premio1','premio2','premio3','premio4','premio5','acertou1','acertou2','acertou3','acertou4','acertou5','posicao_radar_no_premio2'].join(';')];for(const t of tests){lines.push([t.date,t.time,t.picks.map(G).join(','),...t.actual.map(G),...t.hits.map(Number),t.secondPosition||''].join(';'));}const url=URL.createObjectURL(new Blob(['\uFEFF'+lines.join('\n')],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='o-bicho-certo-teste27-2-detector.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),5000);}
+ el('t272Refresh').addEventListener('click',evaluate);
+ el('t272Warm').addEventListener('change',evaluate);
+ el('t272Csv').addEventListener('click',exportCsv);
+ const old=window.renderTeste27;
+ window.renderTeste27=function(){if(typeof old==='function')old();evaluate();};
 })();
 </script>
 </body></html>

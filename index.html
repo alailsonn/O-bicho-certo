@@ -737,7 +737,31 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
   <div id="t272Verdict" class="notice" style="margin-top:12px" aria-live="polite"></div>
   <p class="hint">Referência teórica de cada prêmio isolado: 20%, supondo grupos equiprováveis. A diferença 2º − 1º é descritiva e pode oscilar mesmo sem mudança real. As janelas 8/16/32 se sobrepõem; não são três testes independentes. A avaliação é retrospectiva e não se soma aos placares prospectivos.</p>
  </div>
+<div class="panel" id="t273Panel" style="margin-top:18px;border:1px solid #235c69">
+  <h3>🧪 Teste 27.3 — Validação prospectiva da migração (Radar 22)</h3>
+  <p class="hint">Registra os mesmos cinco grupos do Radar 22 <b>antes</b> da próxima extração; depois compara separadamente com o 1º e o 2º prêmio. A regra original não é alterada. Até 100 conferências válidas.</p>
+  <div class="uni-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:14px 0">
+   <div class="metric"><small>Conferências válidas</small><strong id="t273N">0 / 100</strong></div>
+   <div class="metric"><small>Top 5 no 1º</small><strong id="t273First">0 / 0</strong></div>
+   <div class="metric"><small>Top 5 no 2º</small><strong id="t273Second">0 / 0</strong></div>
+   <div class="metric"><small>Diferença 2º − 1º</small><strong id="t273Diff">—</strong></div>
+  </div>
+  <div class="notice" id="t273Info" aria-live="polite">O monitoramento depende dos resultados publicados e dos registros deste navegador.</div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin:14px 0">
+   <label>Horário previsto <select id="t273Slot"><option value="auto">Automático</option><option value="18:20">18h20 (quando aplicável)</option><option value="19:20">19h20 (quando aplicável)</option></select></label>
+   <button class="primary" id="t273Check">↻ Conferir e registrar a tempo</button>
+   <button id="t273Json">Salvar backup JSON</button>
+   <button id="t273Csv">Exportar CSV</button>
+   <label style="cursor:pointer">Restaurar backup JSON <input type="file" id="t273Restore" accept=".json,application/json" style="max-width:180px"></label>
+  </div>
+  <h4>Próxima seleção pré-registrada</h4><div id="t273Pending" class="mutedbox">Nenhuma seleção pendente.</div>
+  <h4>Comparação por marcos: 30 / 50 / 100 conferências</h4><div id="t273Milestones" style="overflow-x:auto"></div>
+  <h4>Últimas conferências</h4><div id="t273History" style="overflow-x:auto"></div>
+  <p class="hint">Referência de cada prêmio: 20% para cinco grupos distintos entre 25, em sorteios equiprováveis. As taxas do 1º e do 2º usam <b>os mesmos sorteios</b>. Dados guardados só neste navegador: salve backups. Com a página fechada, não há garantia de captura antecipada. Relógio do dispositivo e dados da fonte precisam estar corretos. Não são previsões comprovadas.</p>
+</div>
+
 </section>
+
 <section id="ciclos" class="hidden">
  <div class="section-lead"><span class="eyebrow">EXPERIMENTO · LOOK GOIÁS</span><h2>🔄 Teste 26 — Radar de Ciclos 2º → 1º</h2><p>Rastreia o grupo do 2º prêmio até sua primeira chegada ao 1º nas próximas 16 extrações válidas; inclui repetição no 2º, ciclos abertos, ciclos censurados e uma classificação experimental testada sem resultados futuros. <b>Não altera Radar 22, Unificado ou os Testes 25.</b></p></div>
  <div class="panel">
@@ -2951,6 +2975,74 @@ window.renderTeste28=function(){if(typeof previous==='function')previous();calc(
  el('t272Csv').addEventListener('click',exportCsv);
  const old=window.renderTeste27;
  window.renderTeste27=function(){if(typeof old==='function')old();evaluate();};
+})();
+</script>
+<script>
+/* Teste 27.3: monitoramento prospectivo. Regras congeladas; nenhum resultado futuro é usado na seleção. */
+(function(){
+ 'use strict';
+ const key='obicho-t273-prospectivo-v1';
+ const el=id=>document.getElementById(id);
+ const name=g=>'G'+String(g).padStart(2,'0');
+ const dt=(d,t)=>Date.parse(d+'T'+t+':00-03:00');
+ const pct=(a,n)=>n?(100*a/n).toFixed(1).replace('.',',')+'%':'—';
+ const signed=x=>(x>0?'+':'')+x.toFixed(1).replace('.',',')+' p.p.';
+ const escapeHtml=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ const htmlTable=(cols,rows)=>'<table><thead><tr>'+cols.map(c=>'<th>'+escapeHtml(c)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(row=>'<tr>'+row.map(c=>'<td>'+escapeHtml(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+ const signature=r=>r.date+'|'+lookActualTime(r)+'|'+r.p.slice(0,5).map(x=>String(x).padStart(4,'0')).join('-');
+ function load(){try{const a=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(a)?a.filter(r=>r&&typeof r.originSig==='string'&&typeof r.targetDate==='string'&&Array.isArray(r.picks)&&r.picks.length===5&&r.picks.every(x=>Number.isInteger(x)&&x>=1&&x<=25)):[]}catch(e){return []}}
+ function save(rows){localStorage.setItem(key,JSON.stringify(rows))}
+ function rows(){const raw=lookAll().filter(lookValid).sort((a,b)=>(a.date+lookActualTime(a)).localeCompare(b.date+lookActualTime(b)));const got=new Set();return raw.filter(r=>{const sig=r.date+'|'+r.p.slice(0,5).map(x=>String(x).padStart(4,'0')).join('-');if(got.has(sig))return false;got.add(sig);return true;});}
+ function target(origin){const hour=lookActualTime(origin),fixed={'07:20':'09:20','09:20':'11:20','11:20':'14:20','14:20':'16:20','18:20':'21:20','19:20':'21:20','21:20':'23:20'};
+  if(hour==='23:20')return {date:r22Tomorrow(origin.date),time:'07:20'};
+  if(hour==='16:20'){let pick=el('t273Slot').value;return {date:origin.date,time:pick==='19:20'?'19:20':'18:20'};}
+  return fixed[hour]?{date:origin.date,time:fixed[hour]}:null;
+ }
+ function status(rowsData,records){let changed=false,now=Date.now();for(const rec of records){if(rec.status!=='pending')continue;
+   const idx=rowsData.findIndex(x=>signature(x)===rec.originSig);
+   if(idx<0){rec.status='invalid';rec.note='Extração de origem alterada ou removida';changed=true;continue;}
+   const actual=rowsData.find(x=>x.date===rec.targetDate&&lookActualTime(x)===rec.targetTime);
+   if(!actual){const newer=rowsData.some(x=>dt(x.date,lookActualTime(x))>dt(rec.targetDate,rec.targetTime));if(newer){rec.status='invalid';rec.note='Resultado previsto ausente do histórico';changed=true;}continue;}
+   const j=rowsData.indexOf(actual);if(j!==idx+1||!r22PairType(rowsData[idx],actual)){rec.status='invalid';rec.note='Lacuna ou transição não consecutiva';changed=true;continue;}
+   const lock=Date.parse(rec.lockedAt),time=dt(actual.date,lookActualTime(actual));
+   if(!Number.isFinite(lock)||!Number.isFinite(time)||lock>=time||lock<dt(rowsData[idx].date,lookActualTime(rowsData[idx]))){rec.status='invalid';rec.note='Seleção não registrada entre origem e sorteio';changed=true;continue;}
+   const g1=group(actual.p[0]),g2=group(actual.p[1]);rec.g1=g1;rec.g2=g2;rec.hit1=rec.picks.includes(g1);rec.hit2=rec.picks.includes(g2);rec.status='done';rec.checkedAt=new Date(now).toISOString();changed=true;
+  }return changed;
+ }
+ function register(rowsData,records){const completed=records.filter(x=>x.status==='done').length;if(completed>=100)return 'Meta de 100 conferências atingida.';
+  if(records.some(x=>x.status==='pending'))return 'Seleção pendente preservada; não cria outra.';
+  if(!rowsData.length)return 'Sem resultados disponíveis.';
+  const origin=rowsData.at(-1),t=target(origin);if(!t)return 'Próxima extração não identificada.';
+  const start=dt(origin.date,lookActualTime(origin)),deadline=dt(t.date,t.time),now=Date.now();
+  if(!Number.isFinite(start)||!Number.isFinite(deadline)||now<=start||now>=deadline)return 'Prazo encerrado ou relógio incompatível: não é permitido registrar uma escolha atrasada.';
+  if(rowsData.some(x=>x.date===t.date&&lookActualTime(x)===t.time))return 'O resultado seguinte já está cadastrado.';
+  if(records.some(x=>x.originSig===signature(origin)))return 'Origem já registrada; seleções duplicadas são bloqueadas.';
+  const transitions=[];
+  for(let i=0;i<rowsData.length-1;i++){const a=rowsData[i],b=rowsData[i+1];if(r22PairType(a,b))transitions.push({origin:a,next:b,g:group(b.p[0])});}
+  const picks=r22Score(origin,rowsData,transitions).slice(0,5).map(x=>x.g);
+  records.push({originSig:signature(origin),originDate:origin.date,originTime:lookActualTime(origin),targetDate:t.date,targetTime:t.time,picks,lockedAt:new Date(now).toISOString(),status:'pending'});return 'Seleção salva antes do sorteio: '+t.date+' '+t.time+'.';
+ }
+ function render(records,message){const done=records.filter(x=>x.status==='done');const first=done.filter(x=>x.hit1).length,second=done.filter(x=>x.hit2).length,n=done.length;
+  el('t273N').textContent=n+' / 100';el('t273First').textContent=first+' / '+n+(n?' ('+pct(first,n)+')':'');el('t273Second').textContent=second+' / '+n+(n?' ('+pct(second,n)+')':'');el('t273Diff').textContent=n?signed(100*(second-first)/n):'—';
+  const pending=records.filter(x=>x.status==='pending'),invalid=records.filter(x=>x.status==='invalid');el('t273Info').textContent=message+' Placar local: '+n+' concluída(s), '+pending.length+' pendente(s), '+invalid.length+' inválida(s). Conferências registradas apenas após uma seleção antecipada.';
+  el('t273Pending').innerHTML=pending.length?pending.map(r=>'<p><b>Origem:</b> '+escapeHtml(r.originDate+' '+r.originTime)+' · <b>Alvo:</b> '+escapeHtml(r.targetDate+' '+r.targetTime)+' · <b>Registrado:</b> '+escapeHtml(r.lockedAt)+'</p><p><b>Grupos:</b> '+r.picks.map(name).join(' · ')+'</p>').join(''):'Nenhuma seleção pendente.';
+  el('t273Milestones').innerHTML=htmlTable(['Marco','Conferências','Acertos 1º','Acertos 2º','Diferença','Referência por prêmio'],[30,50,100].map(k=>{let a=done.slice(0,k),h1=a.filter(x=>x.hit1).length,h2=a.filter(x=>x.hit2).length,m=a.length;return [k,m+'/'+k,h1+'/'+m+' ('+pct(h1,m)+')',h2+'/'+m+' ('+pct(h2,m)+')',m?signed(100*(h2-h1)/m):'—','20%'];}));
+  el('t273History').innerHTML=htmlTable(['Alvo','Grupos registrados','1º real','Acerto 1º','2º real','Acerto 2º','Estado'],records.slice(-12).reverse().map(r=>[r.targetDate+' '+r.targetTime,r.picks.map(name).join(' · '),r.g1?name(r.g1):'—',r.status==='done'?(r.hit1?'Sim':'Não'):'—',r.g2?name(r.g2):'—',r.status==='done'?(r.hit2?'Sim':'Não'):'—',r.status==='invalid'?'Inválido: '+(r.note||''):r.status]));
+ }
+ function run(){const a=rows(),rec=load();const changed=status(a,rec);let msg='Conferência realizada.';
+  if(changed)save(rec);
+  msg=register(a,rec);if(msg.startsWith('Seleção salva'))save(rec);
+  render(rec,msg);
+ }
+ function csv(){const rec=load();const head=['origem','alvo','grupos','registrado_em','status','premio1','acertou1','premio2','acertou2','observacao'];const lines=[head.join(';')];rec.forEach(r=>lines.push([r.originDate+' '+r.originTime,r.targetDate+' '+r.targetTime,r.picks.map(name).join(','),r.lockedAt,r.status,r.g1?name(r.g1):'',r.status==='done'?Number(r.hit1):'',r.g2?name(r.g2):'',r.status==='done'?Number(r.hit2):'',r.note||''].join(';')));download('o-bicho-certo-teste27-3.csv','\uFEFF'+lines.join('\n'),'text/csv;charset=utf-8')}
+ function download(filename,text,mime){const url=URL.createObjectURL(new Blob([text],{type:mime}));const link=document.createElement('a');link.href=url;link.download=filename;link.click();setTimeout(()=>URL.revokeObjectURL(url),5000)}
+ function json(){download('o-bicho-certo-teste27-3-backup.json',JSON.stringify({tool:'t273',version:1,records:load()},null,2),'application/json')}
+ async function restore(e){try{const file=e.target.files?.[0];if(!file)return;const data=JSON.parse(await file.text());if(data?.tool!=='t273'||!Array.isArray(data.records))throw Error('Formato do backup inválido');const current=load(),map=new Map(current.map(r=>[r.originSig,r]));for(const r of data.records){if(typeof r.originSig!=='string'||!Array.isArray(r.picks)||r.picks.length!==5||!r.picks.every(g=>Number.isInteger(g)&&g>=1&&g<=25)||!['done','pending','invalid'].includes(r.status))throw Error('Registro inválido no backup');if(!map.has(r.originSig))map.set(r.originSig,r);}
+  save([...map.values()]);render(load(),'Backup restaurado e combinado por origem, sem sobrescrever registros existentes.');}catch(err){render(load(),'Falha ao restaurar backup: '+(err.message||String(err)))}finally{e.target.value=''}}
+ el('t273Check').addEventListener('click',run);el('t273Slot').addEventListener('change',()=>render(load(),'Selecione o horário previsto antes de registrar.'));el('t273Json').addEventListener('click',json);el('t273Csv').addEventListener('click',csv);el('t273Restore').addEventListener('change',restore);
+ const previous=window.renderTeste27;window.renderTeste27=function(){if(typeof previous==='function')previous();run();};
+ setInterval(()=>{if(!el('migracao').classList.contains('hidden'))run();},60000);
+ render(load(),'Aguardando conferência ou registro antecipado.');
 })();
 </script>
 </body></html>

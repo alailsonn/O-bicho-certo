@@ -691,7 +691,28 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
  <p class="hint">Cada célula mede a posição da classificação do Radar 22 contra a posição do prêmio real. Para uma posição de grupo isolada, a referência teórica por prêmio é 4%. Selecionar retrospectivamente a melhor célula pode criar uma falsa vantagem.</p>
  <h3>Últimas transições cronológicas válidas</h3><div id="t27Recent"></div>
  <h3>Grupos Radar 22 — classificação atual</h3><div id="t27Current"></div><p class="hint">A classificação atual é uma simulação se o sorteio seguinte já tiver ocorrido; ela não é registrada automaticamente nem entra na avaliação passada.</p>
- </div></section>
+ </div>
+ <div class="panel" id="t271Panel">
+  <h3>📅 Teste 27.1 — Monitoramento diário de migração</h3>
+  <p class="hint">Compara retrospectivamente os cinco grupos do Radar 22 com cada posição de prêmio, por dia e horário. Utiliza apenas resultados anteriores ao alvo e mantém o aquecimento da avaliação; não registra previsões prospectivas.</p>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin:12px 0">
+   <label>Dia para detalhar <input id="t271Day" type="date" style="display:block;min-width:185px"></label>
+   <button class="primary" id="t271Refresh">↻ Recalcular dia</button>
+   <button id="t271Csv">Exportar diário CSV</button>
+  </div>
+  <div id="t271Info" class="hint">Aguardando cálculo.</div>
+  <div class="uni-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin:14px 0">
+   <div class="metric"><small>Extrações verificadas no dia</small><strong id="t271Total">—</strong></div>
+   <div class="metric"><small>Top 5 → 1º prêmio</small><strong id="t271First">—</strong></div>
+   <div class="metric"><small>Top 5 → 2º prêmio</small><strong id="t271Second">—</strong></div>
+   <div class="metric"><small>Coincidência em algum 2º–5º</small><strong id="t271Lower">—</strong></div>
+  </div>
+  <h3>Resultado por horário do dia</h3><div id="t271ByHour"></div>
+  <h3>Visão por dia — histórico avaliado</h3><div id="t271ByDay"></div>
+  <h3>Comparação por posição de prêmio (histórico completo avaliado)</h3><div id="t271ByPrize"></div>
+  <p class="hint">Referência de 20% para qualquer prêmio individual, supondo sorteios equiprováveis. Para uma coincidência em pelo menos uma das quatro posições do 2º ao 5º, a referência aproximada sob independência seria 59,0%; a dependência entre prêmios pode alterar essa referência. Contagens por prêmio podem repetir o mesmo grupo na mesma extração. Não comprovam capacidade preditiva.</p>
+ </div>
+</section>
 <section id="ciclos" class="hidden">
  <div class="section-lead"><span class="eyebrow">EXPERIMENTO · LOOK GOIÁS</span><h2>🔄 Teste 26 — Radar de Ciclos 2º → 1º</h2><p>Rastreia o grupo do 2º prêmio até sua primeira chegada ao 1º nas próximas 16 extrações válidas; inclui repetição no 2º, ciclos abertos, ciclos censurados e uma classificação experimental testada sem resultados futuros. <b>Não altera Radar 22, Unificado ou os Testes 25.</b></p></div>
  <div class="panel">
@@ -2783,4 +2804,69 @@ const previous=window.renderTeste28;
 window.renderTeste28=function(){if(typeof previous==='function')previous();calc();};
 })();
 
-</script></body></html>
+</script>
+<script>
+/* Teste 27.1 — Migração diária. Só leitura, sem alterar modelos. */
+(function(){
+ 'use strict';
+ const el=id=>document.getElementById(id);
+ const G=n=>'G'+String(n).padStart(2,'0');
+ const p=(h,n)=>n?(100*h/n).toFixed(1).replace('.',',')+'%':'—';
+ const escapeHtml=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const t=(head,rows)=>'<div style="overflow-x:auto"><table style="width:100%"><thead><tr>'+head.map(c=>'<th>'+escapeHtml(c)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(c=>'<td>'+escapeHtml(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
+ let allTests=[];
+ function compute(){
+  const source=lookAll().filter(lookValid).sort((a,b)=>(a.date+lookActualTime(a)).localeCompare(b.date+lookActualTime(b)));
+  // Elimina o registro repetido idêntico em horários diferentes de um mesmo dia.
+  const rows=[], seen=new Set();
+  for(const r of source){const k=r.date+'|'+r.p.slice(0,5).map(v=>String(v).padStart(4,'0')).join('/');if(seen.has(k))continue;seen.add(k);rows.push(r)}
+  const warm=Number(el('t27Warm')?.value||25), prior=[],tests=[];
+  for(let i=0;i<rows.length-1;i++){
+   const origin=rows[i],target=rows[i+1];
+   if(!r22PairType(origin,target))continue;
+   const picks=r22Score(origin,rows.slice(0,i+1),prior).slice(0,5).map(x=>x.g);
+   const actual=target.p.slice(0,5).map(group);
+   if(prior.length>=warm){const matches=actual.map(g=>picks.includes(g));tests.push({date:target.date,time:lookActualTime(target),picks,actual,matches,lower:matches.slice(1).some(Boolean)});}
+   prior.push({origin,next:target,g:actual[0]});
+  }
+  allTests=tests;
+  const dates=[...new Set(tests.map(x=>x.date))].sort();
+  const select=el('t271Day');
+  if(dates.length && !dates.includes(select.value))select.value=dates.at(-1);
+  const daily=Object.groupBy?Object.groupBy(tests,x=>x.date):tests.reduce((o,x)=>{(o[x.date]??=[]).push(x);return o;},{});
+  el('t271ByDay').innerHTML=t(['Dia','Extrações','Acertos no 1º','Acertos no 2º','Algum 2º–5º'],dates.slice().reverse().map(d=>{
+   const a=daily[d],n=a.length,h=j=>a.filter(x=>x.matches[j]).length;
+   return [d,n,h(0)+' ('+p(h(0),n)+')',h(1)+' ('+p(h(1),n)+')',a.filter(x=>x.lower).length+'/'+n+' ('+p(a.filter(x=>x.lower).length,n)+')'];
+  }));
+  el('t271ByPrize').innerHTML=t(['Prêmio','Acertos Top 5','Taxa observada','Referência'],[0,1,2,3,4].map(j=>{
+   const h=tests.filter(x=>x.matches[j]).length;
+   return [j+1+'º',h+'/'+tests.length,p(h,tests.length),'20%'];
+  }));
+  display();
+ }
+ function display(){
+  const date=el('t271Day').value;
+  const rows=allTests.filter(x=>x.date===date), n=rows.length;
+  const hits=i=>rows.filter(r=>r.matches[i]).length, low=rows.filter(r=>r.lower).length;
+  el('t271Total').textContent=n;
+  el('t271First').textContent=hits(0)+'/'+n+' ('+p(hits(0),n)+')';
+  el('t271Second').textContent=hits(1)+'/'+n+' ('+p(hits(1),n)+')';
+  el('t271Lower').textContent=low+'/'+n+' ('+p(low,n)+')';
+  el('t271Info').textContent='Dia '+date+': '+n+' transição(ões) cronológica(s) com aquecimento concluído. Os prêmios do 2º ao 5º são verificados separadamente. Não inclui seleções criadas depois do resultado.';
+  el('t271ByHour').innerHTML=t(['Hora','1º real','2º real','Radar 22 (Top 5)','Acertos por prêmio','Algum 2º–5º'],rows.map(r=>[
+   r.time,G(r.actual[0]),G(r.actual[1]),r.picks.map(G).join(' · '),r.matches.map((m,i)=>m?i+1+'º':'').filter(Boolean).join(', ')||'Nenhum',r.lower?'Sim':'Não'
+  ]));
+ }
+ function csv(){if(!allTests.length)compute();const lines=[['data','hora','grupos_radar22','p1','p2','p3','p4','p5','acerto_p1','acerto_p2','acerto_p3','acerto_p4','acerto_p5'].join(';')];
+  for(const r of allTests)lines.push([r.date,r.time,r.picks.map(G).join(','),...r.actual.map(G),...r.matches.map(Number)].join(';'));
+  const url=URL.createObjectURL(new Blob(['\uFEFF'+lines.join('\n')],{type:'text/csv;charset=utf-8'}));
+  const a=document.createElement('a');a.href=url;a.download='o-bicho-certo-teste27-1-diario.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),5000);
+ }
+ el('t271Refresh').addEventListener('click',compute);
+ el('t271Day').addEventListener('change',display);
+ el('t271Csv').addEventListener('click',csv);
+ const previous=window.renderTeste27;
+ window.renderTeste27=function(){if(typeof previous==='function')previous();compute();};
+})();
+</script>
+</body></html>

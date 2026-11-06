@@ -653,6 +653,17 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
   </div>
   <p class="hint" id="t29Info">Clique em Recalcular.</p>
   <div class="uni-stats" id="t29Stats"></div>
+  <div style="margin:18px 0;padding:16px;border:1px solid #35637c;border-radius:12px">
+   <h3>Comparação justa — mesmas extrações (16 / 32 / 64)</h3>
+   <p class="hint">As três janelas são avaliadas nos mesmos horários e com o mesmo 1º prêmio real. Cada seleção utiliza exclusivamente os resultados anteriores à extração avaliada.</p>
+   <div id="t29EqualInfo" class="hint"></div>
+   <div id="t29EqualStats"></div>
+   <div id="t29EqualTable"></div>
+   <button id="t29EqualCsv">Exportar comparação cronológica CSV</button>
+   <h3>Auditoria das extrações</h3>
+   <div id="t29Audit"></div>
+   <p class="hint">A auditoria informa eventuais duplicatas de resultados e lacunas entre horários; não altera a base original.</p>
+  </div>
   <h3>10 dezenas classificadas (experimental)</h3><div id="t29Top"></div>
   <h3>Grupos com quatro dezenas observadas</h3><div id="t29Complete"></div>
   <h3>Frequência das dezenas mais recorrentes</h3><div id="t29Freq"></div>
@@ -3116,6 +3127,50 @@ window.renderTeste28=function(){if(typeof previous==='function')previous();calc(
   }
   return {sample,hit10,hit5,completeHit,completeExpected};
  }
+ function compareEqual29(rows){
+  const windows=[16,32,64],sums=Object.fromEntries(windows.map(n=>[n,{hit10:0,hit5:0,completeHit:0,expectedComplete:0}]));
+  let eligible=0,skipped=0,details=[];
+  for(let i=64;i<rows.length;i++){
+   if(!adjacency29(rows[i-1],rows[i])){skipped++;continue}
+   const actual=Number(rows[i].p[0].slice(2)),actualG=group29(actual);
+   const record={data:rows[i].date,horario:lookActualTime(rows[i]),primeiro:rows[i].p[0],dezena:pad2(actual),grupo:label29(actualG)};
+   for(const n of windows){
+    const c=tens29(window29(rows,i,n));
+    const top=topTen29(c),groups=Array.from({length:25},(_,k)=>({g:k+1,n:0}));
+    c.forEach((count,d)=>groups[group29(d)-1].n+=count);
+    groups.sort((a,b)=>b.n-a.n||a.g-b.g);
+    const full=groupComplete29(c).filter(x=>x.seen===4),z=sums[n];
+    const h10=Number(top.some(x=>x.d===actual));
+    const h5=Number(groups.slice(0,5).some(x=>x.g===actualG));
+    const hc=Number(full.some(x=>x.g===actualG));
+    z.hit10+=h10;z.hit5+=h5;z.completeHit+=hc;z.expectedComplete+=full.length/25;
+    record['dezena_'+n]=h10;record['grupo_'+n]=h5;record['completo_'+n]=hc;
+    record['quantidade_grupos_completos_'+n]=full.length;
+   }
+   eligible++;details.push(record);
+  }
+  return {eligible,skipped,sums,details};
+ }
+ function audit29(){
+  const raw=typeof lookAll==='function'?lookAll():[];
+  const invalid=raw.filter(r=>!r||!/^\d{4}-\d{2}-\d{2}$/.test(r.date)||!Array.isArray(r.p)||r.p.length<5||!r.p.slice(0,5).every(v=>/^\d{1,4}$/.test(String(v))));
+  const valid=raw.filter(r=>!invalid.includes(r));
+  const bySignature=new Map(),dup=[];
+  for(const r of valid){const sig=r.date+'|'+r.p.slice(0,5).map(v=>String(v).padStart(4,'0')).join('-');
+   if(bySignature.has(sig))dup.push({a:bySignature.get(sig),b:r});else bySignature.set(sig,r);
+  }
+  return {raw:raw.length,valid:valid.length,invalid:invalid.length,duplicates:dup,unique:bySignature.size};
+ }
+ function renderComparison29(rows){
+  const result=compareEqual29(rows),a=audit29();
+  const ns=[16,32,64];
+  $29('t29EqualInfo').textContent=result.eligible+' extrações comparáveis; '+result.skipped+' transições ignoradas por não serem consecutivas. Início após pelo menos 64 extrações anteriores.';
+  $29('t29EqualStats').innerHTML=metric29('Amostra comum',result.eligible)+metric29('Referência · 10 dezenas','10%')+metric29('Referência · 5 grupos','20%');
+  $29('t29EqualTable').innerHTML=table29(['Janela','Top 10 dezenas → 1º','Top 5 grupos → 1º','4/4 dezenas → 1º','Esperados para 4/4'],ns.map(n=>{const x=result.sums[n];return [n+' extrações',x.hit10+'/'+result.eligible+' · '+pct29(x.hit10,result.eligible),x.hit5+'/'+result.eligible+' · '+pct29(x.hit5,result.eligible),x.completeHit+'/'+result.eligible+' · '+pct29(x.completeHit,result.eligible),x.expectedComplete.toFixed(1)]}));
+  $29('t29Audit').innerHTML='<p>Registros após consolidação por data/horário: <b>'+a.raw+'</b> · válidos: <b>'+a.valid+'</b> · inválidos: <b>'+a.invalid+'</b> · duplicatas pelo mesmo conjunto de 5 prêmios na mesma data: <b>'+a.duplicates.length+'</b> · assinaturas únicas: <b>'+a.unique+'</b>.</p>'+(a.duplicates.length?table29(['Data','Horários que repetem os mesmos 5 prêmios'],a.duplicates.slice(0,20).map(d=>[d.a.date,lookActualTime(d.a)+' / '+lookActualTime(d.b)])):'<p class="hint">Nenhuma repetição idêntica de cinco prêmios na mesma data detectada após consolidação por horário.</p>')+'<p class="hint">A comparação usa os registros válidos como estão. Divergências em relação a contagens anteriores devem ser conferidas pelas datas/horários antes de qualquer exclusão.</p>';
+  return result;
+ }
+ let equalRows29=[];
  function metric29(k,v){return '<div class="metric"><small>'+k+'</small><strong>'+v+'</strong></div>'}
  function table29(headers,records){return '<div style="overflow-x:auto"><table><thead><tr>'+headers.map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+records.map(row=>'<tr>'+row.map(x=>'<td>'+x+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'}
  function pct29(a,b){return b?(100*a/b).toFixed(1).replace('.',',')+'%':'—'}
@@ -3131,6 +3186,7 @@ window.renderTeste28=function(){if(typeof previous==='function')previous();calc(
    const ordered=c.map((count,d)=>({d,count})).sort((a,b)=>b.count-a.count||a.d-b.d).slice(0,20);
    $29('t29Freq').innerHTML=table29(['Dezena','Ocorrências'],ordered.map(x=>[pad2(x.d),x.count]));
    last29=top.map(x=>({dezena:pad2(x.d),grupo:label29(group29(x.d)),ocorrencias:x.n}));
+   equalRows29=renderComparison29(rows).details;
   }catch(e){$29('t29Info').textContent='Erro no Teste 29: '+e.message;console.error(e)}
  };
  function positional30(rows){const arr=Array.from({length:4},()=>Array(10).fill(0));rows.forEach(r=>r.p.forEach(p=>[...p].forEach((digit,i)=>arr[i][Number(digit)]++)));return arr}
@@ -3163,6 +3219,7 @@ window.renderTeste28=function(){if(typeof previous==='function')previous();calc(
  $29('t29Window').addEventListener('change',window.renderTeste29);
  $29('t30Window').addEventListener('change',window.renderTeste30);
  $29('t29Csv').addEventListener('click',()=>csv29(last29,['dezena','grupo','ocorrencias'],'teste29_dezenas.csv'));
+ $29('t29EqualCsv').addEventListener('click',()=>csv29(equalRows29,['data','horario','primeiro','dezena','grupo',...([16,32,64].flatMap(n=>['dezena_'+n,'grupo_'+n,'completo_'+n,'quantidade_grupos_completos_'+n]))],'teste29_comparacao_mesmas_extracoes.csv'));
  $29('t30Csv').addEventListener('click',()=>csv29(last30,['posicao','algarismo','ocorrencias'],'teste30_algarismos.csv'));
 })();
 </script>

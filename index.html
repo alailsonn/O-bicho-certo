@@ -664,6 +664,23 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
    <div id="t29Audit"></div>
    <p class="hint">A auditoria informa eventuais duplicatas de resultados e lacunas entre horários; não altera a base original.</p>
   </div>
+
+  <div style="margin:18px 0;padding:16px;border:1px solid #477b78;border-radius:12" id="t29ProsPanel">
+   <h3>🧪 Teste 29.1 — Validação prospectiva (janela fixa de 32)</h3>
+   <p class="hint">Congela as 10 dezenas e os 5 grupos antes do próximo horário. Não altera o Radar 22, o Teste 29 histórico ou o Radar Unificado. Registros e placar ficam neste navegador; salve backups.</p>
+   <div class="uni-stats" id="t291Stats"></div>
+   <p id="t291Message" class="hint">Aguardando conferência.</p>
+   <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0">
+    <label>Próximo horário <select id="t291Slot"><option value="auto">Automático (padrão)</option><option value="19:20">19h20 especial, após 16h20</option></select></label>
+    <button class="primary" id="t291Register">Registrar escolha antecipada / conferir</button>
+    <button id="t291Backup">Salvar backup JSON</button>
+    <button id="t291Export">Exportar CSV</button>
+    <label>Restaurar JSON <input type="file" id="t291Restore" accept=".json,application/json" /></label>
+   </div>
+   <h4>Seleção pré-registrada</h4><div id="t291Pending"></div>
+   <h4>Conferências recentes</h4><div id="t291History"></div>
+   <p class="hint">Referência: 10 dezenas distintas = 10% para a dezena exata no 1º; 5 grupos distintos = 20% para o grupo no 1º, sob resultados equiprováveis. Uma seleção só vale se registrada após a origem e antes do próximo horário, com relógio correto. A página fechada não registra novas seleções; as escolhas já salvas permanecem guardadas localmente.</p>
+  </div>
   <h3>10 dezenas classificadas (experimental)</h3><div id="t29Top"></div>
   <h3>Grupos com quatro dezenas observadas</h3><div id="t29Complete"></div>
   <h3>Frequência das dezenas mais recorrentes</h3><div id="t29Freq"></div>
@@ -3221,6 +3238,80 @@ window.renderTeste28=function(){if(typeof previous==='function')previous();calc(
  $29('t29Csv').addEventListener('click',()=>csv29(last29,['dezena','grupo','ocorrencias'],'teste29_dezenas.csv'));
  $29('t29EqualCsv').addEventListener('click',()=>csv29(equalRows29,['data','horario','primeiro','dezena','grupo',...([16,32,64].flatMap(n=>['dezena_'+n,'grupo_'+n,'completo_'+n,'quantidade_grupos_completos_'+n]))],'teste29_comparacao_mesmas_extracoes.csv'));
  $29('t30Csv').addEventListener('click',()=>csv29(last30,['posicao','algarismo','ocorrencias'],'teste30_algarismos.csv'));
+})();
+</script>
+
+<script>
+/* Teste 29.1 — validação prospectiva independente; escrita local somente antes do horário-alvo. */
+(function(){
+ 'use strict';
+ const K='obicho-t291-frozen32-v1',E=id=>document.getElementById(id);
+ const pad=n=>String(n).padStart(2,'0');
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const time=r=>lookActualTime(r),dt=(d,t)=>Date.parse(d+'T'+t+':00-03:00');
+ const stamp=r=>r.date+'|'+time(r)+'|'+r.p.map(x=>String(x).padStart(4,'0')).join('-');
+ const g=d=>Number(d)===0?25:Math.ceil(Number(d)/4);
+ const round=(a,b)=>b?(100*a/b).toFixed(1).replace('.',',')+'%':'—';
+ const table=(cols,rows)=>'<div style="overflow-x:auto"><table><thead><tr>'+cols.map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(a=>'<tr>'+a.map(x=>'<td>'+esc(x)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
+ function all(){
+  const raw=lookAll().filter(lookValid).map(x=>({...x,p:x.p.slice(0,5).map(z=>String(z).padStart(4,'0'))})).sort((a,b)=>(a.date+time(a)).localeCompare(b.date+time(b)));
+  const set=new Set();return raw.filter(r=>{const key=r.date+'|'+r.p.join('-');if(set.has(key))return false;set.add(key);return true;});
+ }
+ function load(){try{const x=JSON.parse(localStorage.getItem(K)||'[]');return Array.isArray(x)?x.filter(v=>v&&v.originSig&&v.targetDate&&Array.isArray(v.tens)&&v.tens.length===10&&Array.isArray(v.groups)&&v.groups.length===5):[]}catch{return []}}
+ function save(x){localStorage.setItem(K,JSON.stringify(x))}
+ function next(r){
+  const t=time(r),m={'07:20':'09:20','09:20':'11:20','11:20':'14:20','14:20':'16:20','18:20':'21:20','19:20':'21:20','21:20':'23:20'};
+  if(t==='23:20'){const day=new Date(r.date+'T12:00:00Z');day.setUTCDate(day.getUTCDate()+1);return {date:day.toISOString().slice(0,10),time:'07:20'}}
+  if(t==='16:20')return {date:r.date,time:E('t291Slot').value==='19:20'?'19:20':'18:20'};
+  return m[t]?{date:r.date,time:m[t]}:null;
+ }
+ function classify(rows){
+  const counts=Array(100).fill(0);rows.slice(-32).forEach(x=>x.p.forEach(z=>counts[Number(z.slice(-2))]++));
+  const tens=counts.map((n,d)=>({n,d})).sort((a,b)=>b.n-a.n||a.d-b.d).slice(0,10).map(x=>x.d);
+  const gg=Array.from({length:25},(_,i)=>({g:i+1,n:0}));counts.forEach((n,d)=>gg[g(d)-1].n+=n);
+  const groups=gg.sort((a,b)=>b.n-a.n||a.g-b.g).slice(0,5).map(x=>x.g);
+  return {tens,groups};
+ }
+ function isNext(a,b){return typeof r22PairType==='function'&&!!r22PairType(a,b)}
+ function evaluate(rows,records){let dirty=false;
+  for(const z of records){if(z.status!=='pending')continue;
+   const i=rows.findIndex(r=>stamp(r)===z.originSig);
+   if(i<0){z.status='invalid';z.note='Origem não encontrada ou modificada';dirty=true;continue}
+   const found=rows.findIndex(r=>r.date===z.targetDate&&time(r)===z.targetTime);
+   if(found<0){if(rows.some(r=>dt(r.date,time(r))>dt(z.targetDate,z.targetTime))){z.status='invalid';z.note='Horário-alvo ausente e resultados posteriores presentes';dirty=true}continue}
+   const target=rows[found];
+   if(found!==i+1||!isNext(rows[i],target)){z.status='invalid';z.note='Resultado duplicado, horário ou sequência incompatível';dirty=true;continue}
+   const locked=Date.parse(z.lockedAt),originT=dt(rows[i].date,time(rows[i])),targetT=dt(z.targetDate,z.targetTime);
+   if(!(locked>originT&&locked<targetT)){z.status='invalid';z.note='Carimbo de tempo fora do intervalo antecipado';dirty=true;continue}
+   const actual=Number(target.p[0].slice(-2));z.realTen=pad(actual);z.realGroup=pad(g(actual));z.hitTen=z.tens.includes(actual);z.hitGroup=z.groups.includes(g(actual));z.status='done';z.checkedAt=new Date().toISOString();dirty=true;
+  }return dirty;
+ }
+ function metrics(records){const done=records.filter(x=>x.status==='done'),h10=done.filter(x=>x.hitTen).length,h5=done.filter(x=>x.hitGroup).length;
+  E('t291Stats').innerHTML=[['Conferências válidas',done.length+'/100'],['Dezenas no 1º',h10+'/'+done.length+' · '+round(h10,done.length)],['Grupos no 1º',h5+'/'+done.length+' · '+round(h5,done.length)],['Diferença p/ referência (10 dezenas)',done.length?((100*h10/done.length)-10).toFixed(1).replace('.',',')+' p.p.':'—']].map(([k,v])=>'<div class="metric"><small>'+esc(k)+'</small><strong>'+esc(v)+'</strong></div>').join('');
+ }
+ function show(){try{const rows=all(),records=load();if(evaluate(rows,records))save(records);metrics(records);
+  const pending=records.find(x=>x.status==='pending');
+  E('t291Pending').innerHTML=pending?'<p><b>Origem:</b> '+esc(pending.originDate+' '+pending.originTime)+' · <b>Alvo:</b> '+esc(pending.targetDate+' '+pending.targetTime)+' · <b>Registrado:</b> '+esc(pending.lockedAt)+'</p><p><b>Dezenas:</b> '+pending.tens.map(pad).join(' · ')+'</p><p><b>Grupos:</b> '+pending.groups.map(x=>'G'+pad(x)).join(' · ')+'</p>':'<p class="hint">Nenhuma escolha pendente. Use o botão antes do próximo horário para registrar.</p>';
+  const recent=records.slice(-12).reverse();E('t291History').innerHTML=table(['Alvo','Dezenas / Grupos','1º real','Acerto dezena','Acerto grupo','Situação'],recent.map(x=>[x.targetDate+' '+x.targetTime,x.tens.map(pad).join(' ')+' / '+x.groups.map(y=>'G'+pad(y)).join(' '),x.realTen||'—',x.status==='done'?(x.hitTen?'Sim':'Não'):'—',x.status==='done'?(x.hitGroup?'Sim':'Não'):'—',x.status+(x.note?' · '+x.note:'')]));
+  E('t291Message').textContent=records.filter(x=>x.status==='done').length+' concluída(s), '+records.filter(x=>x.status==='pending').length+' pendente(s), '+records.filter(x=>x.status==='invalid').length+' inválida(s). A seleção só é criada ao clicar no botão dentro do prazo.';
+ }catch(e){E('t291Message').textContent='Falha: '+e.message;console.error(e)}}
+ function register(){try{const rows=all(),records=load();if(evaluate(rows,records))save(records);
+  if(records.some(x=>x.status==='pending')){show();return}
+  if(records.filter(x=>x.status==='done').length>=100){E('t291Message').textContent='Meta de 100 conferências atingida.';return}
+  if(rows.length<32){E('t291Message').textContent='São necessárias 32 extrações anteriores.';return}
+  const origin=rows.at(-1),target=next(origin);if(!target){E('t291Message').textContent='Não foi possível identificar o próximo horário.';return}
+  const now=Date.now(),from=dt(origin.date,time(origin)),to=dt(target.date,target.time);
+  if(!(now>from&&now<to)){E('t291Message').textContent='Registro bloqueado: horário-alvo já passou ou relógio incompatível. Atualize os resultados e tente na próxima extração.';return}
+  if(records.some(x=>x.targetDate===target.date&&x.targetTime===target.time)){E('t291Message').textContent='Esse alvo já foi registrado anteriormente. Sem duplicação.';return}
+  const picks=classify(rows);records.push({originSig:stamp(origin),originDate:origin.date,originTime:time(origin),targetDate:target.date,targetTime:target.time,lockedAt:new Date(now).toISOString(),tens:picks.tens,groups:picks.groups,status:'pending',window:32});save(records);show();
+ }catch(e){E('t291Message').textContent='Erro ao registrar: '+e.message}}
+ function exportFile(name,txt,type){const u=URL.createObjectURL(new Blob([txt],{type}));const a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1500)}
+ E('t291Register').addEventListener('click',register);E('t291Slot').addEventListener('change',show);
+ E('t291Backup').addEventListener('click',()=>exportFile('obicho_t291_backup.json',JSON.stringify({name:'t291',version:1,records:load()},null,2),'application/json'));
+ E('t291Export').addEventListener('click',()=>{const cols=['originDate','originTime','targetDate','targetTime','lockedAt','tens','groups','realTen','realGroup','hitTen','hitGroup','status','note'];const csv=[cols.join(','),...load().map(r=>cols.map(k=>'"'+String(Array.isArray(r[k])?r[k].map(v=>k==='tens'?pad(v):'G'+pad(v)).join(' '):(r[k]??'')).replace(/"/g,'""')+'"').join(','))].join('\n');exportFile('obicho_t291_conferencias.csv','\uFEFF'+csv,'text/csv;charset=utf-8')});
+ E('t291Restore').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{const payload=JSON.parse(await f.text()),a=payload.records;if(payload.name!=='t291'||!Array.isArray(a)||a.some(x=>!x.originSig||!Array.isArray(x.tens)||x.tens.length!==10||!Array.isArray(x.groups)||x.groups.length!==5))throw Error('Backup incompatível');const old=load(),ids=new Set(old.map(x=>x.originSig+'|'+x.targetDate+'|'+x.targetTime));let added=0;for(const x of a)if(!ids.has(x.originSig+'|'+x.targetDate+'|'+x.targetTime)){old.push(x);added++}save(old);show();E('t291Message').textContent='Backup restaurado: '+added+' registros adicionais, sem substituir os existentes.'}catch(err){E('t291Message').textContent='Falha no backup: '+err.message}e.target.value=''});
+ const previous=window.renderTeste29;window.renderTeste29=function(){if(typeof previous==='function')previous();show()};
+ show();
 })();
 </script>
 </body></html>

@@ -237,7 +237,9 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 <button class="tab" data-tab="laboratorio">🔬 Laboratório</button>
 <button class="tab" data-tab="unificado">🏆 Radar Unificado · Top 10</button>
 <button class="tab" data-tab="ciclos">🔄 Teste 26 · Ciclos</button>
-<button class="tab" data-tab="migracao">🔀 Teste 27 · Prêmios</button><button class="tab" data-tab="diagnostico">🧭 Teste 28 · Diagnóstico</button><button class="tab" data-tab="config">⚙️ Configurações</button>
+<button class="tab" data-tab="migracao">🔀 Teste 27 · Prêmios</button><button class="tab" data-tab="diagnostico">🧭 Teste 28 · Diagnóstico</button><button class="tab" data-tab="dezenas29">🔢 Teste 29 · Dezenas</button>
+<button class="tab" data-tab="algarismos30">🔣 Teste 30 · Algarismos</button>
+<button class="tab" data-tab="config">⚙️ Configurações</button>
 </nav><section id="visual">
 <div class="visual-top">
 <div class="visual-topline">
@@ -637,6 +639,39 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
   <h3>Como o ranking combina os testes</h3>
   <p class="uni-sub"><b>45%:</b> Radar 22 original. <b>15%:</b> auditorias B/C do Radar 22 (7,5% cada). <b>30%:</b> movimento do 2º prêmio, regra idêntica aos Testes 25.3/25.4, sem contá-la duas vezes. <b>10%:</b> repetição do grupo no 2º prêmio do próprio dia e na véspera, sinal exploratório dos Testes 25–25.2. Os Testes 25 e 25.1 servem de referência para avaliar ascensões por janela e horário; não adicionam informação futura ao ranking.</p>
   <p class="uni-sub">O painel atualiza ao abrir esta aba ou clicar em Recalcular. Não registra automaticamente previsões prospectivas nem altera os placares do Radar 22 e 25.4. Se o horário seguinte já tiver passado, a classificação será identificada como simulação sem registro antecipado.</p>
+ </div>
+</section>
+
+
+<section id="dezenas29" class="hidden">
+ <div class="section-lead"><span class="eyebrow">EXPERIMENTO · LOOK GOIÁS</span><h2>🔢 Teste 29 — Dezenas do 1º ao 5º prêmio</h2><p>Mostra a frequência das dezenas 00–99 em todos os cinco prêmios, grupos com quatro dezenas observadas e uma classificação experimental testada cronologicamente para o próximo 1º prêmio.</p></div>
+ <div class="panel">
+  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+   <label>Janela de observação <select id="t29Window"><option value="8">8 extrações</option><option value="16" selected>16 extrações</option><option value="32">32 extrações</option><option value="64">64 extrações</option></select></label>
+   <button class="primary" id="t29Calc">↻ Recalcular Teste 29</button>
+   <button id="t29Csv">Exportar histórico CSV</button>
+  </div>
+  <p class="hint" id="t29Info">Clique em Recalcular.</p>
+  <div class="uni-stats" id="t29Stats"></div>
+  <h3>10 dezenas classificadas (experimental)</h3><div id="t29Top"></div>
+  <h3>Grupos com quatro dezenas observadas</h3><div id="t29Complete"></div>
+  <h3>Frequência das dezenas mais recorrentes</h3><div id="t29Freq"></div>
+  <p class="hint">A pontuação é frequência observada, não probabilidade de acerto. O modelo é testado sem consultar o resultado que tenta classificar. Dados cronologicamente incompletos são tratados como limitação.</p>
+ </div>
+</section>
+<section id="algarismos30" class="hidden">
+ <div class="section-lead"><span class="eyebrow">EXPERIMENTO · LOOK GOIÁS</span><h2>🔣 Teste 30 — Movimento dos Algarismos</h2><p>Investiga milhar, centena, dezena e unidade em todos os cinco prêmios, além de testar classificações posicionais para o próximo 1º prêmio.</p></div>
+ <div class="panel">
+  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+   <label>Janela de observação <select id="t30Window"><option value="8">8 extrações</option><option value="16" selected>16 extrações</option><option value="32">32 extrações</option><option value="64">64 extrações</option></select></label>
+   <button class="primary" id="t30Calc">↻ Recalcular Teste 30</button>
+   <button id="t30Csv">Exportar estatísticas CSV</button>
+  </div>
+  <p class="hint" id="t30Info">Clique em Recalcular.</p>
+  <div class="uni-stats" id="t30Stats"></div>
+  <h3>Frequência por posição (todos os cinco prêmios)</h3><div id="t30Positions"></div>
+  <h3>Transições: algarismos do 1º prêmio anterior → próximo 1º prêmio</h3><div id="t30Changes"></div>
+  <p class="hint">Uma coincidência de algarismo na mesma posição não comprova dependência entre sorteios. Uma escolha de 3 algarismos distintos cobre teoricamente 30% de cada posição.</p>
  </div>
 </section>
 
@@ -1413,7 +1448,7 @@ $('flExport').onclick=()=>{
 function visualSelectTab(id){
  const tab=id==='lookradar'?'radar':id==='look'?'historico':id==='lookdyn'||id==='fedlook'?'laboratorio':id==='ajuda'?'config':id;
  document.querySelectorAll('nav .tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
- ['visual','radar','historico','laboratorio','unificado','ciclos','migracao','diagnostico','config'].forEach(k=>$(k==='radar'?'lookradar':k==='historico'?'look':k).classList.toggle('hidden',k!==tab));
+ ['visual','radar','historico','laboratorio','unificado','ciclos','migracao','diagnostico','dezenas29','algarismos30','config'].forEach(k=>$(k==='radar'?'lookradar':k==='historico'?'look':k).classList.toggle('hidden',k!==tab));
  if(tab==='laboratorio'){if(id==='fedlook')setLabPane('fedlook');else if(id==='lookdyn')setLabPane('lookdyn');else renderLabCurrent();}
  if(tab==='visual')renderVisual();
  if(tab==='historico'){renderLook();renderHistorySummary();}
@@ -1422,6 +1457,8 @@ function visualSelectTab(id){
  if(tab==='ciclos'&&typeof window.renderRadarCiclos26==='function')window.renderRadarCiclos26();
  if(tab==='migracao'&&typeof window.renderTeste27==='function')window.renderTeste27();
  if(tab==='diagnostico'&&typeof window.renderTeste28==='function')window.renderTeste28();
+ if(tab==='dezenas29'&&typeof window.renderTeste29==='function')window.renderTeste29();
+ if(tab==='algarismos30'&&typeof window.renderTeste30==='function')window.renderTeste30();
  requestAnimationFrame(visualEnhanceGroups);window.scrollTo({top:0,behavior:'instant'});
 }
 // Ilustrações próprias embutidas no HTML; sem depender de links externos para os 25 animais.
@@ -3043,6 +3080,90 @@ window.renderTeste28=function(){if(typeof previous==='function')previous();calc(
  const previous=window.renderTeste27;window.renderTeste27=function(){if(typeof previous==='function')previous();run();};
  setInterval(()=>{if(!el('migracao').classList.contains('hidden'))run();},60000);
  render(load(),'Aguardando conferência ou registro antecipado.');
+})();
+</script>
+
+<script>
+/* Testes 29 e 30 — observação e avaliação cronológica, sem alterar outros radares. */
+(function(){
+ 'use strict';
+ const $29=id=>document.getElementById(id);
+ const pad2=v=>String(v).padStart(2,'0');
+ const group29=d=>{let n=Number(d);return n===0?25:Math.ceil(n/4)};
+ const label29=g=>'G'+pad2(g);
+ function rows29(){
+  if(typeof lookAll!=='function')return [];
+  return lookAll().filter(r=>r&&Array.isArray(r.p)&&r.p.length>=5)
+   .map(r=>({...r,p:r.p.slice(0,5).map(v=>String(v).padStart(4,'0'))}))
+   .sort((a,b)=>(a.date+' '+lookActualTime(a)).localeCompare(b.date+' '+lookActualTime(b)));
+ }
+ function adjacency29(a,b){return typeof r22PairType==='function'?!!r22PairType(a,b):true}
+ function window29(rows,end,n){return rows.slice(Math.max(0,end-n),end)}
+ function tens29(rows){const counts=Array(100).fill(0);rows.forEach(r=>r.p.forEach(p=>counts[Number(p.slice(2))]++));return counts}
+ function topTen29(counts){return counts.map((n,d)=>({d,n})).sort((a,b)=>b.n-a.n||a.d-b.d).slice(0,10)}
+ function groupComplete29(counts){return Array.from({length:25},(_,i)=>{const g=i+1;const ds=Array.from({length:4},(_,j)=>g===25?j*1+97:((g-1)*4+j+1));const groupDs=g===25?[97,98,99,0]:ds;return {g,ds:groupDs,seen:groupDs.filter(d=>counts[d]>0).length,occ:groupDs.reduce((n,d)=>n+counts[d],0)}})}
+ function test29(rows,n){let sample=0,hit10=0,hit5=0,completeHit=0,completeExpected=0;
+  for(let i=n;i<rows.length;i++){
+   if(!adjacency29(rows[i-1],rows[i]))continue;
+   let history=window29(rows,i,n), c=tens29(history), top=topTen29(c), actual=Number(rows[i].p[0].slice(2));
+   sample++;if(top.some(x=>x.d===actual))hit10++;
+   const groups=Array.from({length:25},(_,k)=>({g:k+1,n:0}));c.forEach((count,d)=>groups[group29(d)-1].n+=count);
+   groups.sort((a,b)=>b.n-a.n||a.g-b.g);
+   if(groups.slice(0,5).some(x=>x.g===group29(actual)))hit5++;
+   const full=groupComplete29(c).filter(x=>x.seen===4);
+   if(full.some(x=>x.g===group29(actual)))completeHit++;
+   completeExpected+=full.length/25;
+  }
+  return {sample,hit10,hit5,completeHit,completeExpected};
+ }
+ function metric29(k,v){return '<div class="metric"><small>'+k+'</small><strong>'+v+'</strong></div>'}
+ function table29(headers,records){return '<div style="overflow-x:auto"><table><thead><tr>'+headers.map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+records.map(row=>'<tr>'+row.map(x=>'<td>'+x+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'}
+ function pct29(a,b){return b?(100*a/b).toFixed(1).replace('.',',')+'%':'—'}
+ let last29=[],last30=[];
+ window.renderTeste29=function(){
+  try{
+   const rows=rows29(),n=Number($29('t29Window').value),c=tens29(rows.slice(-n)),top=topTen29(c),full=groupComplete29(c),valid=test29(rows,n);
+   const latest=rows.at(-1);
+   $29('t29Info').textContent=rows.length+' extrações distintas · última: '+(latest?latest.date+' '+lookActualTime(latest):'—')+' · análise das últimas '+Math.min(rows.length,n)+' extrações para classificação. A avaliação histórica usa janelas móveis anteriores ao resultado.';
+   $29('t29Stats').innerHTML=metric29('Testes cronológicos',valid.sample)+metric29('Top 10 dezenas → 1º',valid.hit10+'/'+valid.sample+' · '+pct29(valid.hit10,valid.sample))+metric29('Top 5 grupos → 1º',valid.hit5+'/'+valid.sample+' · '+pct29(valid.hit5,valid.sample))+metric29('4/4 dezenas → 1º',valid.completeHit+'/'+valid.sample+' · esperado '+valid.completeExpected.toFixed(1));
+   $29('t29Top').innerHTML=table29(['Posição','Dezena','Grupo','Ocorrências nos cinco prêmios'],top.map((x,i)=>[i+1,pad2(x.d),label29(group29(x.d)),x.n]));
+   $29('t29Complete').innerHTML=table29(['Grupo','Dezenas vistas','Dezenas do grupo','Ocorrências'],full.filter(x=>x.seen>=2).sort((a,b)=>b.seen-a.seen||b.occ-a.occ).map(x=>[label29(x.g),x.seen+'/4',x.ds.map(d=>pad2(d)+(c[d]?' ✓':'')).join(' · '),x.occ]));
+   const ordered=c.map((count,d)=>({d,count})).sort((a,b)=>b.count-a.count||a.d-b.d).slice(0,20);
+   $29('t29Freq').innerHTML=table29(['Dezena','Ocorrências'],ordered.map(x=>[pad2(x.d),x.count]));
+   last29=top.map(x=>({dezena:pad2(x.d),grupo:label29(group29(x.d)),ocorrencias:x.n}));
+  }catch(e){$29('t29Info').textContent='Erro no Teste 29: '+e.message;console.error(e)}
+ };
+ function positional30(rows){const arr=Array.from({length:4},()=>Array(10).fill(0));rows.forEach(r=>r.p.forEach(p=>[...p].forEach((digit,i)=>arr[i][Number(digit)]++)));return arr}
+ function positionalTop30(counts,k=3){return counts.map((n,d)=>({d,n})).sort((a,b)=>b.n-a.n||a.d-b.d).slice(0,k)}
+ function test30(rows,n){let sample=0,correct=[0,0,0,0],same=[0,0,0,0];
+  for(let i=n;i<rows.length;i++){
+   if(!adjacency29(rows[i-1],rows[i]))continue;
+   let prev=window29(rows,i,n),counts=positional30(prev),out=rows[i].p[0],old=rows[i-1].p[0];sample++;
+   for(let j=0;j<4;j++){
+    if(positionalTop30(counts[j]).some(x=>String(x.d)===out[j]))correct[j]++;
+    if(old[j]===out[j])same[j]++;
+   }
+  }
+  return {sample,correct,same};
+ }
+ window.renderTeste30=function(){
+  try{
+   const rows=rows29(),n=Number($29('t30Window').value),pos=positional30(rows.slice(-n)),ev=test30(rows,n),latest=rows.at(-1);
+   const names=['Milhar','Centena','Dezena','Unidade'];
+   $29('t30Info').textContent=rows.length+' extrações distintas · última: '+(latest?latest.date+' '+lookActualTime(latest):'—')+' · classificação com as últimas '+Math.min(n,rows.length)+' extrações e cinco prêmios.';
+   $29('t30Stats').innerHTML=metric29('Testes cronológicos',ev.sample)+metric29('Cobertura Top 3 por posição','30% teóricos')+metric29('Dezena exata Top 10','Teste 29');
+   $29('t30Positions').innerHTML=table29(['Posição','Top 3 algarismos','Acertos no 1º prêmio seguinte','Referência'],names.map((name,i)=>[name,positionalTop30(pos[i]).map(x=>x.d+' ('+x.n+')').join(' · '),ev.correct[i]+'/'+ev.sample+' · '+pct29(ev.correct[i],ev.sample),'30%']));
+   $29('t30Changes').innerHTML=table29(['Posição','Mesmo algarismo que o 1º anterior','Referência'],names.map((name,i)=>[name,ev.same[i]+'/'+ev.sample+' · '+pct29(ev.same[i],ev.sample),'10%']));
+   last30=names.flatMap((name,i)=>pos[i].map((count,d)=>({posicao:name,algarismo:d,ocorrencias:count})));
+  }catch(e){$29('t30Info').textContent='Erro no Teste 30: '+e.message;console.error(e)}
+ };
+ function csv29(rows,headers,filename){const lines=[headers.join(';'),...rows.map(r=>headers.map(h=>String(r[h]??'')).join(';'))].join('\n');const blob=new Blob(['\ufeff'+lines],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+ $29('t29Calc').addEventListener('click',window.renderTeste29);
+ $29('t30Calc').addEventListener('click',window.renderTeste30);
+ $29('t29Window').addEventListener('change',window.renderTeste29);
+ $29('t30Window').addEventListener('change',window.renderTeste30);
+ $29('t29Csv').addEventListener('click',()=>csv29(last29,['dezena','grupo','ocorrencias'],'teste29_dezenas.csv'));
+ $29('t30Csv').addEventListener('click',()=>csv29(last30,['posicao','algarismo','ocorrencias'],'teste30_algarismos.csv'));
 })();
 </script>
 </body></html>

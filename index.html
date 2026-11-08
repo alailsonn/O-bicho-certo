@@ -239,6 +239,7 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 <button class="tab" data-tab="ciclos">🔄 Teste 26 · Ciclos</button>
 <button class="tab" data-tab="migracao">🔀 Teste 27 · Prêmios</button><button class="tab" data-tab="diagnostico">🧭 Teste 28 · Diagnóstico</button><button class="tab" data-tab="dezenas29">🔢 Teste 29 · Dezenas</button>
 <button class="tab" data-tab="algarismos30">🔣 Teste 30 · Algarismos</button>
+<button class="tab" data-tab="monitor31">📊 Teste 31 · Monitoramento</button>
 <button class="tab" data-tab="config">⚙️ Configurações</button>
 </nav><section id="visual">
 <div class="visual-top">
@@ -596,7 +597,23 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
   <p class="hint" id="liveDetails">Este placar começa em zero no navegador em que for ativado. Os 204 testes históricos pertencem à auditoria retrospectiva, e não contam aqui.</p>
  </div>
 </section>
-</section><section id="config" class="hidden"><div class="section-lead"><span class="eyebrow">CONFIGURAÇÕES</span><h2>LOOK Goiás · Fontes e dados</h2><p>O coletor da LOOK permanece independente. Atualização da página a cada 15 minutos; a coleta automática depende da rotina configurada no GitHub.</p></div>
+</section>
+<section id="monitor31" class="hidden">
+ <div class="section-lead"><span class="eyebrow">EXPERIMENTO · LOOK GOIÁS</span><h2>📊 Teste 31 — Monitoramento Automático e Placar</h2><p>Registros anteriores aos sorteios, preservados no GitHub. A automação utiliza somente a base pública; não copia seleções locais do navegador.</p></div>
+ <article class="panel" style="padding:20px">
+  <div class="settings-actions" style="margin-bottom:12px"><button class="primary" id="t31Reload">↻ Atualizar placar do servidor</button><button id="t31Csv">Exportar CSV das conferências</button></div>
+  <div id="t31Status" class="hint" aria-live="polite">Aguardando a primeira publicação do arquivo de monitoramento...</div>
+  <h3>Placar prospectivo do servidor</h3>
+  <div id="t31Stats" class="stats-grid"></div>
+  <div id="t31Compare" style="overflow-x:auto;margin-top:18px"></div>
+  <p class="hint">Referências teóricas: 10 dezenas = 10%; 5 grupos = 20%; Radar 22 de 5 grupos = 20%; Unificado Top 10 = 40%; Top 3 por algarismo = 30%. O detector de 4/4 dezenas tem referência variável conforme a quantidade de grupos completos. A implementação do Radar 22 no servidor usa somente o histórico público e pode diferir da seleção local se houver resultados extras no navegador.</p>
+  <h3>Conferências automáticas recentes</h3><div id="t31Recent" style="overflow-x:auto"></div>
+  <h3>Auditoria das fontes</h3><div id="t31Audit"></div>
+  <h3>Ferramentas existentes preservadas</h3><p class="hint">O Unificado Top 10 é reproduzido com a fórmula do site, mas usando apenas o histórico público; diferenças em relação ao histórico local são possíveis. Os Testes 27.3 e 29.1 continuam com seus próprios placares locais.</p>
+  <p class="hint">GitHub Actions executa o agendamento em regime de melhor esforço; atrasos e falhas de execução podem resultar em seleções não registradas. Não são criados acertos retroativos. Os resultados são avaliações experimentais, não previsões comprovadas.</p>
+ </article>
+</section>
+<section id="config" class="hidden"><div class="section-lead"><span class="eyebrow">CONFIGURAÇÕES</span><h2>LOOK Goiás · Fontes e dados</h2><p>O coletor da LOOK permanece independente. Atualização da página a cada 15 minutos; a coleta automática depende da rotina configurada no GitHub.</p></div>
 <div class="two"><article class="panel"><h2>📂 Base LOOK Goiás</h2><p>O histórico é lido de <code>data/look/results.json</code> e pode ser complementado por dados locais ou CSV.</p><div class="settings-actions"><button class="primary" id="configRefresh">↻ Atualizar histórico LOOK</button><button id="configOpenImport">Cadastrar / importar LOOK</button></div><p class="hint">O botão de atualização consulta o JSON publicado; não executa o coletor do servidor.</p></article>
 <article class="panel"><h2>⚖️ Uso responsável</h2><p>O Radar 22 é o modelo de referência porque apresentou desempenho ligeiramente superior ao Teste 24 no histórico comparado. <b>Nenhum modelo demonstrou superar o acaso.</b></p><p>Escolher cinco entre 25 grupos representa 20% de cobertura teórica sob equiprobabilidade. As pontuações são heurísticas, não chances individuais.</p></article></div>
 <article class="panel"><h2>🇧🇷 Cadastrar Federal para o laboratório</h2><p>A Federal é mantida somente para testar hipóteses de algarismos ausentes contra a LOOK. Não altera o Radar 22.</p><div class="row"><label>Data da Federal <input type="date" id="configFedDate" value="2026-11-01"></label></div>
@@ -1485,7 +1502,7 @@ $('flExport').onclick=()=>{
 function visualSelectTab(id){
  const tab=id==='lookradar'?'radar':id==='look'?'historico':id==='lookdyn'||id==='fedlook'?'laboratorio':id==='ajuda'?'config':id;
  document.querySelectorAll('nav .tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
- ['visual','radar','historico','laboratorio','unificado','ciclos','migracao','diagnostico','dezenas29','algarismos30','config'].forEach(k=>$(k==='radar'?'lookradar':k==='historico'?'look':k).classList.toggle('hidden',k!==tab));
+ ['visual','radar','historico','laboratorio','unificado','ciclos','migracao','diagnostico','dezenas29','algarismos30','monitor31','config'].forEach(k=>$(k==='radar'?'lookradar':k==='historico'?'look':k).classList.toggle('hidden',k!==tab));
  if(tab==='laboratorio'){if(id==='fedlook')setLabPane('fedlook');else if(id==='lookdyn')setLabPane('lookdyn');else renderLabCurrent();}
  if(tab==='visual')renderVisual();
  if(tab==='historico'){renderLook();renderHistorySummary();}
@@ -3386,6 +3403,46 @@ window.renderTeste28=function(){if(typeof previous==='function')previous();calc(
  E('t291Restore').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{const payload=JSON.parse(await f.text()),a=payload.records;if(payload.name!=='t291'||!Array.isArray(a)||a.some(x=>!x.originSig||!Array.isArray(x.tens)||x.tens.length!==10||!Array.isArray(x.groups)||x.groups.length!==5))throw Error('Backup incompatível');const old=load(),ids=new Set(old.map(x=>x.originSig+'|'+x.targetDate+'|'+x.targetTime));let added=0;for(const x of a)if(!ids.has(x.originSig+'|'+x.targetDate+'|'+x.targetTime)){old.push(x);added++}save(old);show();E('t291Message').textContent='Backup restaurado: '+added+' registros adicionais, sem substituir os existentes.'}catch(err){E('t291Message').textContent='Falha no backup: '+err.message}e.target.value=''});
  const previous=window.renderTeste29;window.renderTeste29=function(){if(typeof previous==='function')previous();show()};
  show();
+})();
+</script>
+
+<script>
+/* Teste 31 — painel somente leitura para dados auditados pelo servidor. */
+(function(){
+'use strict';
+const by=id=>document.getElementById(id),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]));
+let cache=null;
+const percent=(n,d)=>d?(100*n/d).toFixed(1).replace('.',',')+'%':'—';
+const tb=(cols,rows)=>'<table><thead><tr>'+cols.map(c=>'<th>'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+const tag=(name,v)=>'<div class="metric"><small>'+esc(name)+'</small><strong>'+esc(v)+'</strong></div>';
+async function render(){
+ try{
+  const response=await fetch('data/look/monitoramento31.json?v='+Date.now(),{cache:'no-store'});
+  if(!response.ok)throw Error('Arquivo de monitoramento ainda não publicado (HTTP '+response.status+').');
+  const d=await response.json();cache=d;
+  const q=d.summary||{},hits=q.hits||{},n=q.done||0;
+  by('t31Status').textContent='Última execução: '+(d.last_run||'—')+' · registros concluídos: '+n+' · pendentes: '+(q.pending||0)+' · inválidos: '+(q.invalid||0)+' · dados exclusivamente do servidor.';
+  by('t31Stats').innerHTML=tag('Conferências concluídas',n+'/100')+tag('Dezenas Top 10',(hits.dezena10||0)+'/'+n+' · '+percent(hits.dezena10||0,n))+tag('Grupos Top 5',(hits.grupo5||0)+'/'+n+' · '+percent(hits.grupo5||0,n))+tag('Radar 22 no servidor',(hits.radar22_5||0)+'/'+n+' · '+percent(hits.radar22_5||0,n))+tag('Unificado Top 10',(hits.unificado10||0)+'/'+n+' · '+percent(hits.unificado10||0,n));
+  const line=[['Teste 29 · 10 dezenas',hits.dezena10||0,10],['Teste 29 · 5 grupos',hits.grupo5||0,20],['Radar 22 · 5 grupos',hits.radar22_5||0,20],['Radar Unificado · Top 5',hits.unificado5||0,20],['Radar Unificado · Top 10',hits.unificado10||0,40]];
+  line.push(['Grupos com 4/4 dezenas',hits.completo4||0,n?Number((100*(hits.completo4_expected||0)/n).toFixed(2)):0]);
+  (hits.algarismos_top3||[0,0,0,0]).forEach((v,i)=>line.push(['Teste 30 · '+['Milhar','Centena','Dezena','Unidade'][i],v,30]));
+  by('t31Compare').innerHTML=tb(['Ferramenta','Acertos / conferências','Taxa','Referência','Diferença'],line.map(([name,val,ref])=>[name,val+'/'+n,percent(val,n),ref+'%',n?((100*val/n-ref).toFixed(1).replace('.',',')+' p.p.'):'—']));
+  const records=(d.records||[]).slice(-30).reverse();
+  by('t31Recent').innerHTML=tb(['Alvo','Registrado','1º real','Dezena Top 10','Grupo Top 5','Radar 22','Unificado Top 10','Estado'],records.map(x=>[x.target?.date+' '+x.target?.time,x.locked_at,x.actual?.milhar||'—',x.status==='done'?(x.hits?.dezena10?'Sim':'Não'):'—',x.status==='done'?(x.hits?.grupo5?'Sim':'Não'):'—',x.status==='done'?(x.hits?.radar22_5?'Sim':'Não'):'—',x.status==='done'?(x.hits?.unificado10?'Sim':'Não'):'—',x.status+(x.reason?' · '+x.reason:'')]));
+  const a=d.audit||{};
+  let local='';try{if(typeof lookAll==='function'){const all=lookAll();local=' · navegador (histórico combinado): '+all.length+' extrações';}}catch{}
+  by('t31Audit').innerHTML='<p>JSON público: <b>'+esc(a.source_rows??'—')+'</b> linhas; horários válidos únicos: <b>'+esc(a.valid_slots??'—')+'</b>; inválidas: <b>'+esc(a.invalid??'—')+'</b>; horários duplicados: <b>'+esc(a.repeated_slots??'—')+'</b>; conflitos: <b>'+esc(a.conflicting_slots??'—')+'</b>'+esc(local)+'.</p>'+tb(['Data','Horários com as mesmas cinco milhares'],(a.same_results_other_hour||[]).map(z=>[z.date,z.hours.join(' / ')]));
+ }catch(e){by('t31Status').textContent='Monitoramento do servidor indisponível: '+e.message+' Execute primeiro o workflow Teste 31 no GitHub Actions. Nenhuma previsão será fabricada.';}
+}
+by('t31Reload').addEventListener('click',render);
+by('t31Csv').addEventListener('click',()=>{
+ if(!cache){by('t31Status').textContent='Ainda não há dados para exportar.';return}
+ const header=['alvo','registrado','status','origem','1o_real','acerto_dezena','acerto_grupo','acerto_radar22','acerto_unificado10'];
+ const rows=(cache.records||[]).map(r=>[r.target?.date+' '+r.target?.time,r.locked_at,r.status,r.origin?.signature,r.actual?.milhar||'',r.hits?.dezena10??'',r.hits?.grupo5??'',r.hits?.radar22_5??'',r.hits?.unificado10??'']);
+ const csv=[header,...rows].map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\n');
+ const a=document.createElement('a'),u=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.href=u;a.download='teste31_monitoramento.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);
+});
+document.querySelector('nav [data-tab="monitor31"]')?.addEventListener('click',render);
 })();
 </script>
 </body></html>

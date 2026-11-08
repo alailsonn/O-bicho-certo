@@ -681,8 +681,12 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
    <h4>Conferências recentes</h4><div id="t291History"></div>
    <section style="margin-top:14px;padding:12px;border:1px solid #477b78;border-radius:10px" aria-label="Auditoria de registros prospectivos">
     <h4 style="margin-top:0">Auditoria da origem — Teste 29.1</h4>
-    <p class="hint">Compara a extração congelada no navegador com os dados atualmente recebidos. Não apaga, reclassifica ou valida retroativamente nenhum registro.</p>
+    <p class="hint">Compara a origem congelada com a base atual. Reavaliação de inválidos é manual, auditada e só ocorre após todas as verificações passarem.</p>
     <div id="t291AuditOrigin"></div>
+    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+     <button type="button" id="t291Recheck">Reavaliar registros inválidos com auditoria</button>
+     <span id="t291RecheckMessage" class="hint" role="status">Nenhuma conferência antiga será alterada automaticamente.</span>
+    </div>
    </section>
    <p class="hint">Referência: 10 dezenas distintas = 10% para a dezena exata no 1º; 5 grupos distintos = 20% para o grupo no 1º, sob resultados equiprováveis. Uma seleção só vale se registrada após a origem e antes do próximo horário, com relógio correto. A página fechada não registra novas seleções; as escolhas já salvas permanecem guardadas localmente.</p>
   </div>
@@ -3291,6 +3295,44 @@ window.renderTeste28=function(){if(typeof previous==='function')previous();calc(
    const actual=Number(target.p[0].slice(-2));z.realTen=pad(actual);z.realGroup=pad(g(actual));z.hitTen=z.tens.includes(actual);z.hitGroup=z.groups.includes(g(actual));z.status='done';z.checkedAt=new Date().toISOString();dirty=true;
   }return dirty;
  }
+ function recheckInvalid(){
+  const msg=E('t291RecheckMessage');
+  try{
+   const rows=all(),records=load(),invalid=records.filter(z=>z.status==='invalid');
+   if(!invalid.length){msg.textContent='Não existem registros inválidos para reavaliar.';return}
+   // Auditoria feita a partir dos mesmos dados atualmente exibidos pelo histórico.
+   const checks=invalid.map(z=>{
+    const i=rows.findIndex(r=>stamp(r)===z.originSig);
+    if(i<0)return {z,why:'Origem congelada não corresponde a uma extração atual'};
+    const matches=rows.filter(r=>r.date===z.targetDate&&time(r)===z.targetTime);
+    if(matches.length!==1)return {z,why:'Alvo ausente ou duplicado'};
+    const target=matches[0],j=rows.indexOf(target);
+    if(j!==i+1||!isNext(rows[i],target))return {z,why:'Origem e alvo não são extrações cronologicamente consecutivas'};
+    const locked=Date.parse(z.lockedAt),from=dt(rows[i].date,time(rows[i])),to=dt(z.targetDate,z.targetTime);
+    if(!Number.isFinite(locked)||!(locked>from&&locked<to))return {z,why:'Horário da escolha não é anterior ao sorteio-alvo'};
+    const ds=z.tens.map(Number),gs=z.groups.map(Number);
+    if(new Set(ds).size!==10||ds.some(n=>!Number.isInteger(n)||n<0||n>99)||new Set(gs).size!==5||gs.some(n=>!Number.isInteger(n)||n<1||n>25))return {z,why:'Listas congeladas incompletas, repetidas ou inválidas'};
+    const actual=Number(target.p[0].slice(-2));
+    return {z,target,actual,why:''};
+   });
+   const approved=checks.filter(c=>!c.why),refused=checks.filter(c=>c.why);
+   if(!approved.length){msg.textContent='Nenhum registro recuperado. '+refused.map(c=>c.z.targetDate+' '+c.z.targetTime+': '+c.why).join(' | ');return}
+   const summary=approved.map(c=>c.z.targetDate+' '+c.z.targetTime).join(', ');
+   if(!confirm('Reavaliar '+approved.length+' registro(s) após auditoria? Alvos: '+summary+'. As listas e horários serão preservados e a alteração ficará registrada no histórico.')){
+    msg.textContent='Reavaliação cancelada; nenhum registro foi alterado.';return;
+   }
+   const timestamp=new Date().toISOString();
+   for(const {z,target,actual} of approved){
+    const previous={status:z.status,note:z.note||'',checkedAt:z.checkedAt||null};
+    z.auditTrail=Array.isArray(z.auditTrail)?z.auditTrail:[];
+    z.auditTrail.push({event:'manual-revalidation',at:timestamp,previous,originSig:z.originSig,lockedAt:z.lockedAt,targetSig:stamp(target),reason:'Origem congelada idêntica, alvo seguinte confirmado, horário antecipado e escolhas distintas validadas'});
+    z.realTen=pad(actual);z.realGroup=pad(g(actual));z.hitTen=z.tens.map(Number).includes(actual);z.hitGroup=z.groups.map(Number).includes(g(actual));
+    z.status='done';z.note='Revalidado manualmente com auditoria em '+timestamp;z.checkedAt=timestamp;z.revalidated=true;
+   }
+   save(records);show();
+   msg.textContent='Revalidados: '+approved.length+'. Mantidos inválidos: '+refused.length+'. '+refused.map(c=>c.z.targetDate+' '+c.z.targetTime+': '+c.why).join(' | ');
+  }catch(err){msg.textContent='Falha na reavaliação: '+err.message;console.error(err)}
+ }
  function metrics(records){const done=records.filter(x=>x.status==='done'),h10=done.filter(x=>x.hitTen).length,h5=done.filter(x=>x.hitGroup).length;
   E('t291Stats').innerHTML=[['Conferências válidas',done.length+'/100'],['Dezenas no 1º',h10+'/'+done.length+' · '+round(h10,done.length)],['Grupos no 1º',h5+'/'+done.length+' · '+round(h5,done.length)],['Diferença p/ referência (10 dezenas)',done.length?((100*h10/done.length)-10).toFixed(1).replace('.',',')+' p.p.':'—']].map(([k,v])=>'<div class="metric"><small>'+esc(k)+'</small><strong>'+esc(v)+'</strong></div>').join('');
  }
@@ -3337,9 +3379,10 @@ window.renderTeste28=function(){if(typeof previous==='function')previous();calc(
   const picks=classify(rows);records.push({originSig:stamp(origin),originDate:origin.date,originTime:time(origin),targetDate:target.date,targetTime:target.time,lockedAt:new Date(now).toISOString(),tens:picks.tens,groups:picks.groups,status:'pending',window:32});save(records);show();
  }catch(e){E('t291Message').textContent='Erro ao registrar: '+e.message}}
  function exportFile(name,txt,type){const u=URL.createObjectURL(new Blob([txt],{type}));const a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1500)}
+ E('t291Recheck').addEventListener('click',recheckInvalid);
  E('t291Register').addEventListener('click',register);E('t291Slot').addEventListener('change',show);
  E('t291Backup').addEventListener('click',()=>exportFile('obicho_t291_backup.json',JSON.stringify({name:'t291',version:1,records:load()},null,2),'application/json'));
- E('t291Export').addEventListener('click',()=>{const cols=['originDate','originTime','targetDate','targetTime','lockedAt','tens','groups','realTen','realGroup','hitTen','hitGroup','status','note'];const csv=[cols.join(','),...load().map(r=>cols.map(k=>'"'+String(Array.isArray(r[k])?r[k].map(v=>k==='tens'?pad(v):'G'+pad(v)).join(' '):(r[k]??'')).replace(/"/g,'""')+'"').join(','))].join('\n');exportFile('obicho_t291_conferencias.csv','\uFEFF'+csv,'text/csv;charset=utf-8')});
+ E('t291Export').addEventListener('click',()=>{const cols=['originDate','originTime','targetDate','targetTime','lockedAt','tens','groups','realTen','realGroup','hitTen','hitGroup','status','note','revalidated','auditTrail'];const csv=[cols.join(','),...load().map(r=>cols.map(k=>'"'+String(Array.isArray(r[k])?r[k].map(v=>k==='tens'?pad(v):'G'+pad(v)).join(' '):(r[k]??'')).replace(/"/g,'""')+'"').join(','))].join('\n');exportFile('obicho_t291_conferencias.csv','\uFEFF'+csv,'text/csv;charset=utf-8')});
  E('t291Restore').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{const payload=JSON.parse(await f.text()),a=payload.records;if(payload.name!=='t291'||!Array.isArray(a)||a.some(x=>!x.originSig||!Array.isArray(x.tens)||x.tens.length!==10||!Array.isArray(x.groups)||x.groups.length!==5))throw Error('Backup incompatível');const old=load(),ids=new Set(old.map(x=>x.originSig+'|'+x.targetDate+'|'+x.targetTime));let added=0;for(const x of a)if(!ids.has(x.originSig+'|'+x.targetDate+'|'+x.targetTime)){old.push(x);added++}save(old);show();E('t291Message').textContent='Backup restaurado: '+added+' registros adicionais, sem substituir os existentes.'}catch(err){E('t291Message').textContent='Falha no backup: '+err.message}e.target.value=''});
  const previous=window.renderTeste29;window.renderTeste29=function(){if(typeof previous==='function')previous();show()};
  show();

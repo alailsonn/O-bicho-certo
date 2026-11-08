@@ -679,6 +679,11 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
    </div>
    <h4>Seleção pré-registrada</h4><div id="t291Pending"></div>
    <h4>Conferências recentes</h4><div id="t291History"></div>
+   <section style="margin-top:14px;padding:12px;border:1px solid #477b78;border-radius:10px" aria-label="Auditoria de registros prospectivos">
+    <h4 style="margin-top:0">Auditoria da origem — Teste 29.1</h4>
+    <p class="hint">Compara a extração congelada no navegador com os dados atualmente recebidos. Não apaga, reclassifica ou valida retroativamente nenhum registro.</p>
+    <div id="t291AuditOrigin"></div>
+   </section>
    <p class="hint">Referência: 10 dezenas distintas = 10% para a dezena exata no 1º; 5 grupos distintos = 20% para o grupo no 1º, sob resultados equiprováveis. Uma seleção só vale se registrada após a origem e antes do próximo horário, com relógio correto. A página fechada não registra novas seleções; as escolhas já salvas permanecem guardadas localmente.</p>
   </div>
   <h3>10 dezenas classificadas (experimental)</h3><div id="t29Top"></div>
@@ -3289,10 +3294,36 @@ window.renderTeste28=function(){if(typeof previous==='function')previous();calc(
  function metrics(records){const done=records.filter(x=>x.status==='done'),h10=done.filter(x=>x.hitTen).length,h5=done.filter(x=>x.hitGroup).length;
   E('t291Stats').innerHTML=[['Conferências válidas',done.length+'/100'],['Dezenas no 1º',h10+'/'+done.length+' · '+round(h10,done.length)],['Grupos no 1º',h5+'/'+done.length+' · '+round(h5,done.length)],['Diferença p/ referência (10 dezenas)',done.length?((100*h10/done.length)-10).toFixed(1).replace('.',',')+' p.p.':'—']].map(([k,v])=>'<div class="metric"><small>'+esc(k)+'</small><strong>'+esc(v)+'</strong></div>').join('');
  }
+ function originAudit(rows,records){
+  const last=records.slice(-15).reverse();
+  if(!last.length){E('t291AuditOrigin').textContent='Nenhuma seleção salva neste navegador.';return}
+  const lines=last.map(z=>{
+   const chunks=String(z.originSig||'').split('|');
+   const originDate=z.originDate||chunks[0]||'';
+   const originTime=z.originTime||chunks[1]||'';
+   const saved=(chunks[2]||'').split('-');
+   const current=rows.filter(r=>r.date===originDate&&time(r)===originTime);
+   const matching=rows.filter(r=>stamp(r)===z.originSig);
+   const target=rows.filter(r=>r.date===z.targetDate&&time(r)===z.targetTime);
+   let detail='';
+   if(!matching.length){
+    if(!current.length)detail='Origem com esta data/hora não está na base consolidada.';
+    else detail='Origem encontrada na data/hora, mas a assinatura das milhares não coincide.';
+   }else detail='Assinatura original encontrada na base atual.';
+   const currentPrizes=current.length?current.map(r=>r.p.join(' / ')).join(' ; '):'Não encontrada';
+   const diffs=current.length&&saved.length===5?saved.map((v,i)=>v!==current[0].p[i]?((i+1)+'º: '+v+' → '+current[0].p[i]):null).filter(Boolean).join(' · '):'';
+   const lock=Date.parse(z.lockedAt),start=dt(originDate,originTime),end=dt(z.targetDate,z.targetTime);
+   const clock=Number.isFinite(lock)&&Number.isFinite(start)&&Number.isFinite(end)?(lock>start&&lock<end?'Dentro do intervalo da origem ao alvo':'Fora do intervalo da origem ao alvo'):'Não verificável';
+   const targetPrizes=target.length?target.map(r=>r.p[0]).join(' / '):'Ainda ausente';
+   return [z.targetDate+' '+z.targetTime,z.status+' — '+(z.note||'sem observação'),originDate+' '+originTime,saved.length===5?saved.join(' / '):'Indisponível (backup recomendado)',currentPrizes,diffs||detail,targetPrizes,clock];
+  });
+  E('t291AuditOrigin').innerHTML=table(['Alvo','Estado','Origem registrada','5 milhares congeladas','Origem atual','Diagnóstico','1º do alvo atual','Horário do registro'],lines);
+ }
  function show(){try{const rows=all(),records=load();if(evaluate(rows,records))save(records);metrics(records);
   const pending=records.find(x=>x.status==='pending');
   E('t291Pending').innerHTML=pending?'<p><b>Origem:</b> '+esc(pending.originDate+' '+pending.originTime)+' · <b>Alvo:</b> '+esc(pending.targetDate+' '+pending.targetTime)+' · <b>Registrado:</b> '+esc(pending.lockedAt)+'</p><p><b>Dezenas:</b> '+pending.tens.map(pad).join(' · ')+'</p><p><b>Grupos:</b> '+pending.groups.map(x=>'G'+pad(x)).join(' · ')+'</p>':'<p class="hint">Nenhuma escolha pendente. Use o botão antes do próximo horário para registrar.</p>';
   const recent=records.slice(-12).reverse();E('t291History').innerHTML=table(['Alvo','Dezenas / Grupos','1º real','Acerto dezena','Acerto grupo','Situação'],recent.map(x=>[x.targetDate+' '+x.targetTime,x.tens.map(pad).join(' ')+' / '+x.groups.map(y=>'G'+pad(y)).join(' '),x.realTen||'—',x.status==='done'?(x.hitTen?'Sim':'Não'):'—',x.status==='done'?(x.hitGroup?'Sim':'Não'):'—',x.status+(x.note?' · '+x.note:'')]));
+  originAudit(rows,records);
   E('t291Message').textContent=records.filter(x=>x.status==='done').length+' concluída(s), '+records.filter(x=>x.status==='pending').length+' pendente(s), '+records.filter(x=>x.status==='invalid').length+' inválida(s). A seleção só é criada ao clicar no botão dentro do prazo.';
  }catch(e){E('t291Message').textContent='Falha: '+e.message;console.error(e)}}
  function register(){try{const rows=all(),records=load();if(evaluate(rows,records))save(records);

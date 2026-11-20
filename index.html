@@ -230,7 +230,38 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 #ciclos th,#ciclos td{padding:10px;border-bottom:1px solid #315470;text-align:left;font-size:12px}
 #ciclos th{color:#a0c5e7}#ciclos .hint{margin-top:12px}
 @media(max-width:700px){#ciclos .cy26-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-</style><style>#cy261Panel .settings-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:end}#cy261Panel .live-table-wrap{overflow-x:auto}#cy261Panel table{width:100%;border-collapse:collapse;min-width:520px}#cy261Panel td,#cy261Panel th{text-align:left;padding:9px;border-bottom:1px solid #315470;font-size:12px}#cy261Panel th{color:#a0c5e7}</style><style>#cy262Panel .settings-actions{display:flex;gap:12px;flex-wrap:wrap}#cy262Panel .live-table-wrap{overflow-x:auto}#cy262Panel table{width:100%;border-collapse:collapse;min-width:580px}#cy262Panel td,#cy262Panel th{text-align:left;padding:9px;border-bottom:1px solid #315470;font-size:12px}#cy262Panel th{color:#a0c5e7}</style><style>#cy263Panel .settings-actions{display:flex;gap:10px;flex-wrap:wrap}#cy263Panel .live-table-wrap{overflow:auto}#cy263Panel table{width:100%;border-collapse:collapse;min-width:640px}#cy263Panel td,#cy263Panel th{text-align:left;padding:9px;border-bottom:1px solid #315470;font-size:12px}#cy263Panel th{color:#a0c5e7}</style></head><body><header><div class="brand"><div class="logo">🐾</div><div><h1>O BICHO <span style="color:#2ff5a2">CERTO</span></h1><p>Radar estatístico da LOOK Goiás · Painel 3D</p></div><div class="focus-pill">FOCO EXCLUSIVO · LOOK GOIÁS</div></div></header><main><div class="notice">📊 <strong>Estatística, não previsão:</strong> os resultados anteriores não garantem acertos futuros. <b>5 grupos entre 25 = 20%</b> de cobertura teórica, em sorteios equiprováveis.</div><nav aria-label="Áreas do O Bicho Certo">
+</style><style>#cy261Panel .settings-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:end}#cy261Panel .live-table-wrap{overflow-x:auto}#cy261Panel table{width:100%;border-collapse:collapse;min-width:520px}#cy261Panel td,#cy261Panel th{text-align:left;padding:9px;border-bottom:1px solid #315470;font-size:12px}#cy261Panel th{color:#a0c5e7}</style><style>#cy262Panel .settings-actions{display:flex;gap:12px;flex-wrap:wrap}#cy262Panel .live-table-wrap{overflow-x:auto}#cy262Panel table{width:100%;border-collapse:collapse;min-width:580px}#cy262Panel td,#cy262Panel th{text-align:left;padding:9px;border-bottom:1px solid #315470;font-size:12px}#cy262Panel th{color:#a0c5e7}</style><style>#cy263Panel .settings-actions{display:flex;gap:10px;flex-wrap:wrap}#cy263Panel .live-table-wrap{overflow:auto}#cy263Panel table{width:100%;border-collapse:collapse;min-width:640px}#cy263Panel td,#cy263Panel th{text-align:left;padding:9px;border-bottom:1px solid #315470;font-size:12px}#cy263Panel th{color:#a0c5e7}</style><style>
+#mapadezenas .mdez-toolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap}
+#mapadezenas .mdez-toolbar label{display:grid;gap:5px;font-size:12px;color:#b9d7de}
+#mapadezenas .mdez-toolbar select{max-width:100%;padding:10px;border-radius:8px;background:#102b3d;color:#e7f6fb;border:1px solid #42647c}
+#mapadezenas .mdez-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}
+#mapadezenas .mdez-stat{background:#102838;border:1px solid #2d5268;padding:12px;border-radius:10px}
+#mapadezenas .mdez-stat small{display:block;color:#a8c4d0;font-size:11px}
+#mapadezenas .mdez-stat strong{display:block;font-size:23px;color:#63e6b6;margin-top:4px}
+#mapadezenas .mdez-replay{background:#112839;padding:13px;border:1px solid #34576d;border-radius:12px}
+#mapadezenas .mdez-replay-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#mapadezenas .mdez-replay-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0}
+#mapadezenas .mdez-replay-controls input[type=range]{flex:1;min-width:120px;accent-color:#39e9af}
+#mapadezenas .mdez-replay-controls button{padding:9px 12px}
+#mapadezenas .mdez-legend{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin:17px 0;font-size:12px;color:#bcd6dd}
+#mapadezenas .mdez-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+#mapadezenas .mdez-card{border:1px solid #31536c;border-radius:12px;padding:12px;background:#102637;min-width:0}
+#mapadezenas .mdez-card.complete{border-color:#34876e;background:#0f302e}
+#mapadezenas .mdez-cardhead{display:flex;justify-content:space-between;gap:5px;font-size:14px;margin-bottom:8px}
+#mapadezenas .mdez-count{font-size:11px;color:#b7d1dd}
+#mapadezenas .mdez-digits{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+#mapadezenas .mdez-digit,#mapadezenas .mdez-demo{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border-radius:8px;padding:8px 2px;border:1px solid #5d8b9c;font-size:17px;font-weight:750;min-width:0}
+#mapadezenas .mdez-digit small{font-size:9px;font-weight:400;opacity:.9}
+#mapadezenas .mdez-done{background:#152d30;color:#84a6a5;text-decoration:line-through;border-color:#365d61}
+#mapadezenas .mdez-missing{background:#3e331c;color:#ffe29a;border-color:#a77d34}
+#mapadezenas .mdez-demo{display:inline-flex;padding:4px 8px;font-size:13px;margin-right:3px}
+#mapadezenas .mdez-cardfoot{margin-top:9px;font-size:11px;color:#b9d0dc;line-height:1.5}
+#mapadezenas .mdez-movement{border:1px solid #35546c;border-radius:9px;padding:12px;overflow:auto}
+#mapadezenas .mdez-result-row{display:flex;gap:8px;flex-wrap:wrap;margin:7px 0}
+#mapadezenas .mdez-result{border:1px solid #45677a;border-radius:7px;padding:7px 10px;background:#122f42;font-size:12px}
+@media(max-width:760px){#mapadezenas .mdez-stats{grid-template-columns:repeat(2,minmax(0,1fr))}#mapadezenas .mdez-grid{grid-template-columns:repeat(auto-fill,minmax(156px,1fr))}#mapadezenas .mdez-digit{font-size:14px}}
+</style>
+</head><body><header><div class="brand"><div class="logo">🐾</div><div><h1>O BICHO <span style="color:#2ff5a2">CERTO</span></h1><p>Radar estatístico da LOOK Goiás · Painel 3D</p></div><div class="focus-pill">FOCO EXCLUSIVO · LOOK GOIÁS</div></div></header><main><div class="notice">📊 <strong>Estatística, não previsão:</strong> os resultados anteriores não garantem acertos futuros. <b>5 grupos entre 25 = 20%</b> de cobertura teórica, em sorteios equiprováveis.</div><nav aria-label="Áreas do O Bicho Certo">
 <button class="tab active" data-tab="visual">🐾 Painel 3D</button>
 <button class="tab" data-tab="radar">🎯 Radar 22</button>
 <button class="tab" data-tab="historico">📈 Histórico</button>
@@ -239,6 +270,7 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 <button class="tab" data-tab="ciclos">🔄 Teste 26 · Ciclos</button>
 <button class="tab" data-tab="migracao">🔀 Teste 27 · Prêmios</button><button class="tab" data-tab="diagnostico">🧭 Teste 28 · Diagnóstico</button><button class="tab" data-tab="dezenas29">🔢 Teste 29 · Dezenas</button>
 <button class="tab" data-tab="algarismos30">🔣 Teste 30 · Algarismos</button>
+<button class="tab" data-tab="mapadezenas">🧩 Mapa de Dezenas · 25 Bichos</button>
 <button class="tab" data-tab="monitor31">📊 Teste 31 · Monitoramento</button>
 <button class="tab" data-tab="config">⚙️ Configurações</button>
 </nav><section id="visual">
@@ -597,6 +629,31 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
   <p class="hint" id="liveDetails">Este placar começa em zero no navegador em que for ativado. Os 204 testes históricos pertencem à auditoria retrospectiva, e não contam aqui.</p>
  </div>
 </section>
+</section>
+
+<section id="mapadezenas" class="hidden">
+ <div class="section-lead"><span class="eyebrow">ACOMPANHAMENTO · LOOK GOIÁS</span><h2>🧩 Mapa das 100 dezenas · 25 bichos</h2><p>Acompanhe cada extração do 1º ao 5º prêmio. Uma dezena é <strong>riscada</strong> quando aparece no período selecionado; as dezenas que <strong>faltam</strong> permanecem destacadas. Uma dezena vista continua marcada até reiniciar o período.</p></div>
+ <div class="panel mdez-panel">
+  <div class="mdez-toolbar">
+   <label>Período <select id="mdezRange"><option value="today">Hoje (reinicia por dia)</option><option value="8">Últimas 8 extrações</option><option value="16">Últimas 16 extrações</option><option value="32" selected>Últimas 32 extrações</option><option value="64">Últimas 64 extrações</option><option value="all">Todo o histórico</option></select></label>
+   <label>Prêmios analisados <select id="mdezPrize"><option value="all">1º ao 5º (todos)</option><option value="0">Apenas 1º</option><option value="1">Apenas 2º</option><option value="2">Apenas 3º</option><option value="3">Apenas 4º</option><option value="4">Apenas 5º</option></select></label>
+   <label>Exibir grupos <select id="mdezGroup"><option value="all">Todos os 25 bichos</option><option value="incomplete">Somente com dezenas faltando</option><option value="complete">Somente 4/4 completas</option></select></label>
+   <button class="primary" type="button" id="mdezRefresh">↻ Atualizar mapa</button>
+   <button type="button" id="mdezExport">Exportar CSV</button>
+  </div>
+  <div class="hint" id="mdezSource" aria-live="polite">Carregando resultados...</div>
+  <div class="mdez-stats" id="mdezStats"></div>
+  <div class="mdez-replay"><div class="mdez-replay-head"><strong>Passo a passo, extração por extração</strong><span id="mdezPosition">—</span></div>
+   <div class="mdez-replay-controls"><button type="button" id="mdezPrev">◀ Anterior</button><input aria-label="Até qual extração mostrar" type="range" id="mdezStep" min="0" max="1" value="1" step="1"><button type="button" id="mdezNext">Próxima ▶</button><button type="button" id="mdezLatest">Ver todas</button></div>
+   <div class="hint" id="mdezProgress">Arraste o controle para ver quando cada dezena foi anulada.</div>
+  </div>
+  <div class="mdez-legend"><span><b class="mdez-demo mdez-done">82</b> Já saiu / anulada</span><span><b class="mdez-demo mdez-missing">83</b> Ainda não saiu</span><span>G25 = 97 · 98 · 99 · 00</span></div>
+  <h3>25 bichos × 4 dezenas</h3>
+  <div id="mdezCards" class="mdez-grid" aria-live="polite"></div>
+  <h3>Movimento da última extração exibida</h3>
+  <div id="mdezMovement" class="mdez-movement"></div>
+  <p class="hint">O mapa representa <b>frequência e ausência histórica</b>, não uma chance maior de sair no próximo resultado. Cada dezena tem probabilidade teórica de 1% por prêmio, caso os sorteios sejam equiprováveis.</p>
+ </div>
 </section>
 <section id="monitor31" class="hidden">
  <div class="section-lead"><span class="eyebrow">EXPERIMENTO · LOOK GOIÁS</span><h2>📊 Teste 31 — Monitoramento Automático e Placar</h2><p>Registros anteriores aos sorteios, preservados no GitHub. A automação utiliza somente a base pública; não copia seleções locais do navegador.</p></div>
@@ -1502,7 +1559,7 @@ $('flExport').onclick=()=>{
 function visualSelectTab(id){
  const tab=id==='lookradar'?'radar':id==='look'?'historico':id==='lookdyn'||id==='fedlook'?'laboratorio':id==='ajuda'?'config':id;
  document.querySelectorAll('nav .tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
- ['visual','radar','historico','laboratorio','unificado','ciclos','migracao','diagnostico','dezenas29','algarismos30','monitor31','config'].forEach(k=>$(k==='radar'?'lookradar':k==='historico'?'look':k).classList.toggle('hidden',k!==tab));
+ ['visual','radar','historico','laboratorio','unificado','ciclos','migracao','diagnostico','dezenas29','algarismos30','mapadezenas','monitor31','config'].forEach(k=>$(k==='radar'?'lookradar':k==='historico'?'look':k).classList.toggle('hidden',k!==tab));
  if(tab==='laboratorio'){if(id==='fedlook')setLabPane('fedlook');else if(id==='lookdyn')setLabPane('lookdyn');else renderLabCurrent();}
  if(tab==='visual')renderVisual();
  if(tab==='historico'){renderLook();renderHistorySummary();}
@@ -1513,6 +1570,7 @@ function visualSelectTab(id){
  if(tab==='diagnostico'&&typeof window.renderTeste28==='function')window.renderTeste28();
  if(tab==='dezenas29'&&typeof window.renderTeste29==='function')window.renderTeste29();
  if(tab==='algarismos30'&&typeof window.renderTeste30==='function')window.renderTeste30();
+ if(tab==='mapadezenas'&&typeof window.renderMapaDezenas==='function')window.renderMapaDezenas();
  requestAnimationFrame(visualEnhanceGroups);window.scrollTo({top:0,behavior:'instant'});
 }
 // Ilustrações próprias embutidas no HTML; sem depender de links externos para os 25 animais.
@@ -3443,6 +3501,75 @@ by('t31Csv').addEventListener('click',()=>{
  const a=document.createElement('a'),u=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.href=u;a.download='teste31_monitoramento.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);
 });
 document.querySelector('nav [data-tab="monitor31"]')?.addEventListener('click',render);
+})();
+</script>
+<script>
+/* Mapa das dezenas do 1º ao 5º — acompanha ausências observadas; não prevê sorteios. */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id), pad=n=>String(n).padStart(2,'0');
+const names=['Avestruz','Águia','Burro','Borboleta','Cachorro','Cabra','Carneiro','Camelo','Cobra','Coelho','Cavalo','Elefante','Galo','Gato','Jacaré','Leão','Macaco','Porco','Pavão','Peru','Touro','Tigre','Urso','Veado','Vaca'];
+const emoji=['🪶','🦅','🐴','🦋','🐕','🐐','🐑','🐪','🐍','🐇','🐎','🐘','🐓','🐈','🐊','🦁','🐒','🐖','🦚','🦃','🐂','🐅','🐻','🦌','🐄'];
+let shown=[],current=0,metrics=[],latestRows=[];
+function group(d){return d===0?25:Math.ceil(d/4)}
+function escapeHTML(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\"':'&quot;',"'":'&#39;'}[c]||c))}
+function list(){
+  if(typeof lookAll!=='function')return [];
+  return lookAll().filter(r=>typeof lookValid!=='function'||lookValid(r)).map(r=>({...r,p:r.p.slice(0,5).map(x=>String(x).padStart(4,'0'))}))
+   .sort((a,b)=>(a.date+' '+(typeof lookActualTime==='function'?lookActualTime(a):a.time)).localeCompare(b.date+' '+(typeof lookActualTime==='function'?lookActualTime(b):b.time)));
+}
+function setRange(keep){
+ const data=list(),option=$('mdezRange').value;
+ if(option==='today'){const date=data.at(-1)?.date;shown=data.filter(r=>r.date===date)}
+ else shown=option==='all'?data:data.slice(-Number(option));
+ const previous=current;current=keep?Math.min(previous,shown.length):shown.length;
+ $('mdezStep').max=String(Math.max(1,shown.length));$('mdezStep').value=String(current);paint();
+}
+function eligiblePrizes(){const p=$('mdezPrize').value;return p==='all'?[0,1,2,3,4]:[Number(p)]}
+function compute(){
+ const counts=Array(100).fill(0),first=Array(100).fill(null),last=Array(100).fill(null),progress=[];
+ const positions=eligiblePrizes();
+ shown.slice(0,current).forEach((r,index)=>{
+   const fresh=[];
+   positions.forEach(k=>{const raw=r.p[k],d=Number(raw.slice(-2));if(!counts[d])fresh.push({d,k});counts[d]++;if(first[d]===null)first[d]={index,slot:r.date+' '+r.time,prize:k+1};last[d]={index,slot:r.date+' '+r.time,prize:k+1};});
+   progress.push({r,fresh});
+ });
+ return {counts,first,last,progress};
+}
+function paint(){
+ try{
+  const result=compute(),{counts,first,last,progress}=result,observed=counts.filter(n=>n>0).length,completed=Array.from({length:25},(_,i)=>i+1).filter(g=>((g===25)?[97,98,99,0]:[g*4-3,g*4-2,g*4-1,g*4]).every(d=>counts[d]>0)).length;
+  const total=counts.reduce((a,b)=>a+b,0),lastRow=shown[current-1];
+  $('mdezStats').innerHTML=[['Dezenas já anuladas',observed+'/100'],['Dezenas ainda faltando',(100-observed)+'/100'],['Bichos completos (4/4)',completed+'/25'],['Dezenas registradas nos prêmios',total]].map(([name,v])=>'<div class="mdez-stat"><small>'+name+'</small><strong>'+v+'</strong></div>').join('');
+  $('mdezPosition').textContent=current+' de '+shown.length+' extrações';
+  $('mdezProgress').textContent=lastRow?'Até '+lastRow.date+' às '+lastRow.time+' · '+(lastRow.p||[]).join(' · '):'Nenhuma extração selecionada. Avance para acompanhar as dezenas.';
+  $('mdezSource').textContent='Histórico combinado do site: '+latestRows.length+' registros · período selecionado: '+shown.length+' extrações ('+(shown[0]?.date||'—')+' a '+(shown.at(-1)?.date||'—')+') · '+(eligiblePrizes().length===5?'1º a 5º prêmio':'somente '+(eligiblePrizes()[0]+1)+'º prêmio')+'. O período é recalculado quando você altera os filtros.';
+  const groupFilter=$('mdezGroup').value;let cards='';metrics=[];
+  for(let g=1;g<=25;g++){
+   const ds=g===25?[97,98,99,0]:[g*4-3,g*4-2,g*4-1,g*4],seen=ds.filter(d=>counts[d]>0),missing=ds.filter(d=>!counts[d]);
+   metrics.push({g,name:names[g-1],seen:seen.length,missing:missing.length,dezenas:ds.map(d=>pad(d)),faltantes:missing.map(pad),anuladas:seen.map(pad)});
+   if(groupFilter==='complete'&&missing.length)continue;
+   if(groupFilter==='incomplete'&&!missing.length)continue;
+   cards+='<div class="mdez-card '+(missing.length?'':'complete')+'"><div class="mdez-cardhead"><strong>'+emoji[g-1]+' G'+pad(g)+' · '+names[g-1]+'</strong><span class="mdez-count">'+seen.length+'/4</span></div>';
+   cards+='<div class="mdez-digits">'+ds.map(d=>'<div class="mdez-digit '+(counts[d]?'mdez-done':'mdez-missing')+'" title="'+(counts[d]?'Apareceu '+counts[d]+' vez(es). Última em '+last[d].slot+', '+last[d].prize+'º prêmio':'Ainda não apareceu neste período')+'">'+pad(d)+'<small>'+(counts[d]?'✓ '+counts[d]+'x':'Falta')+'</small></div>').join('')+'</div>';
+   cards+='<div class="mdez-cardfoot">'+(missing.length?'Faltam: <b>'+missing.map(pad).join(' · ')+'</b>':'✓ Todas as quatro dezenas já apareceram')+'</div></div>';
+  }
+  $('mdezCards').innerHTML=cards||'<p class="hint">Nenhum grupo neste filtro.</p>';
+  if(!lastRow){$('mdezMovement').innerHTML='<span class="hint">Selecione uma extração para ver o movimento.</span>';return}
+  const prevCounts=Array(100).fill(0);shown.slice(0,current-1).forEach(r=>eligiblePrizes().forEach(k=>prevCounts[Number(r.p[k].slice(-2))]++));
+  $('mdezMovement').innerHTML='<b>'+escapeHTML(lastRow.date+' · '+lastRow.time)+'</b><div class="mdez-result-row">'+eligiblePrizes().map(k=>{const m=lastRow.p[k],d=+m.slice(-2),firstSeen=prevCounts[d]===0;return '<span class="mdez-result">'+(k+1)+'º: <b>'+m+'</b> · '+pad(d)+' · G'+pad(group(d))+' · '+(firstSeen?'✳ primeira aparição':'↻ já tinha aparecido')+'</span>'}).join('')+'</div>';
+ }catch(e){$('mdezSource').textContent='Falha ao montar o mapa: '+e.message;console.error(e)}
+}
+window.renderMapaDezenas=()=>{latestRows=list();setRange(false)};
+$('mdezRange').addEventListener('change',()=>setRange(false));
+$('mdezPrize').addEventListener('change',paint);
+$('mdezGroup').addEventListener('change',paint);
+$('mdezStep').addEventListener('input',v=>{current=Number(v.target.value);paint()});
+$('mdezPrev').addEventListener('click',()=>{current=Math.max(0,current-1);$('mdezStep').value=String(current);paint()});
+$('mdezNext').addEventListener('click',()=>{current=Math.min(shown.length,current+1);$('mdezStep').value=String(current);paint()});
+$('mdezLatest').addEventListener('click',()=>{current=shown.length;$('mdezStep').value=String(current);paint()});
+$('mdezRefresh').addEventListener('click',async()=>{const b=$('mdezRefresh');b.disabled=true;try{if(typeof loadPublicLookHistory==='function')await loadPublicLookHistory();window.renderMapaDezenas()}finally{b.disabled=false}});
+$('mdezExport').addEventListener('click',()=>{paint();const header=['grupo','bicho','dezenas','anuladas','faltantes','quantidade_anuladas','quantidade_faltantes'],rows=metrics.map(m=>[m.g,m.name,m.dezenas.join(' '),m.anuladas.join(' '),m.faltantes.join(' '),m.seen,m.missing]);const csv=[header,...rows].map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n');const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='mapa_dezenas_25_bichos.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500)});
 })();
 </script>
 </body></html>

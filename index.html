@@ -261,6 +261,18 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 #mapadezenas .mdez-result{border:1px solid #45677a;border-radius:7px;padding:7px 10px;background:#122f42;font-size:12px}
 @media(max-width:760px){#mapadezenas .mdez-stats{grid-template-columns:repeat(2,minmax(0,1fr))}#mapadezenas .mdez-grid{grid-template-columns:repeat(auto-fill,minmax(156px,1fr))}#mapadezenas .mdez-digit{font-size:14px}}
 </style>
+
+<style>
+.mdez-detail{margin-top:8px;border-top:1px solid rgba(142,169,194,.25);padding-top:6px;font-size:12px}
+.mdez-detail summary{cursor:pointer;color:#9ee4ff;font-weight:650;padding:5px 2px}
+.mdez-detail-list{display:grid;gap:6px;padding-top:7px}
+.mdez-detail-row{display:flex;gap:12px;align-items:start;background:rgba(12,25,42,.55);border:1px solid rgba(130,162,188,.15);border-radius:7px;padding:7px}
+.mdez-detail-row>b{min-width:27px;color:#f1c36a;font-size:15px}
+.mdez-detail-row span{display:grid;gap:2px;min-width:0}
+.mdez-detail-row small{font-size:11px;color:#adbed1;overflow-wrap:anywhere}
+#mdezCheck{margin:10px 0;padding:10px 12px;border:1px solid rgba(50,195,137,.38);border-radius:8px;background:rgba(14,91,70,.17)}
+#mdezCheck.mdez-check-error{border-color:#e9ad47;background:rgba(120,70,12,.18)}
+</style>
 </head><body><header><div class="brand"><div class="logo">🐾</div><div><h1>O BICHO <span style="color:#2ff5a2">CERTO</span></h1><p>Radar estatístico da LOOK Goiás · Painel 3D</p></div><div class="focus-pill">FOCO EXCLUSIVO · LOOK GOIÁS</div></div></header><main><div class="notice">📊 <strong>Estatística, não previsão:</strong> os resultados anteriores não garantem acertos futuros. <b>5 grupos entre 25 = 20%</b> de cobertura teórica, em sorteios equiprováveis.</div><nav aria-label="Áreas do O Bicho Certo">
 <button class="tab active" data-tab="visual">🐾 Painel 3D</button>
 <button class="tab" data-tab="radar">🎯 Radar 22</button>
@@ -647,7 +659,9 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
    <div class="mdez-replay-controls"><button type="button" id="mdezPrev">◀ Anterior</button><input aria-label="Até qual extração mostrar" type="range" id="mdezStep" min="0" max="1" value="1" step="1"><button type="button" id="mdezNext">Próxima ▶</button><button type="button" id="mdezLatest">Ver todas</button></div>
    <div class="hint" id="mdezProgress">Arraste o controle para ver quando cada dezena foi anulada.</div>
   </div>
-  <div class="mdez-legend"><span><b class="mdez-demo mdez-done">82</b> Já saiu / anulada</span><span><b class="mdez-demo mdez-missing">83</b> Ainda não saiu</span><span>G25 = 97 · 98 · 99 · 00</span></div>
+  <div class="mdez-legend"><strong>Legenda (apenas exemplos):</strong><span><b class="mdez-demo mdez-done">82</b> Exemplo de dezena que saiu</span><span><b class="mdez-demo mdez-missing">83</b> Exemplo de dezena que falta</span><span>G25 = 97 · 98 · 99 · 00</span></div>
+  <div id="mdezCheck" class="hint" aria-live="polite">Conferindo os totais dos 25 cartões...</div>
+  <p class="hint">Abra “Detalhar dezenas” em qualquer bicho para conferir o último horário/prêmio e há quantas extrações cada dezena está ausente. A ausência é contada até a extração exibida, não até resultados futuros.</p>
   <h3>25 bichos × 4 dezenas</h3>
   <div id="mdezCards" class="mdez-grid" aria-live="polite"></div>
   <h3>Movimento da última extração exibida</h3>
@@ -3536,10 +3550,23 @@ function compute(){
  });
  return {counts,first,last,progress};
 }
+function historyUntil(lastRow){
+ // Verifica apenas o passado: ignora resultados posteriores ao passo exibido.
+ const rows=list(), cutoff=lastRow?rows.findLastIndex(r=>r.date===lastRow.date&&r.time===lastRow.time&&r.p.join('|')===lastRow.p.join('|')):-1;
+ const counts=Array(100).fill(0),lastSeen=Array(100).fill(null),positions=eligiblePrizes();
+ if(cutoff<0)return {counts,lastSeen};
+ for(let i=0;i<=cutoff;i++){
+  const r=rows[i];positions.forEach(k=>{
+   const d=Number(r.p[k].slice(-2));counts[d]++;
+   lastSeen[d]={index:i,date:r.date,time:r.time,prize:k+1,milhar:r.p[k],gap:cutoff-i};
+  });
+ }
+ return {counts,lastSeen};
+}
 function paint(){
  try{
   const result=compute(),{counts,first,last,progress}=result,observed=counts.filter(n=>n>0).length,completed=Array.from({length:25},(_,i)=>i+1).filter(g=>((g===25)?[97,98,99,0]:[g*4-3,g*4-2,g*4-1,g*4]).every(d=>counts[d]>0)).length;
-  const total=counts.reduce((a,b)=>a+b,0),lastRow=shown[current-1];
+  const total=counts.reduce((a,b)=>a+b,0),lastRow=shown[current-1],history=historyUntil(lastRow);
   $('mdezStats').innerHTML=[['Dezenas já anuladas',observed+'/100'],['Dezenas ainda faltando',(100-observed)+'/100'],['Bichos completos (4/4)',completed+'/25'],['Dezenas registradas nos prêmios',total]].map(([name,v])=>'<div class="mdez-stat"><small>'+name+'</small><strong>'+v+'</strong></div>').join('');
   $('mdezPosition').textContent=current+' de '+shown.length+' extrações';
   $('mdezProgress').textContent=lastRow?'Até '+lastRow.date+' às '+lastRow.time+' · '+(lastRow.p||[]).join(' · '):'Nenhuma extração selecionada. Avance para acompanhar as dezenas.';
@@ -3552,9 +3579,20 @@ function paint(){
    if(groupFilter==='incomplete'&&!missing.length)continue;
    cards+='<div class="mdez-card '+(missing.length?'':'complete')+'"><div class="mdez-cardhead"><strong>'+emoji[g-1]+' G'+pad(g)+' · '+names[g-1]+'</strong><span class="mdez-count">'+seen.length+'/4</span></div>';
    cards+='<div class="mdez-digits">'+ds.map(d=>'<div class="mdez-digit '+(counts[d]?'mdez-done':'mdez-missing')+'" title="'+(counts[d]?'Apareceu '+counts[d]+' vez(es). Última em '+last[d].slot+', '+last[d].prize+'º prêmio':'Ainda não apareceu neste período')+'">'+pad(d)+'<small>'+(counts[d]?'✓ '+counts[d]+'x':'Falta')+'</small></div>').join('')+'</div>';
-   cards+='<div class="mdez-cardfoot">'+(missing.length?'Faltam: <b>'+missing.map(pad).join(' · ')+'</b>':'✓ Todas as quatro dezenas já apareceram')+'</div></div>';
+   cards+='<div class="mdez-cardfoot">'+(missing.length?'Faltam: <b>'+missing.map(pad).join(' · ')+'</b>':'✓ Todas as quatro dezenas já apareceram')+'</div>';
+   cards+='<details class="mdez-detail"><summary>Detalhar dezenas · última aparição e ausência</summary><div class="mdez-detail-list">'+ds.map(d=>{
+    const last=history.lastSeen[d];
+    const status=counts[d]?'✓ Já saiu no período':'⏳ Falta no período';
+    const when=last?(last.date+' '+last.time+' · '+last.prize+'º prêmio · '+last.milhar):'Sem aparição no histórico disponível até este passo';
+    const gap=last?(last.gap===0?'Na extração exibida':last.gap+' extração(ões) desde a última aparição'):'Ausência não mensurável';
+    return '<div class="mdez-detail-row"><b>'+pad(d)+'</b><span>'+status+'<small>Último registro: '+escapeHTML(when)+'</small><small>'+escapeHTML(gap)+'</small></span></div>';
+   }).join('')+'</div></details></div>';
   }
   $('mdezCards').innerHTML=cards||'<p class="hint">Nenhum grupo neste filtro.</p>';
+  const cardsSeen=metrics.reduce((s,m)=>s+m.seen,0),cardsMissing=metrics.reduce((s,m)=>s+m.missing,0),cardsCompleted=metrics.filter(m=>m.seen===4).length;
+  const ok=cardsSeen===observed&&cardsMissing===100-observed&&cardsSeen+cardsMissing===100&&cardsCompleted===completed;
+  $('mdezCheck').textContent=(ok?'✓ Contagem conferida: ':'⚠ Divergência encontrada: ')+cardsSeen+' dezenas riscadas + '+cardsMissing+' faltando = '+(cardsSeen+cardsMissing)+' dezenas · '+cardsCompleted+' bichos completos. '+(groupFilter==='all'?'Todos os cartões exibidos.':'A conferência considera os 25 bichos, inclusive cartões ocultos pelo filtro.');
+  $('mdezCheck').classList.toggle('mdez-check-error',!ok);
   if(!lastRow){$('mdezMovement').innerHTML='<span class="hint">Selecione uma extração para ver o movimento.</span>';return}
   const prevCounts=Array(100).fill(0);shown.slice(0,current-1).forEach(r=>eligiblePrizes().forEach(k=>prevCounts[Number(r.p[k].slice(-2))]++));
   $('mdezMovement').innerHTML='<b>'+escapeHTML(lastRow.date+' · '+lastRow.time)+'</b><div class="mdez-result-row">'+eligiblePrizes().map(k=>{const m=lastRow.p[k],d=+m.slice(-2),firstSeen=prevCounts[d]===0;return '<span class="mdez-result">'+(k+1)+'º: <b>'+m+'</b> · '+pad(d)+' · G'+pad(group(d))+' · '+(firstSeen?'✳ primeira aparição':'↻ já tinha aparecido')+'</span>'}).join('')+'</div>';

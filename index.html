@@ -273,6 +273,11 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 #mdezCheck{margin:10px 0;padding:10px 12px;border:1px solid rgba(50,195,137,.38);border-radius:8px;background:rgba(14,91,70,.17)}
 #mdezCheck.mdez-check-error{border-color:#e9ad47;background:rgba(120,70,12,.18)}
 </style>
+<style>
+.mdez-test-return{border:1px solid #315a70;border-radius:12px;padding:15px;margin:22px 0 12px;background:rgba(10,31,47,.35)}
+.mdez-test-return h3{margin:0 0 12px}.mdez-test-controls{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:15px 0}.mdez-test-controls label{display:flex;flex-direction:column;gap:5px;font-size:12px;min-width:180px}
+.mdez-ret-table{overflow-x:auto;margin:12px 0}.mdez-ret-table table{width:100%;border-collapse:collapse;min-width:650px;font-size:12px}.mdez-ret-table th,.mdez-ret-table td{padding:9px 8px;border-bottom:1px solid #36546b;text-align:left}.mdez-ret-table h4{margin:20px 0 10px}
+</style>
 </head><body><header><div class="brand"><div class="logo">🐾</div><div><h1>O BICHO <span style="color:#2ff5a2">CERTO</span></h1><p>Radar estatístico da LOOK Goiás · Painel 3D</p></div><div class="focus-pill">FOCO EXCLUSIVO · LOOK GOIÁS</div></div></header><main><div class="notice">📊 <strong>Estatística, não previsão:</strong> os resultados anteriores não garantem acertos futuros. <b>5 grupos entre 25 = 20%</b> de cobertura teórica, em sorteios equiprováveis.</div><nav aria-label="Áreas do O Bicho Certo">
 <button class="tab active" data-tab="visual">🐾 Painel 3D</button>
 <button class="tab" data-tab="radar">🎯 Radar 22</button>
@@ -666,6 +671,22 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
   <div id="mdezCards" class="mdez-grid" aria-live="polite"></div>
   <h3>Movimento da última extração exibida</h3>
   <div id="mdezMovement" class="mdez-movement"></div>
+  <div class="mdez-test-return" id="mdezReturnPanel">
+    <h3>🧪 Teste 32 — Retorno das dezenas após ausência</h3>
+    <p class="hint">Avaliação cronológica: mede quantas dezenas ausentes reapareceram na <b>extração seguinte</b>. Inclui os casos sem retorno, sem usar resultados futuros na classificação. Não é previsão.</p>
+    <div class="mdez-test-controls">
+      <label>Prêmios para observar <select id="mdezRetPrize"><option value="all">1º ao 5º prêmio</option><option value="0">Somente 1º prêmio</option><option value="1">Somente 2º prêmio</option><option value="2">Somente 3º prêmio</option><option value="3">Somente 4º prêmio</option><option value="4">Somente 5º prêmio</option></select></label>
+      <label>Extrações-alvo avaliadas <select id="mdezRetWindow"><option value="32">Últimas 32</option><option value="64">Últimas 64</option><option value="128" selected>Últimas 128</option><option value="all">Todas as disponíveis</option></select></label>
+      <button type="button" class="primary" id="mdezRetRun">↻ Recalcular retornos</button>
+      <button type="button" id="mdezRetCSV">Exportar CSV</button>
+    </div>
+    <div class="hint" id="mdezRetInfo" aria-live="polite">Aguardando análise.</div>
+    <div class="mdez-stats" id="mdezRetStats"></div>
+    <div id="mdezRetTable" class="mdez-ret-table"></div>
+    <div id="mdezRetDetails" class="mdez-ret-table"></div>
+    <p class="hint">Referência em sorteios independentes e equiprováveis: uma dezena tem 1% de chance por prêmio e 1 − (0,99)⁵ ≈ 4,90% de aparecer em pelo menos um dos cinco. Registros repetidos com os mesmos cinco prêmios na mesma data são tratados como uma extração, e transições não consecutivas não entram na avaliação. As observações por dezena são correlacionadas, então percentuais aparentemente melhores não comprovam vantagem.</p>
+  </div>
+
   <p class="hint">O mapa representa <b>frequência e ausência histórica</b>, não uma chance maior de sair no próximo resultado. Cada dezena tem probabilidade teórica de 1% por prêmio, caso os sorteios sejam equiprováveis.</p>
  </div>
 </section>
@@ -3608,6 +3629,96 @@ $('mdezNext').addEventListener('click',()=>{current=Math.min(shown.length,curren
 $('mdezLatest').addEventListener('click',()=>{current=shown.length;$('mdezStep').value=String(current);paint()});
 $('mdezRefresh').addEventListener('click',async()=>{const b=$('mdezRefresh');b.disabled=true;try{if(typeof loadPublicLookHistory==='function')await loadPublicLookHistory();window.renderMapaDezenas()}finally{b.disabled=false}});
 $('mdezExport').addEventListener('click',()=>{paint();const header=['grupo','bicho','dezenas','anuladas','faltantes','quantidade_anuladas','quantidade_faltantes'],rows=metrics.map(m=>[m.g,m.name,m.dezenas.join(' '),m.anuladas.join(' '),m.faltantes.join(' '),m.seen,m.missing]);const csv=[header,...rows].map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n');const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='mapa_dezenas_25_bichos.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500)});
+})();
+</script>
+
+<script>
+/* Teste 32 - Retorno de dezenas após ausência. Somente análise retrospectiva cronológica. */
+(function(){
+'use strict';
+const by=id=>document.getElementById(id);
+const buckets=[
+ {id:'0',title:'Acabou de sair',min:0,max:0},
+ {id:'1-4',title:'1–4 extrações',min:1,max:4},
+ {id:'5-9',title:'5–9 extrações',min:5,max:9},
+ {id:'10-19',title:'10–19 extrações',min:10,max:19},
+ {id:'20-29',title:'20–29 extrações',min:20,max:29},
+ {id:'30-39',title:'30–39 extrações',min:30,max:39},
+ {id:'40+',title:'40+ extrações',min:40,max:Infinity},
+ {id:'never',title:'Nunca vista no histórico',min:null,max:null}
+];
+let output=[],details=[];
+const esc=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&quot;',"'":'&#39;'}[ch]));
+const fmt=(n,d)=>d?((100*n/d).toFixed(1).replace('.',',')+'%'):'—';
+function records(){
+ if(typeof lookAll!=='function')return [];
+ const tt=r=>typeof lookActualTime==='function'?lookActualTime(r):r.time;
+ const src=lookAll().filter(r=>r&&Array.isArray(r.p)&&r.p.length>=5&&(typeof lookValid!=='function'||lookValid(r)))
+ .map(r=>({date:r.date,time:tt(r),p:r.p.slice(0,5).map(z=>String(z).padStart(4,'0'))}))
+ .sort((a,b)=>(a.date+' '+a.time).localeCompare(b.date+' '+b.time));
+ const keys=new Set();return src.filter(r=>{const key=r.date+'|'+r.p.join('|');if(keys.has(key))return false;keys.add(key);return true});
+}
+function bucket(gap){if(gap===null)return buckets[buckets.length-1];return buckets.find(b=>b.min!==null&&gap>=b.min&&gap<=b.max)}
+function prizeIndices(){let p=by('mdezRetPrize').value;return p==='all'?[0,1,2,3,4]:[Number(p)]}
+function consecutive(a,b){
+ if(typeof r22PairType==='function')return Boolean(r22PairType(a,b));
+ // Se a verificação de consecutividade não estiver disponível, não classificar transições.
+ return false;
+}
+function run(){
+ try{
+ const rows=records(),prizes=prizeIndices(),window=by('mdezRetWindow').value;
+ let total=0,eligible=0,skipped=0,never=0;const seen=Array(100).fill(-1);
+ let stats=Object.fromEntries(buckets.map(b=>[b.id,{...b,exposed:0,returned:0,expected:0,targets:0}]));
+ const min=window==='all'?1:Math.max(1,rows.length-Number(window));
+ const result=[];
+ for(let i=0;i<rows.length;i++){
+   const r=rows[i];
+   if(i>=min){
+    if(!consecutive(rows[i-1],r)){skipped++}
+    else{
+     const returned=new Set(prizes.map(k=>Number(r.p[k].slice(-2))));
+     const byBucket={};let absent=[];
+     for(let d=0;d<100;d++){
+      const gap=seen[d]<0?null:i-1-seen[d],b=bucket(gap),st=stats[b.id];
+      // Estado calculado somente sobre as extrações de índice inferior a i.
+      st.exposed++;const hit=returned.has(d);if(hit)st.returned++;
+      const entry=byBucket[b.id]||(byBucket[b.id]={count:0,hit:0});entry.count++;if(hit)entry.hit++;
+      if(gap!==null&&gap>=20)absent.push({d,gap,hit});
+     }
+     for(const b of buckets)if(byBucket[b.id])stats[b.id].targets++;
+     eligible++;total+=returned.size;
+     result.push({date:r.date,time:r.time,first:r.p[0],returning:[...returned].sort((a,b)=>a-b).map(d=>String(d).padStart(2,'0')).join(' '),bucketHits:Object.fromEntries(buckets.map(b=>[b.id,(byBucket[b.id]?.hit||0)+'/'+(byBucket[b.id]?.count||0)])),old:absent.length,oldHit:absent.filter(x=>x.hit).length});
+    }
+   }
+   // Atualizar SOMENTE após conferir o resultado alvo.
+   for(const k of prizes)seen[Number(r.p[k].slice(-2))]=i;
+ }
+ const theoretical=prizes.length===5?1-Math.pow(0.99,5):0.01;
+ for(const b of buckets)stats[b.id].expected=stats[b.id].exposed*theoretical;
+ output=buckets.map(b=>stats[b.id]);details=result;
+ by('mdezRetInfo').textContent='Base combinada: '+rows.length+' extrações válidas e não repetidas · '+eligible+' transições cronológicas comparáveis · '+skipped+' transição(ões) ignorada(s) · '+prizes.length+' prêmio(s) analisado(s). A ausência anterior ao início da base é desconhecida.';
+ by('mdezRetStats').innerHTML=[['Extrações comparadas',eligible],['Dezenas distintas observadas nos alvos',total],['Referência por dezena',fmt(theoretical,1)],['Faixas de ausência',buckets.length]].map(([k,v])=>'<div class="mdez-stat"><small>'+esc(k)+'</small><strong>'+esc(v)+'</strong></div>').join('');
+ let table='<table><thead><tr><th>Ausência antes da extração</th><th>Dezenas avaliadas</th><th>Retornos</th><th>Taxa de retorno</th><th>Esperados (acaso)</th><th>Diferença</th></tr></thead><tbody>';
+ for(const b of output){const actual=b.exposed?b.returned/b.exposed:0,delta=b.exposed?((actual-theoretical)*100).toFixed(1).replace('.',',')+' p.p.':'—';
+ table+='<tr><td>'+esc(b.title)+'</td><td>'+b.exposed+'</td><td>'+b.returned+'</td><td><strong>'+fmt(b.returned,b.exposed)+'</strong></td><td>'+b.expected.toFixed(1).replace('.',',')+'</td><td>'+delta+'</td></tr>';
+ }
+ by('mdezRetTable').innerHTML=table+'</tbody></table>';
+ by('mdezRetDetails').innerHTML='<h4>Últimas extrações avaliadas</h4><table><thead><tr><th>Alvo</th><th>1º prêmio</th><th>Dezenas que saíram nos prêmios escolhidos</th><th>Dezenas com 20+ ausências</th><th>Retornos delas</th></tr></thead><tbody>'+result.slice(-12).reverse().map(r=>'<tr><td>'+esc(r.date+' '+r.time)+'</td><td>'+esc(r.first)+'</td><td>'+esc(r.returning)+'</td><td>'+r.old+'</td><td>'+r.oldHit+'</td></tr>').join('')+'</tbody></table>';
+ }catch(e){by('mdezRetInfo').textContent='Não foi possível calcular o teste: '+e.message;console.error(e)}
+}
+function exportCSV(){if(!details.length){by('mdezRetInfo').textContent='Sem avaliações para exportar. Recalcule o teste.';return}
+ const keys=['date','time','first','returning','old','oldHit',...buckets.map(b=>b.id)];
+ const lines=[keys.join(';'),...details.map(r=>keys.map(k=>'"'+String(r[k]??r.bucketHits[k]??'').replace(/"/g,'""')+'"').join(';'))];
+ const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='teste32_retorno_ausencias.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+by('mdezRetRun').addEventListener('click',run);by('mdezRetWindow').addEventListener('change',run);by('mdezRetPrize').addEventListener('change',run);by('mdezRetCSV').addEventListener('click',exportCSV);
+document.querySelector('nav [data-tab="mapadezenas"]')?.addEventListener('click',run);
+// Aba do mapa atualiza dinamicamente: reaproveitar o render sem alterar cálculos existentes.
+const previous=window.renderMapaDezenas;
+window.renderMapaDezenas=function(){if(typeof previous==='function')previous();run()};
+run();
 })();
 </script>
 </body></html>

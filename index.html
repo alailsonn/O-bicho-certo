@@ -288,6 +288,7 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 <button class="tab" data-tab="migracao">🔀 Teste 27 · Prêmios</button><button class="tab" data-tab="diagnostico">🧭 Teste 28 · Diagnóstico</button><button class="tab" data-tab="dezenas29">🔢 Teste 29 · Dezenas</button>
 <button class="tab" data-tab="algarismos30">🔣 Teste 30 · Algarismos</button>
 <button class="tab" data-tab="mapadezenas">🧩 Mapa de Dezenas · 25 Bichos</button>
+<button class="tab" data-tab="teste33">🔁 Teste 33 · Normal/Inversa</button>
 <button class="tab" data-tab="monitor31">📊 Teste 31 · Monitoramento</button>
 <button class="tab" data-tab="config">⚙️ Configurações</button>
 </nav><section id="visual">
@@ -690,6 +691,24 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
   <p class="hint">O mapa representa <b>frequência e ausência histórica</b>, não uma chance maior de sair no próximo resultado. Cada dezena tem probabilidade teórica de 1% por prêmio, caso os sorteios sejam equiprováveis.</p>
  </div>
 </section>
+<section id="teste33" class="hidden">
+ <div class="section-lead"><span class="eyebrow">EXPERIMENTO · LOOK GOIÁS</span><h2>🔁 Teste 33 — Migração normal e invertida</h2><p>Rastreia a dezena exata do 1º prêmio (exemplo: 34) e sua inversão (43) nos prêmios do 2º ao 5º das extrações seguintes. As escolhas vêm da extração de origem; não há classificação preditiva.</p></div>
+ <div class="mdez-test-return" style="margin-top:14px">
+ <div class="mdez-test-controls">
+ <label>Período das origens <select id="t33Period"><option value="all">Todo o histórico</option><option value="32">Últimas 32 origens</option><option value="64">Últimas 64 origens</option><option value="128">Últimas 128 origens</option></select></label>
+ <label>Horizonte <select id="t33Horizon"><option value="1" selected>Próxima extração</option><option value="2">Até 2 extrações</option><option value="3">Até 3 extrações</option><option value="5">Até 5 extrações</option><option value="8">Até 8 extrações</option></select></label>
+ <button type="button" id="t33Run" class="primary">↻ Recalcular Teste 33</button><button type="button" id="t33Csv">Exportar CSV</button>
+ </div>
+ <div id="t33Info" class="hint" aria-live="polite">Aguardando histórico.</div>
+ <div id="t33Stats" class="mdez-stats"></div>
+ <div id="t33Summary" class="mdez-ret-table"></div>
+ <h3>Distribuição por prêmio de destino</h3><div id="t33Positions" class="mdez-ret-table"></div>
+ <h3>Últimos movimentos e casos sem retorno</h3><div id="t33Events" class="mdez-ret-table"></div>
+ <h3>Dezena do 1º prêmio mais recente</h3><div id="t33Latest" class="hint"></div>
+ <p class="hint">Uma dezena como 11, 22 ou 00 é igual à sua inversa: a cobertura é de apenas uma dezena, não duas. As referências consideram sorteios equiprováveis e independentes, com 1% de chance por dezena e prêmio; taxas observadas não demonstram capacidade de previsão. As extrações de origem sem horizonte completo não entram no placar.</p>
+ </div>
+</section>
+
 <section id="monitor31" class="hidden">
  <div class="section-lead"><span class="eyebrow">EXPERIMENTO · LOOK GOIÁS</span><h2>📊 Teste 31 — Monitoramento Automático e Placar</h2><p>Registros anteriores aos sorteios, preservados no GitHub. A automação utiliza somente a base pública; não copia seleções locais do navegador.</p></div>
  <article class="panel" style="padding:20px">
@@ -1594,7 +1613,7 @@ $('flExport').onclick=()=>{
 function visualSelectTab(id){
  const tab=id==='lookradar'?'radar':id==='look'?'historico':id==='lookdyn'||id==='fedlook'?'laboratorio':id==='ajuda'?'config':id;
  document.querySelectorAll('nav .tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
- ['visual','radar','historico','laboratorio','unificado','ciclos','migracao','diagnostico','dezenas29','algarismos30','mapadezenas','monitor31','config'].forEach(k=>$(k==='radar'?'lookradar':k==='historico'?'look':k).classList.toggle('hidden',k!==tab));
+ ['visual','radar','historico','laboratorio','unificado','ciclos','migracao','diagnostico','dezenas29','algarismos30','mapadezenas','teste33','monitor31','config'].forEach(k=>$(k==='radar'?'lookradar':k==='historico'?'look':k).classList.toggle('hidden',k!==tab));
  if(tab==='laboratorio'){if(id==='fedlook')setLabPane('fedlook');else if(id==='lookdyn')setLabPane('lookdyn');else renderLabCurrent();}
  if(tab==='visual')renderVisual();
  if(tab==='historico'){renderLook();renderHistorySummary();}
@@ -3718,6 +3737,71 @@ document.querySelector('nav [data-tab="mapadezenas"]')?.addEventListener('click'
 // Aba do mapa atualiza dinamicamente: reaproveitar o render sem alterar cálculos existentes.
 const previous=window.renderMapaDezenas;
 window.renderMapaDezenas=function(){if(typeof previous==='function')previous();run()};
+run();
+})();
+</script>
+<script>
+/* Teste 33: cronologia do 1o para 2o-5o, dezenas exatas normal ou invertida. */
+(function(){
+'use strict';
+const el=id=>document.getElementById(id);
+let exported=[];
+const pad=n=>String(n).padStart(2,'0');
+const safe=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
+const ratio=(n,d)=>d?(100*n/d).toFixed(1).replace('.',',')+'%':'—';
+function rows(){
+ if(typeof lookAll!=='function')return [];
+ const a=lookAll().filter(r=>r&&Array.isArray(r.p)&&r.p.length>=5&&(typeof lookValid!=='function'||lookValid(r)))
+  .map(r=>({date:r.date,time:typeof lookActualTime==='function'?lookActualTime(r):r.time,p:r.p.slice(0,5).map(x=>String(x).padStart(4,'0'))}))
+  .sort((a,b)=>(a.date+' '+a.time).localeCompare(b.date+' '+b.time));
+ // Repeated same-day prize set is not independent information. Keep original data intact.
+ const seen=new Set();return a.filter(r=>{const k=r.date+'|'+r.p.join('|');if(seen.has(k))return false;seen.add(k);return true});
+}
+function adjacent(a,b){return typeof r22PairType==='function'&&!!r22PairType(a,b)}
+function table(headers,body){return '<div style="overflow-x:auto"><table><thead><tr>'+headers.map(x=>'<th>'+safe(x)+'</th>').join('')+'</tr></thead><tbody>'+body.map(row=>'<tr>'+row.map(x=>'<td>'+safe(x)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'}
+function run(){try{
+ const a=rows(),h=Number(el('t33Horizon').value),period=el('t33Period').value;
+ const first=period==='all'?0:Math.max(0,a.length-Number(period));
+ let eligible=0,excluded=0,normal=0,inverse=0,either=0,overlap=0,expect=0,perPrize=Array.from({length:4},()=>({normal:0,inverse:0}));
+ let events=[];exported=[];
+ for(let i=first;i<a.length;i++){
+   if(i+h>=a.length){excluded++;continue}
+   let good=true;for(let j=1;j<=h;j++)if(!adjacent(a[i+j-1],a[i+j])){good=false;break}
+   if(!good){excluded++;continue}
+   const d=a[i].p[0].slice(-2),rev=d[1]+d[0],same=d===rev;
+   let n=false,v=false,matching=[];
+   for(let j=1;j<=h;j++)for(let k=1;k<=4;k++){
+     const target=a[i+j],got=target.p[k].slice(-2),asNormal=got===d,asInverse=got===rev&&!same;
+     if(asNormal){n=true;perPrize[k-1].normal++}
+     if(asInverse){v=true;perPrize[k-1].inverse++}
+     if(asNormal||asInverse)matching.push({step:j,date:target.date,time:target.time,prize:k+1,milhar:target.p[k],type:asNormal?'Normal':'Invertida'});
+   }
+   eligible++;if(n)normal++;if(v)inverse++;if(n||v)either++;if(n&&v)overlap++;
+   expect+=1-Math.pow(1-(same?.01:.02),4*h);
+   const record={origin_date:a[i].date,origin_time:a[i].time,origin_first:a[i].p[0],dezena:d,inversa:rev,horizon:h,hit_normal:n,hit_inverse:v,hit_either:n||v,returns:matching.map(z=>`${z.step}ª:${z.date} ${z.time} ${z.prize}º ${z.milhar} ${z.type}`).join(' | ')};
+   exported.push(record);events.push({record,matching});
+ }
+ el('t33Info').textContent=a.length+' extrações distintas na base combinada · '+eligible+' origens avaliadas com horizonte completo · '+excluded+' não avaliadas (resultados futuros ausentes ou sequência não consecutiva).';
+ el('t33Stats').innerHTML=[['Origens válidas',eligible],['Normal',normal+' · '+ratio(normal,eligible)],['Invertida',inverse+' · '+ratio(inverse,eligible)],['Normal ou invertida',either+' · '+ratio(either,eligible)]].map(([k,v])=>'<div class="mdez-stat"><small>'+safe(k)+'</small><strong>'+safe(v)+'</strong></div>').join('');
+ el('t33Summary').innerHTML=table(['Indicador','Origens com retorno','Taxa','Referência'],[
+  ['Dezena normal',normal,ratio(normal,eligible),ratio(1-Math.pow(.99,4*h),1)],
+  ['Invertida diferente',inverse,ratio(inverse,eligible),'Variável: 00/11/22 etc. não possuem inversa distinta'],
+  ['Normal ou invertida',either,ratio(either,eligible),ratio(expect,eligible)],
+  ['Ambas apareceram',overlap,ratio(overlap,eligible),'—']
+ ]);
+ el('t33Positions').innerHTML=table(['Prêmio de destino','Ocorrências normal','Ocorrências invertida'],perPrize.map((q,i)=>[(i+2)+'º',q.normal,q.inverse]));
+ el('t33Events').innerHTML=table(['Origem do 1º','Dezena / inversão','Ocorrência nas próximas extrações','Situação'],events.slice(-24).reverse().map(({record,matching})=>[
+   record.origin_date+' '+record.origin_time+' · '+record.origin_first,
+   record.dezena+' / '+record.inversa,
+   matching.length?matching.map(z=>z.step+'ª seguinte: '+z.date+' '+z.time+' · '+z.prize+'º '+z.milhar+' ('+z.type+')').join(' | '):'—',
+   matching.length?'Retornou':'Não retornou até '+h+' extração(ões)'
+ ]));
+ const last=a.at(-1);el('t33Latest').textContent=last?'Última extração '+last.date+' '+last.time+' · 1º '+last.p[0]+' · dezena '+last.p[0].slice(-2)+' · invertida '+last.p[0].slice(-1)+last.p[0].slice(-2,-1)+'. Aguardando resultados futuros; não entra nas avaliações concluídas.':'Sem dados.';
+ }catch(e){el('t33Info').textContent='Erro no Teste 33: '+e.message;console.error(e)}}
+function exportCSV(){const keys=['origin_date','origin_time','origin_first','dezena','inversa','horizon','hit_normal','hit_inverse','hit_either','returns'];const lines=[keys.join(';'),...exported.map(r=>keys.map(k=>'"'+String(r[k]??'').replace(/"/g,'""')+'"').join(';'))];const url=URL.createObjectURL(new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='teste33_migracao_normal_invertida.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+el('t33Run').addEventListener('click',run);el('t33Horizon').addEventListener('change',run);el('t33Period').addEventListener('change',run);el('t33Csv').addEventListener('click',exportCSV);
+document.querySelector('nav [data-tab="teste33"]')?.addEventListener('click',run);
+if(typeof window.renderTeste33==='undefined')window.renderTeste33=run;
 run();
 })();
 </script>

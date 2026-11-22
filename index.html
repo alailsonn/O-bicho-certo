@@ -289,6 +289,7 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
 <button class="tab" data-tab="algarismos30">🔣 Teste 30 · Algarismos</button>
 <button class="tab" data-tab="mapadezenas">🧩 Mapa de Dezenas · 25 Bichos</button>
 <button class="tab" data-tab="teste33">🔁 Teste 33 · Normal/Inversa</button>
+<button class="tab" data-tab="teste35">🧮 Teste 35 · Desdobramento</button>
 <button class="tab" data-tab="monitor31">📊 Teste 31 · Monitoramento</button>
 <button class="tab" data-tab="config">⚙️ Configurações</button>
 </nav><section id="visual">
@@ -689,6 +690,25 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
   </div>
 
   <p class="hint">O mapa representa <b>frequência e ausência histórica</b>, não uma chance maior de sair no próximo resultado. Cada dezena tem probabilidade teórica de 1% por prêmio, caso os sorteios sejam equiprováveis.</p>
+ </div>
+</section>
+<section id="teste35" class="hidden">
+ <div class="section-lead"><span class="eyebrow">EXPERIMENTO · LOOK GOIÁS</span><h2>🧮 Teste 35 — Desdobramento da Milhar do 1º Prêmio</h2><p>Forma dezenas com os algarismos da milhar de origem e acompanha os resultados do <b>2º ao 5º prêmio das extrações seguintes</b>. Mede acertos de dezenas exatas e de grupos dos bichos separadamente. Não é previsão.</p></div>
+ <div class="mdez-test-return" style="margin-top:14px">
+  <div class="mdez-test-controls">
+   <label>Combinações <select id="t35Mode"><option value="adj">3 pares vizinhos</option><option value="adjinv">Pares vizinhos + invertidas</option><option value="all">6 pares de posições</option><option value="allinv" selected>Todos os pares + invertidas</option></select></label>
+   <label>Horizonte <select id="t35Horizon"><option value="1" selected>Próxima extração</option><option value="2">Até 2 extrações</option><option value="3">Até 3 extrações</option><option value="5">Até 5 extrações</option><option value="8">Até 8 extrações</option></select></label>
+   <label>Período das origens <select id="t35Period"><option value="all" selected>Todo o histórico</option><option value="32">Últimas 32</option><option value="64">Últimas 64</option><option value="128">Últimas 128</option></select></label>
+   <button type="button" id="t35Run" class="primary">↻ Recalcular Teste 35</button><button type="button" id="t35Csv">Exportar CSV</button>
+  </div>
+  <div id="t35Info" class="hint" aria-live="polite">Aguardando histórico.</div>
+  <div id="t35Stats" class="mdez-stats"></div>
+  <h3>Comparação com o acaso</h3><div id="t35Summary" class="mdez-ret-table"></div>
+  <p class="hint">As referências são calculadas para cada origem a partir da quantidade <b>real de dezenas e grupos diferentes</b> gerados. Cada origem conta no máximo um acerto por categoria, mesmo que várias dezenas coincidam. Repetições de algarismos não aumentam a cobertura.</p>
+  <h3>Comparar os quatro métodos na mesma amostra</h3><div id="t35Compare" class="mdez-ret-table"></div>
+  <h3>Prêmios de destino</h3><div id="t35Positions" class="mdez-ret-table"></div>
+  <h3>Milhar mais recente (observação, não avaliada)</h3><div id="t35Latest" class="hint"></div>
+  <h3>Últimas origens e movimentos verificados</h3><div id="t35Events" class="mdez-ret-table"></div>
  </div>
 </section>
 <section id="teste33" class="hidden">
@@ -1613,7 +1633,7 @@ $('flExport').onclick=()=>{
 function visualSelectTab(id){
  const tab=id==='lookradar'?'radar':id==='look'?'historico':id==='lookdyn'||id==='fedlook'?'laboratorio':id==='ajuda'?'config':id;
  document.querySelectorAll('nav .tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
- ['visual','radar','historico','laboratorio','unificado','ciclos','migracao','diagnostico','dezenas29','algarismos30','mapadezenas','teste33','monitor31','config'].forEach(k=>$(k==='radar'?'lookradar':k==='historico'?'look':k).classList.toggle('hidden',k!==tab));
+ ['visual','radar','historico','laboratorio','unificado','ciclos','migracao','diagnostico','dezenas29','algarismos30','mapadezenas','teste33','teste35','monitor31','config'].forEach(k=>$(k==='radar'?'lookradar':k==='historico'?'look':k).classList.toggle('hidden',k!==tab));
  if(tab==='laboratorio'){if(id==='fedlook')setLabPane('fedlook');else if(id==='lookdyn')setLabPane('lookdyn');else renderLabCurrent();}
  if(tab==='visual')renderVisual();
  if(tab==='historico'){renderLook();renderHistorySummary();}
@@ -3803,6 +3823,77 @@ el('t33Run').addEventListener('click',run);el('t33Horizon').addEventListener('ch
 document.querySelector('nav [data-tab="teste33"]')?.addEventListener('click',run);
 if(typeof window.renderTeste33==='undefined')window.renderTeste33=run;
 run();
+})();
+</script>
+<script>
+/* Teste 35 — desdobramento cronológico da milhar: dezenas e bichos do 2º ao 5º. */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&quot;',"'":'&#39;'}[c]));
+const pct=(x,n)=>n?(100*x/n).toFixed(1).replace('.',',')+'%':'—';
+const pad=n=>String(n).padStart(2,'0');
+const animalNames=['Avestruz','Águia','Burro','Borboleta','Cachorro','Cabra','Carneiro','Camelo','Cobra','Coelho','Cavalo','Elefante','Galo','Gato','Jacaré','Leão','Macaco','Porco','Pavão','Peru','Touro','Tigre','Urso','Veado','Vaca'];
+function group(d){const x=Number(d);return x===0?25:Math.ceil(x/4)}
+function rows(){
+ if(typeof lookAll!=='function')return [];
+ const a=lookAll().filter(r=>r&&Array.isArray(r.p)&&r.p.length>=5&&(typeof lookValid!=='function'||lookValid(r)))
+ .map(r=>({date:r.date,time:typeof lookActualTime==='function'?lookActualTime(r):r.time,p:r.p.slice(0,5).map(x=>String(x).padStart(4,'0'))}))
+ .sort((x,y)=>(x.date+' '+x.time).localeCompare(y.date+' '+y.time));
+ const seen=new Set();return a.filter(r=>{const k=r.date+'|'+r.p.join('|');if(seen.has(k))return false;seen.add(k);return true});
+}
+function pairs(milhar,mode){
+ const indexes=mode.startsWith('adj')?[[0,1],[1,2],[2,3]]:[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
+ const out=new Set();for(const [i,j] of indexes){out.add(milhar[i]+milhar[j]);if(mode.endsWith('inv'))out.add(milhar[j]+milhar[i])}
+ return out;
+}
+function consecutive(a,b){return typeof r22PairType==='function'&&!!r22PairType(a,b)}
+function table(headers,body){return '<div style="overflow-x:auto"><table><thead><tr>'+headers.map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+body.map(r=>'<tr>'+r.map(x=>'<td>'+esc(x)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'}
+function evaluate(a,mode,h,first,collect){
+ let valid=0,excluded=0,hitD=0,hitG=0,expectedD=0,expectedG=0,sizeD=0,sizeG=0;
+ let byPrize=Array.from({length:4},()=>({dezena:0,bicho:0}));let events=[];
+ for(let i=first;i<a.length;i++){
+  if(i+h>=a.length){excluded++;continue}
+  let ok=true;for(let j=1;j<=h;j++)if(!consecutive(a[i+j-1],a[i+j])){ok=false;break}
+  if(!ok){excluded++;continue}
+  const set=pairs(a[i].p[0],mode),gs=new Set([...set].map(group));
+  const hd=Array.from({length:h},()=>false),hg=Array.from({length:h},()=>false);
+  let matching=[],d=false,g=false;
+  for(let j=1;j<=h;j++)for(let k=1;k<=4;k++){
+   const t=a[i+j],z=t.p[k].slice(-2),dMatch=set.has(z),gMatch=gs.has(group(z));
+   if(dMatch){d=true;byPrize[k-1].dezena++}
+   if(gMatch){g=true;byPrize[k-1].bicho++}
+   if(dMatch||gMatch)matching.push({step:j,date:t.date,time:t.time,prize:k+1,milhar:t.p[k],dezena:z,type:dMatch?'Dezena exata':'Somente bicho'});
+  }
+  valid++;if(d)hitD++;if(g)hitG++;sizeD+=set.size;sizeG+=gs.size;
+  expectedD+=1-Math.pow(1-set.size/100,4*h);
+  expectedG+=1-Math.pow(1-gs.size/25,4*h);
+  if(collect)events.push({date:a[i].date,time:a[i].time,first:a[i].p[0],dezenas:[...set],grupos:[...gs].sort((a,b)=>a-b),h,hitDezena:d,hitBicho:g,returns:matching});
+ }
+ return {valid,excluded,hitD,hitG,expectedD,expectedG,sizeD,sizeG,byPrize,events};
+}
+let exported=[];
+function run(){try{
+ const a=rows(),mode=$('t35Mode').value,h=Number($('t35Horizon').value),p=$('t35Period').value;
+ const first=p==='all'?0:Math.max(0,a.length-Number(p));
+ const res=evaluate(a,mode,h,first,true),{valid,excluded,hitD,hitG,expectedD,expectedG,sizeD,sizeG,byPrize,events}=res;
+ exported=events;
+ $('t35Info').textContent=a.length+' extrações distintas na base combinada · '+valid+' origens com sequência completa · '+excluded+' não avaliadas (futuro ausente ou sequência não consecutiva) · '+h+' extração(ões) por origem.';
+ $('t35Stats').innerHTML=[['Origens avaliadas',valid],['Dezenas médias / origem',valid?(sizeD/valid).toFixed(2).replace('.',','):'—'],['Bichos médios / origem',valid?(sizeG/valid).toFixed(2).replace('.',','):'—'],['Retornos de dezenas',hitD+' · '+pct(hitD,valid)],['Retornos de bichos',hitG+' · '+pct(hitG,valid)]].map(([label,value])=>'<div class="mdez-stat"><small>'+esc(label)+'</small><strong>'+esc(value)+'</strong></div>').join('');
+ $('t35Summary').innerHTML=table(['Critério','Acertos','Taxa observada','Esperados pelo acaso','Taxa esperada','Diferença'],[
+ ['Dezena exata',hitD,pct(hitD,valid),expectedD.toFixed(1).replace('.',','),pct(expectedD,valid),valid?((hitD-expectedD)*100/valid).toFixed(1).replace('.',',')+' p.p.':'—'],
+ ['Bicho (qualquer dezena do grupo)',hitG,pct(hitG,valid),expectedG.toFixed(1).replace('.',','),pct(expectedG,valid),valid?((hitG-expectedG)*100/valid).toFixed(1).replace('.',',')+' p.p.':'—']]);
+ const modes=[['adj','3 pares vizinhos'],['adjinv','Pares + invertidas'],['all','6 pares de posições'],['allinv','Todos + invertidas']];
+ $('t35Compare').innerHTML=table(['Método','Dezenas médias','Bichos médios','Dezena observada / esperada','Bicho observado / esperado'],modes.map(([key,label])=>{const z=key===mode?res:evaluate(a,key,h,first,false);return [label,z.valid?(z.sizeD/z.valid).toFixed(2).replace('.',','):'—',z.valid?(z.sizeG/z.valid).toFixed(2).replace('.',','):'—',pct(z.hitD,z.valid)+' / '+pct(z.expectedD,z.valid),pct(z.hitG,z.valid)+' / '+pct(z.expectedG,z.valid)];}));
+ $('t35Positions').innerHTML=table(['Destino','Coincidências da dezena','Coincidências do bicho (incluem as da dezena)'],byPrize.map((z,i)=>[(i+2)+'º',z.dezena,z.bicho]));
+ const last=a.at(-1);if(last){const tens=[...pairs(last.p[0],mode)],gs=[...new Set(tens.map(group))].sort((a,b)=>a-b);$('t35Latest').innerHTML='<b>'+esc(last.date+' '+last.time+' · 1º '+last.p[0])+'</b><p>Dezenas: <b>'+esc(tens.join(' · '))+'</b></p><p>Bichos: '+gs.map(g=>'G'+pad(g)+' '+animalNames[g-1]).map(esc).join(' · ')+'</p><small>Última origem não incluída no placar sem os resultados futuros correspondentes.</small>';}else $('t35Latest').textContent='Base vazia.';
+ $('t35Events').innerHTML=table(['Origem / milhar','Dezenas formadas','Bichos formados','Destino 2º–5º','Conclusão'],events.slice(-25).reverse().map(z=>[z.date+' '+z.time+' · '+z.first,z.dezenas.join(' '),z.grupos.map(g=>'G'+pad(g)).join(' '),z.returns.length?z.returns.slice(0,10).map(t=>t.step+'ª / '+t.prize+'º '+t.milhar+' ('+t.type+')').join(' | '):'—',(z.hitDezena?'Dezena ✔ · ':'Dezena — · ')+(z.hitBicho?'Bicho ✔':'Bicho —')]));
+ }catch(e){$('t35Info').textContent='Falha no Teste 35: '+e.message;console.error(e)}
+}
+function csv(){const keys=['date','time','first','dezenas','grupos','h','hitDezena','hitBicho','returns'];const output=[keys.join(';')];for(const r of exported){const row={...r,dezenas:r.dezenas.join(' '),grupos:r.grupos.join(' '),returns:r.returns.map(t=>t.step+'ª '+t.date+' '+t.time+' '+t.prize+'º '+t.milhar+' '+t.type).join(' | ')};output.push(keys.map(k=>'"'+String(row[k]??'').replace(/"/g,'""')+'"').join(';'))}const u=URL.createObjectURL(new Blob(['\ufeff'+output.join('\r\n')],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=u;a.download='teste35_desdobramento_milhar.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),1200)}
+$('t35Run').addEventListener('click',run);for(const id of ['t35Mode','t35Horizon','t35Period'])$(id).addEventListener('change',run);$('t35Csv').addEventListener('click',csv);
+document.querySelector('nav [data-tab="teste35"]')?.addEventListener('click',run);
+window.renderTeste35=run;run();
 })();
 </script>
 </body></html>

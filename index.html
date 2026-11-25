@@ -722,6 +722,28 @@ nav .tab:hover{transform:translateY(-1px);border-color:#35d6a4}
    <h3>Comparação justa: cinco grupos por extração</h3><div id="t36Models" class="mdez-ret-table"></div>
    <h3>Modelo escolhido exclusivamente pelo treino</h3><div class="hint" id="t36Decision"></div>
    <h3>Próxima indicação experimental (ainda sem resultado)</h3><div id="t36Next" class="mdez-ret-table"></div>
+
+   <div class="mdez-test-return" style="margin-top:18px;border:1px solid #246354;padding:14px;border-radius:14px">
+    <h3>🧪 Teste 36.1 — Validação progressiva sem olhar o futuro</h3>
+    <p class="hint">Antes de cada resultado, escolhe entre os três métodos usando <b>somente avaliações já concluídas</b>. Cada indicação mantém exatamente cinco grupos. Os primeiros 30 casos servem para iniciar o comparador e não entram no placar progressivo.</p>
+    <div class="mdez-test-controls">
+     <label>Memória para escolher o método <select id="t361Memory"><option value="30">Últimas 30 avaliações</option><option value="60" selected>Últimas 60 avaliações</option><option value="100">Últimas 100 avaliações</option><option value="all">Todo o passado disponível</option></select></label>
+     <button type="button" id="t361Run">↻ Recalcular validação progressiva</button>
+     <button type="button" id="t361CSV">Exportar auditoria 36.1 CSV</button>
+    </div>
+    <div id="t361Info" class="hint" aria-live="polite">Aguardando análise progressiva.</div>
+    <div class="mdez-stats" id="t361Stats"></div>
+    <h3>Comparação progressiva — mesmos resultados e cinco grupos por método</h3>
+    <div id="t361Compare" class="mdez-ret-table"></div>
+    <h3>Janelas recentes de validação</h3>
+    <div id="t361Windows" class="mdez-ret-table"></div>
+    <h3>Teste de retirada de sinais — consenso histórico</h3>
+    <p class="hint">Retiramos um sinal de cada vez, sem ajustar os pesos após ver os resultados. Melhorar a taxa ao retirar um sinal não prova que ele seja inútil; é apenas diagnóstico histórico.</p>
+    <div id="t361Ablation" class="mdez-ret-table"></div>
+    <h3>Últimas decisões auditáveis</h3>
+    <div id="t361Recent" class="mdez-ret-table"></div>
+    <p class="hint">Resultados históricos, não previsão garantida. A escolha de 30/60/100 avaliações após observar o placar também pode introduzir viés. Para uma verificação prospectiva, mantenha uma regra fixa e registre as indicações antes das próximas extrações.</p>
+   </div>
    <h3>Auditoria: últimas avaliações fora do treino</h3><div id="t36Recent" class="mdez-ret-table"></div>
    <p class="hint">Referência teórica: 5 dos 25 grupos = 20% de cobertura do 1º prêmio, em sorteios equiprováveis. A seleção do modelo ocorre somente no bloco de treino; o bloco final é reservado para avaliação. Se o desempenho fora do treino não superar o acaso, o sistema deve declarar "sem vantagem demonstrada".</p>
   </div>
@@ -3945,6 +3967,54 @@ function scores(history,origin){
 function choose(data,weights){const weightsByGroup=Array(26).fill(0);for(let g=1;g<=25;g++)weightsByGroup[g]=weights.reduce((t,w,i)=>t+w*data[i][g],0);return Array.from({length:25},(_,i)=>i+1).sort((a,b)=>weightsByGroup[b]-weightsByGroup[a]||a-b).slice(0,5)}
 function table(headers,body){return '<div style="overflow-x:auto"><table><thead><tr>'+headers.map(x=>'<th>'+safe(x)+'</th>').join('')+'</tr></thead><tbody>'+body.map(r=>'<tr>'+r.map(x=>'<td>'+safe(x)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'}
 let exportRows=[];
+/* Teste 36.1: comparador prequential. Nunca escolhe pesos com o alvo atual. */
+let exportProgress=[];
+const ablations=[
+ {id:'mixed',label:'Consenso original',weights:[0.50,0.35,0.10,0.05]},
+ {id:'noFirst',label:'Sem frequência do 1º',weights:[0,0.35,0.10,0.05]},
+ {id:'noAll',label:'Sem frequência dos 5 prêmios',weights:[0.50,0,0.10,0.05]},
+ {id:'noPairs',label:'Sem pares invertidos',weights:[0.50,0.35,0,0.05]},
+ {id:'noLower',label:'Sem grupos dos prêmios inferiores',weights:[0.50,0.35,0.10,0]}
+];
+function countHits(a,key){return a.reduce((n,x)=>n+(x.hits[key]===1?1:0),0)}
+function progressive(candidates){
+ const memory=el('t361Memory').value,minPast=30;
+ const all=candidates.map(x=>{
+  const hist=scores(x.history,x.origin);
+  const ab=Object.fromEntries(ablations.map(v=>[v.id,choose(hist,v.weights)]));
+  return {...x,ab,hits:{...Object.fromEntries(variants.map(v=>[v.id,Number(x.preds[v.id].includes(x.actual))])),...Object.fromEntries(ablations.map(v=>['ab_'+v.id,Number(ab[v.id].includes(x.actual))]))}};
+ });
+ if(all.length<=minPast){el('t361Info').textContent='É necessário ter mais de 30 transições cronológicas avaliáveis para validar progressivamente.';for(const id of ['t361Stats','t361Compare','t361Windows','t361Ablation','t361Recent'])el(id).innerHTML='';exportProgress=[];return}
+ const evaluated=[];exportProgress=[];
+ for(let j=minPast;j<all.length;j++){
+  const current=all[j];
+  // Somente avaliações anteriores, das quais os alvos já eram conhecidos quando a origem atual ocorreu.
+  const before=all.slice(memory==='all'?0:Math.max(0,j-Number(memory)),j);
+  const ranking=variants.map(v=>({id:v.id,label:v.label,n:countHits(before,v.id)}))
+    .sort((a,b)=>b.n-a.n||a.id.localeCompare(b.id));
+  const chosen=ranking[0];
+  const row={...current,chosen:chosen.id,chosenLabel:chosen.label,selected:current.preds[chosen.id],hit:Number(current.preds[chosen.id].includes(current.actual)),historyCount:before.length};
+  evaluated.push(row);
+  exportProgress.push({origin_date:current.origin.date,origin_time:current.origin.time,origin_first:current.origin.p[0],target_date:current.target.date,target_time:current.target.time,target_first:current.target.p[0],grupo_real:gid(current.actual),historico_usado:before.length,modelo_escolhido:chosen.label,top5:row.selected.map(gid).join(' '),acerto:row.hit,...Object.fromEntries(variants.map(v=>[v.id+'_hit',current.hits[v.id]])),...Object.fromEntries(ablations.map(v=>['ab_'+v.id+'_hit',current.hits['ab_'+v.id]]))});
+ }
+ const n=evaluated.length,hit=evaluated.reduce((t,x)=>t+x.hit,0);
+ const p=hit/n,err=1.96*Math.sqrt(Math.max(p*(1-p)/n,0));
+ const selectedNext=(()=>{const before=all.slice(memory==='all'?0:Math.max(0,all.length-Number(memory)));return variants.map(v=>({label:v.label,id:v.id,n:countHits(before,v.id)})).sort((a,b)=>b.n-a.n||a.id.localeCompare(b.id))[0]})();
+ const baseline=n*0.2;
+ el('t361Info').textContent='Total: '+all.length+' transições válidas · '+minPast+' avaliações iniciais apenas para histórico · '+n+' decisões posteriores auditáveis. O método de cada linha foi escolhido sem usar o resultado daquela linha.';
+ el('t361Stats').innerHTML=[['Decisões auditadas',n],['Acertos progressivos',hit+' / '+n+' · '+pct(hit,n)],['Acasos esperados',baseline.toFixed(1).replace('.',',')+' · 20%'],['Diferença vs acaso',((p-.2)*100).toFixed(1).replace('.',',')+' p.p.'],['Método que seria escolhido agora',selectedNext.label]].map(([k,v])=>'<div class="mdez-stat"><small>'+safe(k)+'</small><strong>'+safe(v)+'</strong></div>').join('');
+ el('t361Compare').innerHTML=table(['Estratégia','Acertos','Taxa','Diferença vs 20%'],[
+ ['Escolha progressiva (apenas passado)',hit+'/'+n,pct(hit,n),((p-.2)*100).toFixed(1).replace('.',',')+' p.p.'],
+ ...variants.map(v=>{const z=countHits(evaluated,v.id);return [v.label,z+'/'+n,pct(z,n),((z/n-.2)*100).toFixed(1).replace('.',',')+' p.p.']})]);
+ el('t361Windows').innerHTML=table(['Janela cronológica mais recente','Escolha progressiva','Frequência do 1º','Consenso histórico','Consenso + migração','Esperado'],[30,50,100].filter(w=>n>=w).map(w=>{const subset=evaluated.slice(-w);const h=subset.reduce((z,x)=>z+x.hit,0);return ['Últimas '+w,h+'/'+w+' · '+pct(h,w),...variants.map(v=>countHits(subset,v.id)+'/'+w+' · '+pct(countHits(subset,v.id),w)),(w*.2).toFixed(1).replace('.',',')+' acertos'] }));
+ el('t361Ablation').innerHTML=table(['Consenso fixo','Acertos no mesmo período','Taxa','Diferença contra original'],ablations.map(v=>{const z=countHits(evaluated,'ab_'+v.id),ref=countHits(evaluated,'ab_mixed');return [v.label,z+'/'+n,pct(z,n),v.id==='mixed'?'Referência interna':((z-ref>=0?'+':'')+(z-ref))+' acertos']}));
+ el('t361Recent').innerHTML=table(['Origem → alvo','Escolhido antes do alvo','Cinco grupos indicados','Grupo real','Resultado'],evaluated.slice(-16).reverse().map(z=>[
+  z.origin.date+' '+z.origin.time+' → '+z.target.date+' '+z.target.time,z.chosenLabel,z.selected.map(gid).join(' · '),gid(z.actual),z.hit?'ACERTO':'ERRO']));
+ const lower=p-err,upper=p+err;
+ const extra=document.createElement('p');extra.className='hint';extra.textContent='Faixa aproximada de incerteza (95%, aproximação normal): '+pct(Math.max(0,lower),1)+' a '+pct(Math.min(1,upper),1)+'. Resultados podem ser dependentes no tempo; esta faixa é apenas indicativa. '+(lower>.2?'A taxa observada superou 20%, mas é necessário confirmar em dados futuros.':'Não há evidência suficiente de vantagem robusta sobre 20%.');
+ el('t361Compare').appendChild(extra);
+}
+function csvProgress(){if(!exportProgress.length)return;const keys=Object.keys(exportProgress[0]),lines=[keys.join(';'),...exportProgress.map(r=>keys.map(k=>'"'+String(r[k]??'').replace(/"/g,'""')+'"').join(';'))];const u=URL.createObjectURL(new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=u;a.download='teste36_1_validacao_progressiva.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),1500)}
 function run(){try{
  const a=records(),period=el('t36Period').value,first=Math.max(60,period==='all'?60:a.length-Number(period));
  const candidates=[];let skipped=0;
@@ -3952,7 +4022,7 @@ function run(){try{
   if(typeof r22PairType!=='function'||!r22PairType(a[i],a[i+1])){skipped++;continue}
   const f=scores(a.slice(0,i+1),a[i]),actual=grp(a[i+1].p[0].slice(-2));
   const preds=Object.fromEntries(variants.map(v=>[v.id,choose(f,v.weights)]));
-  candidates.push({i,origin:a[i],target:a[i+1],actual,preds});
+  candidates.push({i,origin:a[i],target:a[i+1],actual,preds,history:a.slice(0,i+1)});
  }
  if(candidates.length<30){el('t36Info').textContent='São necessárias pelo menos 30 transições avaliáveis após 60 extrações iniciais. Base atual: '+a.length+' extrações; disponíveis: '+candidates.length+'.';el('t36Stats').innerHTML='';el('t36Models').innerHTML='';el('t36Next').innerHTML='';return}
  const cut=Math.max(1,Math.min(candidates.length-1,Math.floor(candidates.length*0.7)));
@@ -3971,8 +4041,10 @@ function run(){try{
  const descriptions={freq:'frequência recente no 1º prêmio',mixed:'frequência recente e sinais cruzados',migration:'sinais de frequência, pares vizinhos invertidos e prêmios inferiores'};
  el('t36Next').innerHTML='<p class="hint">Origem: <b>'+safe(latest.date+' '+latest.time+' · 1º '+latest.p[0])+'</b> · seleção retrospectiva do modelo escolhido no treino: '+safe(descriptions[champion.id])+'. <b>Não é probabilidade nem promessa de retorno.</b></p>'+table(['Grupo selecionado','Bicho','Situação'],pick.map(g=>[gid(g),animal[g-1],'Aguardando resultado do próximo 1º prêmio']));
  el('t36Recent').innerHTML=table(['Origem','1º prêmio seguinte','Top 5 do modelo','Resultado'],test.slice(-18).reverse().map(x=>[x.origin.date+' '+x.origin.time+' · '+x.origin.p[0],x.target.date+' '+x.target.time+' · '+x.target.p[0]+' / '+gid(x.actual),x.preds[champion.id].map(gid).join(' · '),x.preds[champion.id].includes(x.actual)?'ACERTO':'ERRO']));
+ progressive(candidates);
  }catch(e){el('t36Info').textContent='Falha no Teste 36: '+e.message;console.error(e)}}
 function csv(){if(!exportRows.length)return;const keys=Object.keys(exportRows[0]);const lines=[keys.join(';'),...exportRows.map(r=>keys.map(k=>'"'+String(r[k]??'').replace(/"/g,'""')+'"').join(';'))];const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='teste36_radar_validado_auditoria.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500)}
+el('t361Run').addEventListener('click',run);el('t361Memory').addEventListener('change',run);el('t361CSV').addEventListener('click',csvProgress);
 el('t36Run').addEventListener('click',run);el('t36Period').addEventListener('change',run);el('t36CSV').addEventListener('click',csv);
 document.querySelector('nav [data-tab="teste36"]')?.addEventListener('click',run);
 window.renderTeste36=run;run();
